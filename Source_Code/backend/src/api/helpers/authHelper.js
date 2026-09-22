@@ -1,7 +1,14 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { env } = require("process");
 require("dotenv").config();
+
+const getSecret = (name) => {
+    const secret = process.env[name];
+    if (!secret) {
+        throw new Error(`${name} is not configured`);
+    }
+    return secret;
+};
 
 // hash password:
 exports.hashPassword = (password) => {
@@ -22,9 +29,9 @@ exports.generateAccessToken = (userInfo) => {
                 id: userInfo.id,
             },
         },
-        env.ACCESS_TOKEN_CODE,
+        getSecret("ACCESS_TOKEN_CODE"),
         {
-            expiresIn: "30d", // 1 month
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "30d",
         }
     );
     return accessToken;
@@ -39,15 +46,22 @@ exports.generateRefreshToken = (userInfo) => {
                 id: userInfo.id || userInfo.facebookId,
             },
         },
-        env.REFRESH_TOKEN_CODE,
+        getSecret("REFRESH_TOKEN_CODE"),
         {
-            expiresIn: "30d",
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "30d",
         }
     );
     return refreshToken;
 };
 
 // store refresh token to cookie:
-exports.storeRefreshTokenToCookie = (res, refreshToken, cookieConfigs) => {
-    res.cookie("jwt", refreshToken, cookieConfigs);
+exports.storeRefreshTokenToCookie = (res, refreshToken, cookieConfigs = {}) => {
+    const isProduction = process.env.NODE_ENV === "production";
+    res.cookie("jwt", refreshToken || "", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        ...cookieConfigs,
+    });
 };
