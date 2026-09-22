@@ -13,6 +13,9 @@
         "jsonwebtoken": "^9.0.2",
         "mongoose": "^8.4.3",
         "nodemon": "^3.0.1",
+        "pg": "^8.13.1",
+        "pg-hstore": "^2.3.4",
+        "sequelize": "^6.37.5",
         "socket.io": "^4.8.1"
     },
     "name": "backend",
@@ -21,9 +24,12 @@
     "main": "app.js",
     "scripts": {
         "dev": "nodemon src/app.js",
-        "start": "node app.js",
+        "start": "node src/app.js",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "db:reset": ""
+        "db:migrate": "sequelize-cli db:migrate",
+        "db:seed": "sequelize-cli db:seed:all",
+        "db:undo": "sequelize-cli db:undo:all",
+        "db:reset": "sequelize-cli db:undo:all && sequelize-cli db:migrate && sequelize-cli db:seed:all"
     },
     "author": "huydayne1608",
     "license": "ISC",

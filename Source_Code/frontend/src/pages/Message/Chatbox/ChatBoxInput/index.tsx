@@ -36,8 +36,9 @@ const ChatBoxInput: React.FC<{ sendMessage: Function }> = ({ sendMessage }) => {
 
     const handleSendMessage = () => {
         sendMessage(message);
-        setIsSent(true);
+        setIsSent(pre => !pre);
     };
+
     return (
         <div className="p-4 border-t border-lightSecondDark">
             <form className="flex items-center gap-3 border border-lightSecondDark min-h-[44px] rounded-full px-6">

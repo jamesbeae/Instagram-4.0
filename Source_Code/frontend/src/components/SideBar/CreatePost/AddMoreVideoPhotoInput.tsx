@@ -16,7 +16,7 @@ const AddMoreVideoPhotoInput: React.FC<{ addMoreFile: Function }> = ({
             >
                 <FontAwesomeIcon
                     icon={faPlusCircle}
-                    className="w-8 h-auto text-lightDark cursor-pointer opacity-75 hover:opacity-100"
+                    className="w-8 h-auto cursor-pointer opacity-75 hover:opacity-100"
                 />
             </div>
             <input

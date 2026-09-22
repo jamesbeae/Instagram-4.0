@@ -36,12 +36,17 @@ const CurrentAccountAction = () => {
     };
     return (
         <div className="flex items-center">
-            <div
-                className="text-blue text-xs cursor-pointer hover:opacity-50"
-                onClick={logoutHandler}
-            >
-                Logout
-            </div>
+            {
+                authSlice.userInfo ? (
+                    <div className="text-blue text-xs cursor-pointer hover:opacity-50" onClick={logoutHandler}>
+                        Logout
+                        </div>) : (
+                            <div className="text-blue text-xs cursor-pointer hover:opacity-50" onClick={gotoLoginPage}>
+                                Login
+                            </div>
+                        )
+            }
+        
         </div>
     );
 };

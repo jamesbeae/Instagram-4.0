@@ -10,7 +10,7 @@ const createPostSchema = z.object({
     photoVideoList: photoVideoSchema
         .array()
         .min(1, { message: "Please choose your photo or video!" }),
-    caption: z.string(),
+    caption: z.string().min(1, { message: "Please enter your caption!" })
 });
 type CreatePostData = z.infer<typeof createPostSchema>;
 

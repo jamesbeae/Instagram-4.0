@@ -25,7 +25,7 @@ const Footer = () => {
 
             <ul className="flex gap-6 flex-wrap justify-center">
                 <li>English</li>
-                <li>© 2024 INSTAGRAM FROM huydayne1608</li>
+                <li>© 2026 INSTAGRAM FROM huydayne1608</li>
             </ul>
         </div>
     );
