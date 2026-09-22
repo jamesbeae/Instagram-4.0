@@ -19,8 +19,11 @@ const SearchModal = () => {
             try {
                 // Fetch suggested users
                 const result = await getAllUsers();
-                setResults(result?.data.users);
-                setAllUsers(result?.data.users);
+                const users = Array.isArray(result?.data?.users)
+                    ? result.data.users
+                    : [];
+                setResults(users);
+                setAllUsers(users);
             } catch (error) {
                 console.log(error);
             }
@@ -33,17 +36,19 @@ const SearchModal = () => {
         if (search.trim() === "") {
             setResults(allUsers);
         } else {
-            const filteredResults = results.filter(
-                (user) =>
-                    (user.username &&
-                        user.username
-                            .toLowerCase()
-                            .includes(search.toLowerCase())) ||
-                    user.fullName.toLowerCase().includes(search.toLowerCase())
-            );
+            const normalizedSearch = search.toLowerCase();
+            const filteredResults = allUsers.filter((user) => {
+                const username = user.username?.toLowerCase() || "";
+                const fullName = user.fullName?.toLowerCase() || "";
+
+                return (
+                    username.includes(normalizedSearch) ||
+                    fullName.includes(normalizedSearch)
+                );
+            });
             setResults(filteredResults);
         }
-    }, [search]);
+    }, [allUsers, search]);
 
     const getSearchInputValue = (value: string) => {
         setSearch(value);

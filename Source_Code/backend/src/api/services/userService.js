@@ -1,24 +1,46 @@
 const { StatusCodes } = require("http-status-codes");
 const userQuery = require("../mongooseQuery/userQuery");
 const postQuery = require("../mongooseQuery/postQuery");
+const { User: SequelizeUser } = require("../../database/models");
+
+const serializeUser = (user) => {
+    const data = user.get({ plain: true });
+    const { passwordHash, refreshToken, ...safeUser } = data;
+
+    return {
+        ...safeUser,
+        _id: data.id,
+    };
+};
 
 // Get All Users:
-exports.getAllUsers = () => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const allUsers = await userQuery.getAllUsers();
+exports.getAllUsers = async () => {
+    try {
+        const allUsers = await SequelizeUser.findAll({
+            attributes: [
+                "id",
+                "username",
+                "email",
+                "fullName",
+                "bio",
+                "avatar",
+                "createdAt",
+                "updatedAt",
+            ],
+            order: [["createdAt", "ASC"]],
+        });
 
-            resolve({
-                users: allUsers,
-                status: StatusCodes.OK,
-            });
-        } catch (error) {
-            reject({
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                message: "Error to get all users!",
-            });
-        }
-    });
+        return {
+            users: allUsers.map(serializeUser),
+            status: StatusCodes.OK,
+        };
+    } catch (error) {
+        console.log(error);
+        throw {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            message: "Error to get all users!",
+        };
+    }
 };
 
 // Get Suggested Users:

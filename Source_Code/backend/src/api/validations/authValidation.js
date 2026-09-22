@@ -10,7 +10,9 @@ exports.signUpSchema = Joi.object({
         .required(),
     fullName: Joi.string().min(3).max(100).required(),
     username: Joi.string().min(3).max(30).required(),
-    password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{8,30}$")),
+    password: Joi.string()
+        .pattern(new RegExp("^[a-zA-Z0-9]{8,30}$"))
+        .required(),
 });
 
 // Login validation:
@@ -21,5 +23,6 @@ exports.loginSchema = Joi.object({
 
 // Logout validation:
 exports.logoutSchema = Joi.object({
-    username: Joi.string().required(),
-});
+    _id: Joi.string().uuid(),
+    username: Joi.string(),
+}).or("_id", "username");
