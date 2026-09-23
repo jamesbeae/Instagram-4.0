@@ -65,6 +65,13 @@ exports.me = async (req, res, next) => {
         const userInfo = await sequelizeAuthService.getCurrentUser(
             req.currentUser.id
         );
+
+        res.set({
+            "Cache-Control": "no-store, no-cache, must-revalidate, private",
+            Pragma: "no-cache",
+            Expires: "0",
+        });
+
         res.status(200).json({ userInfo });
     } catch (error) {
         next(error);
