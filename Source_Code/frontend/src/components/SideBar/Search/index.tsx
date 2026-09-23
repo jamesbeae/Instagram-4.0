@@ -19,9 +19,11 @@ const SearchModal = () => {
             try {
                 // Fetch suggested users
                 const result = await getAllUsers();
-                const users = Array.isArray(result?.data?.users)
-                    ? result.data.users
+                const responseUsers = result?.data?.users;
+                const users = Array.isArray(responseUsers)
+                    ? responseUsers
                     : [];
+
                 setResults(users);
                 setAllUsers(users);
             } catch (error) {

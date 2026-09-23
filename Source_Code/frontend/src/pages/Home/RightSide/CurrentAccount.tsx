@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from "../../../hooks/useStore";
 import UserTagBar from "../../../components/UI/UserTagBar";
-import { logout, validateLogoutData } from "../../../services/logoutService";
+import { logout } from "../../../services/logoutService";
 import usePrivateHttp from "../../../hooks/usePrivateHttp";
 import { authActions } from "../../../lib/redux/authSlice";
 import useRedirect from "../../../hooks/useRedirect";
@@ -13,26 +13,15 @@ const CurrentAccountAction = () => {
     const { gotoLoginPage } = useRedirect();
     // Logout handler:
     const logoutHandler = async () => {
-        const _id = authSlice.userInfo?._id;
-        if (_id) {
-            try {
-                const validationResult = validateLogoutData({
-                    _id,
-                });
-                if (!validationResult.success) {
-                    console.log(validationResult.error);
-                } else {
-                    const res = await logout(privateHttp, {
-                        _id,
-                    });
-                    console.log(res);
-                    dispatch(authActions.loggedOut(null));
-                    gotoLoginPage();
-                }
-            } catch (error) {
-                console.log(error);
-            }
+        const result = await logout(privateHttp);
+
+        if (!result.success) {
+            console.error(result.message);
+            return;
         }
+
+        dispatch(authActions.loggedOut());
+        gotoLoginPage();
     };
     return (
         <div className="flex items-center">

@@ -1,35 +1,51 @@
+import axios from "axios";
 import http from "../lib/axios/http";
 import { z } from "zod";
 
-// Sign up validation:
 const signUpDataSchema = z.object({
-    email: z.string().email({ message: "Your email is not valid!" }),
+    email: z.string().email({
+        message: "Email không hợp lệ",
+    }),
     fullName: z.string().min(3, {
-        message: "Your full name must be at least 3 characters long!",
+        message: "Họ tên phải có ít nhất 3 ký tự",
     }),
     username: z.string().min(3, {
-        message: "Your username must be at least 3 characters long!",
+        message: "Username phải có ít nhất 3 ký tự",
     }),
     password: z.string().regex(/^[a-zA-Z0-9]{8,30}$/, {
         message:
-            "Your password must includes letters, numbers and at least 8 characters long! ",
+            "Mật khẩu phải dài từ 8 đến 30 ký tự và chỉ chứa chữ hoặc số",
     }),
 });
-type SignupData = z.infer<typeof signUpDataSchema>;
 
-// Validate Sign up data:
+export type SignupData = z.infer<typeof signUpDataSchema>;
+
 export const validateSignUpData = (data: SignupData) => {
-    const result = signUpDataSchema.safeParse(data);
-    return result;
+    return signUpDataSchema.safeParse(data);
 };
 
-// Sign up call api Handler:
 export const signUp = async (data: SignupData) => {
     try {
-        const response = await http.post("/auth/sign-up", data);
-        return response;
+        const response = await http.post("/auth/register", data);
+
+        return {
+            success: true as const,
+            data: response.data,
+        };
     } catch (error) {
-        console.log("error here");
-        return error;
+        if (axios.isAxiosError(error)) {
+            return {
+                success: false as const,
+                status: error.response?.status,
+                message:
+                    error.response?.data?.message ||
+                    "Không thể đăng ký tài khoản",
+            };
+        }
+
+        return {
+            success: false as const,
+            message: "Không thể kết nối tới máy chủ",
+        };
     }
 };

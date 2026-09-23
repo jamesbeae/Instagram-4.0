@@ -9,7 +9,8 @@ import Message from "./pages/Message";
 import ChatBox from "./pages/Message/Chatbox";
 import { useSocket } from "./hooks/useSocket";
 import { useAppSelector } from "./hooks/useStore";
-
+import AuthInitializer from "./components/AuthInitializer";
+import RequireAuth from "./components/RequireAuth";
 const router = createBrowserRouter([
     {
         path: "/sign-up",
@@ -20,25 +21,29 @@ const router = createBrowserRouter([
         element: <Login />,
     },
     {
-        path: "/",
-        element: <RootLayout />,
+        element: <RequireAuth />,
         children: [
             {
-                path: "",
-                element: <Home />,
-                index: true,
-            },
-            {
-                path: "profile/:_id",
-                element: <Profile />,
-            },
-            {
-                path: "message",
-                element: <Message />,
+                path: "/",
+                element: <RootLayout />,
                 children: [
                     {
-                        path: ":user_id",
-                        element: <ChatBox />,
+                        index: true,
+                        element: <Home />,
+                    },
+                    {
+                        path: "profile/:_id",
+                        element: <Profile />,
+                    },
+                    {
+                        path: "message",
+                        element: <Message />,
+                        children: [
+                            {
+                                path: ":user_id",
+                                element: <ChatBox />,
+                            },
+                        ],
                     },
                 ],
             },
@@ -49,7 +54,11 @@ const router = createBrowserRouter([
 function App() {
     const userId = useAppSelector((state) => state.authSlice.userInfo?._id);
     useSocket(userId);
-    return <RouterProvider router={router} />;
+    return (
+        <AuthInitializer>
+            <RouterProvider router={router} />
+        </AuthInitializer>
+    );
 }
 
 export default App;

@@ -1,16 +1,21 @@
 import axios from "axios";
 
-const http = axios.create({
-    baseURL: import.meta.env.VITE_REACT_API_URL,
-});
+const baseURL = import.meta.env.VITE_REACT_API_URL;
 
-// this privateHttp only use when user is AUTHENTICATED
-const privateHttp = axios.create({
-    baseURL: import.meta.env.VITE_REACT_API_URL,
+const http = axios.create({
+    baseURL,
     headers: {
         "Content-Type": "application/json",
     },
-    withCredentials: true, // use this so we can work with the header, cookies, ...
+    withCredentials: true,
+});
+
+const privateHttp = axios.create({
+    baseURL,
+    headers: {
+        "Content-Type": "application/json",
+    },
+    withCredentials: true,
 });
 
 export default http;

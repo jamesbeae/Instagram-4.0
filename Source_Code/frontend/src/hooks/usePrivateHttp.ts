@@ -5,16 +5,21 @@ import { privateHttp } from "../lib/axios/http";
 import { authActions } from "../lib/redux/authSlice";
 
 const usePrivateHttp = () => {
-    const currentUser = useAppSelector((state) => state.authSlice);
+    const accessToken = useAppSelector(
+        (state) => state.authSlice.accessToken
+    );
+
     const dispatch = useAppDispatch();
     const refresh = useRefreshToken();
 
     useEffect(() => {
         const requestIntercept = privateHttp.interceptors.request.use(
             (config) => {
-                if (!config.headers.Authorization && currentUser.accessToken) {
-                    config.headers.Authorization = `Bearer ${currentUser.accessToken}`;
+                if (!config.headers.Authorization && accessToken) {
+                    config.headers.Authorization =
+                        `Bearer ${accessToken}`;
                 }
+
                 return config;
             },
             (error) => Promise.reject(error)
@@ -23,25 +28,37 @@ const usePrivateHttp = () => {
         const responseIntercept = privateHttp.interceptors.response.use(
             (response) => response,
             async (error) => {
-                const prevRequest = error?.config;
-                if (error?.response?.status === 403 && !prevRequest?.sent) {
-                    prevRequest.sent = true;
-                    const newAccessToken = await refresh();
-                    console.log(newAccessToken);
-                    prevRequest.headers[
-                        "Authorization"
-                    ] = `Bearer ${newAccessToken}`;
-                    dispatch(authActions.storeNewAccessToken(newAccessToken));
-                    return privateHttp(prevRequest);
+                const previousRequest = error?.config;
+
+                if (
+                    error?.response?.status === 403 &&
+                    previousRequest &&
+                    !previousRequest.sent
+                ) {
+                    previousRequest.sent = true;
+
+                    try {
+                        const newAccessToken = await refresh();
+
+                        previousRequest.headers.Authorization =
+                            `Bearer ${newAccessToken}`;
+
+                        return privateHttp(previousRequest);
+                    } catch (refreshError) {
+                        dispatch(authActions.loggedOut());
+                        return Promise.reject(refreshError);
+                    }
                 }
+
                 return Promise.reject(error);
             }
         );
+
         return () => {
             privateHttp.interceptors.request.eject(requestIntercept);
             privateHttp.interceptors.response.eject(responseIntercept);
         };
-    }, [currentUser, refresh]);
+    }, [accessToken, dispatch, refresh]);
 
     return privateHttp;
 };

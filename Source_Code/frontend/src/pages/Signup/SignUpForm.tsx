@@ -3,7 +3,6 @@ import Input from "../../components/UI/Input/Input";
 import Button from "../../components/UI/Button/Button";
 import { signUp, validateSignUpData } from "../../services/signupService";
 import SignUpFormDesc from "./SignUpFormDesc";
-import { AxiosError } from "axios";
 import loginService from "../../services/loginService";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/useStore";
@@ -28,6 +27,7 @@ const SignUpForm = () => {
 
     // validation states:
     const [errorMess, setErrorMess] = useState<string>("");
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [disableSignUpButton, setDisableSignUpButton] =
         useState<boolean>(true);
 
@@ -54,7 +54,7 @@ const SignUpForm = () => {
     }, [email, fullName, username, password]);
 
     // Handle Sign up when click sign up button
-    const handleSignUp = useCallback(async () => {
+        const handleSignUp = useCallback(async () => {
         const signUpData = {
             email,
             fullName,
@@ -62,24 +62,35 @@ const SignUpForm = () => {
             password,
         };
 
-        // Validate the sign up data:
         const validationResult = validateSignUpData(signUpData);
+
         if (!validationResult.success) {
             setErrorMess(validationResult.error.issues[0].message);
-        } else {
-            const result = await signUp(signUpData);
-            // Check errors sent from server: (Check for duplicated emails or usernames)
-            if (result instanceof AxiosError) {
-                if (result.response?.data.message === "username")
-                    setErrorMess("A user with that username already exists!");
-                else if (result.response?.data.message === "email")
-                    setErrorMess("A user with that email already exists!");
-            }
+            return;
         }
 
-        // Navigate user to Login page:
-        navigate("/login");
-    }, [email, fullName, username, password]);
+        setIsSubmitting(true);
+        setErrorMess("");
+
+        try {
+            const result = await signUp(signUpData);
+
+            if (result.success) {
+                navigate("/login");
+                return;
+            }
+
+            if (result.message === "username") {
+                setErrorMess("Username đã tồn tại");
+            } else if (result.message === "email") {
+                setErrorMess("Email đã tồn tại");
+            } else {
+                setErrorMess(result.message);
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [email, fullName, username, password, navigate]);
 
     const handleLoginWithFacebook = async (response: any) => {
         if (!response.accessToken) {
@@ -106,8 +117,8 @@ const SignUpForm = () => {
     return (
         <form action="#" className="flex flex-col items-center gap-2">
             <ReactFacebookLogin
-                appId={import.meta.env.REACT_APP_FACEBOOK_APP_ID || ""}
-                autoLoad={true}
+                appId={import.meta.env.VITE_FACEBOOK_APP_ID || ""}
+                autoLoad={false}
                 fields="name,email,picture"
                 callback={(response) => {
                     handleLoginWithFacebook(response);
@@ -157,8 +168,8 @@ const SignUpForm = () => {
             <SignUpFormDesc />
             <Button
                 onClick={handleSignUp}
-                content="Sign Up"
-                disable={disableSignUpButton}
+                content={isSubmitting ? "Đang đăng ký..." : "Sign Up"}
+                disable={disableSignUpButton || isSubmitting}
                 className={buttonClassName}
             />
             {errorMess && (
