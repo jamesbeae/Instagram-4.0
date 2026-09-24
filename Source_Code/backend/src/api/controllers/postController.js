@@ -3,41 +3,44 @@ const postService = require("../services/postService");
 // create a Post:
 exports.createPost = async (req, res, next) => {
     try {
-        const { photoVideoList, caption } = req.body;
-
-        const result = await postService.createPost(
-            photoVideoList,
-            caption,
-            req.currentUser.id
-        );
-        res.json(result);
+        const { content, mediaUrl } = req.body;
+        const result = await postService.createPost({
+            content,
+            mediaUrl,
+            userId: req.currentUser.id,
+        });
+        res.status(result.status).json(result);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
 
-// Get All Posts:
-exports.getAllPosts = async (req, res, next) => {
+exports.getFeed = async (req, res, next) => {
     try {
-        const result = await postService.getAllPosts();
-        res.json(result);
+        const result = await postService.getFeed(req.validatedQuery);
+        res.status(result.status).json(result);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
 
-// Get All Posts:
-exports.getFollowingPosts = async (req, res, next) => {
+exports.getPostDetail = async (req, res, next) => {
     try {
-        const userId = req.currentUser.id;
-        const result = await postService.getFollowingPosts(userId);
-        res.json(result);
+        const result = await postService.getPostDetail(req.params.postId);
+        res.status(result.status).json(result);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
 
-// Delete a Post:
+exports.deletePost = async (req, res, next) => {
+    try {
+        const result = await postService.deletePost({
+            postId: req.params.postId,
+            userId: req.currentUser.id,
+        });
+        res.status(result.status).json(result);
+    } catch (error) {
+        next(error);
+    }
+};

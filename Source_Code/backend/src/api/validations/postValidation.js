@@ -1,13 +1,18 @@
 const Joi = require("joi");
 
-// Create Post Validation:
 exports.createPostSchema = Joi.object({
-    photoVideoList: Joi.array().items(
-        Joi.object({
-            url: Joi.string().required(),
-            type: Joi.string().valid("VIDEO", "PHOTO").required(),
-            name: Joi.string(),
-        })
-    ),
-    caption: Joi.string(),
+    content: Joi.string().trim().min(1).max(2200).required(),
+    mediaUrl: Joi.string()
+        .trim()
+        .uri({ scheme: ["http", "https"] })
+        .required(),
+});
+
+exports.feedQuerySchema = Joi.object({
+    page: Joi.number().integer().min(1).default(1),
+    limit: Joi.number().integer().min(1).max(50).default(10),
+});
+
+exports.postIdParamSchema = Joi.object({
+    postId: Joi.string().uuid().required(),
 });
