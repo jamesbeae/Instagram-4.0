@@ -1,0 +1,436 @@
+{
+    "info": {
+        "_postman_id": "f52aa171-7879-4be1-99dc-50db238c0879",
+        "name": "Instagram Posts API - P3",
+        "description": "Seed-based Post API checks for P3-02 and P3-03. Runtime access tokens are stored only in collection variables and are not committed.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Login seed post owner",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Owner login returns 200\", () => pm.response.to.have.status(200));",
+                                    "const body = pm.response.json();",
+                                    "pm.expect(body.accessToken).to.be.a(\"string\").and.not.empty;",
+                                    "pm.collectionVariables.set(\"ownerToken\", body.accessToken);",
+                                    "pm.collectionVariables.set(\"ownerId\", body.userInfo.id);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"{{ownerUsername}}\",\n    \"password\": \"{{demoPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["auth", "login"]
+                        }
+                    }
+                },
+                {
+                    "name": "Login seed post viewer",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Viewer login returns 200\", () => pm.response.to.have.status(200));",
+                                    "const body = pm.response.json();",
+                                    "pm.expect(body.accessToken).to.be.a(\"string\").and.not.empty;",
+                                    "pm.collectionVariables.set(\"viewerToken\", body.accessToken);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"{{viewerUsername}}\",\n    \"password\": \"{{demoPassword}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["auth", "login"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "P3-02 Create and feed",
+            "item": [
+                {
+                    "name": "Create post as authenticated owner",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Create returns 201\", () => pm.response.to.have.status(201));",
+                                    "const body = pm.response.json();",
+                                    "pm.expect(body.post.content).to.eql(\"Bài viết kiểm tra quyền sở hữu bằng Postman\");",
+                                    "pm.expect(body.post.userId).to.eql(pm.collectionVariables.get(\"ownerId\"));",
+                                    "pm.collectionVariables.set(\"postId\", body.post.id);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{ownerToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"content\": \"Bài viết kiểm tra quyền sở hữu bằng Postman\",\n    \"mediaUrl\": \"https://example.com/postman-test.jpg\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/post/create-post",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "create-post"]
+                        }
+                    }
+                },
+                {
+                    "name": "Reject create without token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Missing token returns 401\", () => pm.response.to.have.status(401));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"content\": \"Bài viết không có quyền xác thực\",\n    \"mediaUrl\": \"https://example.com/unauthorized.jpg\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/post/create-post",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "create-post"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get paginated feed",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Feed returns 200\", () => pm.response.to.have.status(200));",
+                                    "const body = pm.response.json();",
+                                    "pm.expect(body.postsList).to.be.an(\"array\").with.length.at.most(2);",
+                                    "pm.expect(body.pagination.page).to.eql(1);",
+                                    "pm.expect(body.pagination.limit).to.eql(2);",
+                                    "for (let index = 1; index < body.postsList.length; index += 1) {",
+                                    "    pm.expect(Date.parse(body.postsList[index - 1].createdAt)).to.be.at.least(Date.parse(body.postsList[index].createdAt));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/post/feed?page=1&limit=2",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "feed"],
+                            "query": [
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "2" }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Reject invalid feed limit",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Limit above 50 returns 400\", () => pm.response.to.have.status(400));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/post/feed?page=1&limit=51",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "feed"],
+                            "query": [
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "51" }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "P3-03 Detail and ownership delete",
+            "item": [
+                {
+                    "name": "Get post detail",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Detail returns 200\", () => pm.response.to.have.status(200));",
+                                    "const body = pm.response.json();",
+                                    "pm.expect(body.post.id).to.eql(pm.collectionVariables.get(\"postId\"));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/post/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "{{postId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Reject invalid post UUID",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Invalid UUID returns 400\", () => pm.response.to.have.status(400));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/post/not-a-uuid",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "not-a-uuid"]
+                        }
+                    }
+                },
+                {
+                    "name": "Reject delete without token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Delete without token returns 401\", () => pm.response.to.have.status(401));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/post/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "{{postId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Reject delete by non-owner",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Non-owner delete returns 403\", () => pm.response.to.have.status(403));",
+                                    "pm.expect(pm.response.json().message).to.eql(\"You can only delete your own posts\");"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{viewerToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/post/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "{{postId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Verify post remains after non-owner delete",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Post still exists\", () => pm.response.to.have.status(200));",
+                                    "pm.expect(pm.response.json().post.id).to.eql(pm.collectionVariables.get(\"postId\"));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/post/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "{{postId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete post as owner",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Owner delete returns 200\", () => pm.response.to.have.status(200));",
+                                    "pm.expect(pm.response.json().message).to.eql(\"Post deleted successfully\");"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{ownerToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/post/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "{{postId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Deleted post returns 404",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Deleted post is not found\", () => pm.response.to.have.status(404));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/post/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "{{postId}}"]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8000/v1/api",
+            "type": "string"
+        },
+        {
+            "key": "ownerUsername",
+            "value": "owner",
+            "type": "string"
+        },
+        {
+            "key": "viewerUsername",
+            "value": "viewer",
+            "type": "string"
+        },
+        {
+            "key": "demoPassword",
+            "value": "12345678",
+            "type": "string"
+        },
+        { "key": "ownerToken", "value": "", "type": "string" },
+        { "key": "viewerToken", "value": "", "type": "string" },
+        { "key": "ownerId", "value": "", "type": "string" },
+        { "key": "postId", "value": "", "type": "string" }
+    ]
+}
