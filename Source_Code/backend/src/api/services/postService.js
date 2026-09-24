@@ -1,99 +1,78 @@
-const postQuery = require("../mongooseQuery/postQuery");
-const userQuery = require("../mongooseQuery/userQuery");
-const photoVideoQuery = require("../mongooseQuery/photoVideoQuery");
-const photoVideoHelper = require("../helpers/photoVideoHelper");
 const { StatusCodes } = require("http-status-codes");
-const { User } = require("../models");
+const postQuery = require("../sequelizeQuery/postSequelize");
 
-// Create Post:
-exports.createPost = async (videoPhotoList, caption, user_id) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            // Create a post:
-            const newPost = await postQuery.createPost({
-                caption,
-                userId: user_id,
-                photoVideo: [],
-            });
-            const photoVideoIdList = [];
-            // Create videos and photos
-            const promises = videoPhotoList.map(async (item, index) => {
-                const { url, type, name } = item;
-                const cloudinaryUrl =
-                    await photoVideoHelper.storePhotoVideoToCloudinary(url);
+const httpError = (status, message) =>
+    Object.assign(new Error(message), { status });
 
-                // create Photo Video
-                const newPhotoVideo = await photoVideoQuery.createPhotoVideo({
-                    postId: newPost._id,
-                    url: cloudinaryUrl,
-                    postIndex: index,
-                    type: type,
-                });
-                photoVideoIdList[index] = newPhotoVideo._id;
-            });
-
-            await Promise.all(promises);
-
-            newPost.photoVideo = photoVideoIdList;
-            await newPost.save();
-            // const newPostDetail = await newPost
-            //     .populate("photoVideo")
-            //     .populate("userId");
-
-            resolve({
-                status: StatusCodes.CREATED,
-                message: "success!",
-                post: newPost,
-            });
-        } catch (error) {
-            console.log(error);
-            reject({
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                message: "something wrong!",
-            });
-        }
-    });
+const serializePost = (post) => {
+    const data = post.get({ plain: true });
+    return { ...data, _id: data.id };
 };
 
-// Get All Posts:
-exports.getAllPosts = async () => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const postsList = await postQuery.getAllPosts();
-            resolve({
-                postsList,
-                status: StatusCodes.OK,
-                message: "Success to get all Posts!",
-            });
-        } catch (error) {
-            console.log(error);
-            reject({
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                message: "Error to get all Posts!",
-            });
-        }
+exports.createPost = async ({ content, mediaUrl, userId }) => {
+    const createdPost = await postQuery.createPost({
+        content,
+        mediaUrl,
+        userId,
     });
+    const post = await postQuery.findPostById(createdPost.id);
+
+    return {
+        status: StatusCodes.CREATED,
+        message: "Post created successfully",
+        post: serializePost(post),
+    };
 };
 
-// Get Following Posts
-exports.getFollowingPosts = (userId) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const user = await userQuery.findAnUser({ _id: userId });
-            const followingsIdList = user.followings;
-            const result = await postQuery.getFollowingPosts(followingsIdList);
+exports.getFeed = async ({ page, limit }) => {
+    const offset = (page - 1) * limit;
+    const { count, rows } = await postQuery.getFeed({ limit, offset });
 
-            resolve({
-                postsList,
-                status: StatusCodes.OK,
-                message: "Success to get following Posts!",
-            });
-        } catch (error) {
-            console.log(error);
-            reject({
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                message: "Error to get following Posts!",
-            });
-        }
-    });
+    return {
+        status: StatusCodes.OK,
+        message: "Feed retrieved successfully",
+        postsList: rows.map(serializePost),
+        pagination: {
+            page,
+            limit,
+            total: count,
+            totalPages: Math.ceil(count / limit),
+        },
+    };
+};
+
+exports.getPostDetail = async (postId) => {
+    const post = await postQuery.findPostById(postId);
+    if (!post) {
+        throw httpError(StatusCodes.NOT_FOUND, "Post not found");
+    }
+
+    return {
+        status: StatusCodes.OK,
+        message: "Post retrieved successfully",
+        post: serializePost(post),
+    };
+};
+
+exports.deletePost = async ({ postId, userId }) => {
+    const post = await postQuery.findPostById(postId);
+    if (!post) {
+        throw httpError(StatusCodes.NOT_FOUND, "Post not found");
+    }
+    if (post.userId !== userId) {
+        throw httpError(
+            StatusCodes.FORBIDDEN,
+            "You can only delete your own posts"
+        );
+    }
+
+    const deletedCount = await postQuery.deletePost({ postId, userId });
+    if (deletedCount === 0) {
+        throw httpError(StatusCodes.NOT_FOUND, "Post not found");
+    }
+
+    return {
+        status: StatusCodes.OK,
+        message: "Post deleted successfully",
+    };
 };

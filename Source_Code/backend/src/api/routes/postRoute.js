@@ -1,9 +1,22 @@
 const express = require("express");
 const router = express.Router();
-const { createPost, getAllPosts } = require("../controllers/postController");
+const {
+    createPost,
+    deletePost,
+    getFeed,
+    getPostDetail,
+} = require("../controllers/postController");
 const { verifyJWT } = require("../middlewares/verifyJWT");
-const { validateReqBody } = require("../middlewares/validateReqBody");
-const { createPostSchema } = require("../validations/postValidation");
+const {
+    validateReqBody,
+    validateReqParams,
+    validateReqQuery,
+} = require("../middlewares/validateReqBody");
+const {
+    createPostSchema,
+    feedQuerySchema,
+    postIdParamSchema,
+} = require("../validations/postValidation");
 
 // Create Post:
 router.post(
@@ -13,7 +26,26 @@ router.post(
     createPost
 );
 
-// Get ALl Posts:
-router.get("/get-all-posts", getAllPosts);
+router.get("/feed", validateReqQuery(feedQuerySchema), getFeed);
+
+// Compatibility route used by the current frontend.
+router.get(
+    "/get-all-posts",
+    validateReqQuery(feedQuerySchema),
+    getFeed
+);
+
+router.get(
+    "/:postId",
+    validateReqParams(postIdParamSchema),
+    getPostDetail
+);
+
+router.delete(
+    "/:postId",
+    verifyJWT,
+    validateReqParams(postIdParamSchema),
+    deletePost
+);
 
 module.exports = router;
