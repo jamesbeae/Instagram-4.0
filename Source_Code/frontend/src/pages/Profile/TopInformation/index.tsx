@@ -10,12 +10,12 @@ import { socket } from "../../../socket/socket";
 
 const TopInformation: React.FC<{ profile: Profile }> = ({ profile }) => {
     const privateHttp = usePrivateHttp();
-    const currentUserId = useAppSelector(
-        (state) => state.authSlice.userInfo?._id
+    const currentUser = useAppSelector(
+        (state) => state.authSlice.userInfo
     );
-    const [isOwnProfile, setIsOwnProfile] = React.useState<boolean>(
-        profile._id === currentUserId
-    );
+
+    const currentUserId = currentUser?._id;
+    const isOwnProfile = profile._id === currentUserId;
     const [followers, setFollowers] = React.useState<number>(
         profile.followers ? profile.followers.length : 0
     );
@@ -28,7 +28,18 @@ const TopInformation: React.FC<{ profile: Profile }> = ({ profile }) => {
             })
         )
     );
+    React.useEffect(() => {
+        setFollowers(profile.followers?.length || 0);
 
+        const currentUserIsFollowing = !!(
+            currentUserId &&
+            profile.followers?.some(
+                (follower) => follower._id === currentUserId
+            )
+        );
+
+        setIsFollowing(currentUserIsFollowing);
+    }, [profile, currentUserId]);
     const handleFollowUser = async () => {
         try {
             if (!isFollowing && profile._id) {
@@ -39,13 +50,13 @@ const TopInformation: React.FC<{ profile: Profile }> = ({ profile }) => {
                     senderId: currentUserId,
                     receiverId: profile._id,
                     type: "FOLLOW",
-                    content: `${profile.fullName} started following you`,
+                    content: `${currentUser?.fullName || currentUser?.username} started following you`,
                 });
                 console.log(response);
             } else if (profile._id) {
                 const response = await deleteFollow(privateHttp, profile._id);
                 setIsFollowing(false);
-                setFollowers((prev) => prev - 1);
+                setFollowers((prev) => Math.max(0, prev - 1));
                 console.log(response);
             }
         } catch (error) {

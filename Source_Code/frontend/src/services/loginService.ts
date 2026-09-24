@@ -1,67 +1,96 @@
+import axios from "axios";
 import { z } from "zod";
 import http from "../lib/axios/http";
-import { AxiosError } from "axios";
-import { FacebookUserResponse } from "../models/FacebookResponse";
 
-// Log in with Facebook: (======== This feature will be done later ========);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const loginWithFacebook = async (data: any) => {
+// Login with Facebook.
+// Backend PostgreSQL hiện chưa hỗ trợ chức năng này.
+const loginWithFacebook = async (data: { accessToken?: string }) => {
     try {
         const response = await http.post("/auth/login-with-facebook", {
             accessToken: data.accessToken,
         });
+
         return {
-            success: true,
+            success: true as const,
             data: response.data,
         };
     } catch (error) {
-        console.log(error);
+        if (axios.isAxiosError(error)) {
+            return {
+                success: false as const,
+                message:
+                    error.response?.data?.message ||
+                    "Facebook Login chưa được hỗ trợ",
+            };
+        }
+
+        return {
+            success: false as const,
+            message: "Không thể kết nối tới máy chủ",
+        };
     }
 };
 
-// Login Data validation:
+// Kiểm tra dữ liệu đăng nhập ở frontend.
 const loginDataSchema = z.object({
-    username: z.string().min(1, { message: "Your username is required!" }),
-    password: z.string().min(1, { message: "Your password is required!" }),
+    username: z.string().min(1, {
+        message: "Bạn chưa nhập username",
+    }),
+    password: z.string().min(1, {
+        message: "Bạn chưa nhập mật khẩu",
+    }),
 });
 
 type LoginData = z.infer<typeof loginDataSchema>;
 
-// Validate Login Data:
 const validateLoginData = (data: LoginData) => {
-    const result = loginDataSchema.safeParse(data);
-    return result;
+    return loginDataSchema.safeParse(data);
 };
 
-// Login:
+// Gọi API đăng nhập.
 const login = async (data: LoginData) => {
     try {
-        const response = await http.post("/auth/login", data, {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-        });
-        console.log(response);
+        const response = await http.post("/auth/login", data);
+
         return {
-            success: true,
+            success: true as const,
             data: response.data,
         };
     } catch (error) {
-        console.log(error);
-        if (error instanceof AxiosError && error.response?.status === 401) {
-            if (error.response.data.message === "username") {
+        if (axios.isAxiosError(error)) {
+            const message = error.response?.data?.message;
+
+            if (message === "username") {
                 return {
-                    success: false,
-                    data: "Sorry, your username was incorrect. Please double-check your username.",
-                };
-            } else if (error.response.data.message === "password") {
-                return {
-                    success: false,
-                    data: "Sorry, your password was incorrect. Please double-check your password.",
+                    success: false as const,
+                    message: "Username không tồn tại",
                 };
             }
+
+            if (message === "password") {
+                return {
+                    success: false as const,
+                    message: "Mật khẩu không đúng",
+                };
+            }
+
+            return {
+                success: false as const,
+                message: message || "Đăng nhập thất bại",
+            };
         }
+
+        return {
+            success: false as const,
+            message: "Không thể kết nối tới máy chủ",
+        };
     }
 };
 
-const loginService = { loginWithFacebook, validateLoginData, login };
+const loginService = {
+    loginWithFacebook,
+    validateLoginData,
+    login,
+};
+
 export default loginService;

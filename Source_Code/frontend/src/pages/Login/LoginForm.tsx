@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Input from "../../components/UI/Input/Input";
 import Button from "../../components/UI/Button/Button";
 import loginService from "../../services/loginService";
@@ -62,7 +62,7 @@ const LoginForm = () => {
                 );
                 gotoHomePage();
             } else {
-                setErrorMess(result?.data);
+                setErrorMess(result?.message ?? "Đăng nhập thất bại");
             }
         }
     }, [username, password, dispatch, gotoHomePage]);
@@ -125,8 +125,8 @@ const LoginForm = () => {
             </div>
 
             <FacebookLogin
-                appId={import.meta.env.REACT_APP_FACEBOOK_APP_ID || ""}
-                autoLoad={true}
+                appId={import.meta.env.VITE_FACEBOOK_APP_ID || ""}
+                autoLoad={false}
                 fields="name,email,picture"
                 callback={(response) => {
                     handleLoginWithFacebook(response);

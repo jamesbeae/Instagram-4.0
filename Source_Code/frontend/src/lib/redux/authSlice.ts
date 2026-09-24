@@ -13,22 +13,23 @@ const initialState: AuthSlice = {
 
 const authSlice = createSlice({
     name: "authSlice",
-    initialState: initialState,
+    initialState,
     reducers: {
         loggedIn: (state, action) => {
-            return (state = {
+            return {
                 userInfo: action.payload.userInfo,
                 accessToken: action.payload.accessToken,
-            });
-        },
-        storeNewAccessToken: (state, action) => {
-            const newState = { ...state, accessToken: action.payload };
-            return (state = newState);
+            };
         },
 
-        loggedOut: (state, action) => {
-            return (state = initialState);
+        storeNewAccessToken: (state, action) => {
+            return {
+                ...state,
+                accessToken: action.payload,
+            };
         },
+
+        loggedOut: () => initialState,
     },
 });
 

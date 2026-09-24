@@ -26,37 +26,51 @@ exports.getSuggestedUsers = async (req, res, next) => {
 // get User Profile:
 exports.getUserProfile = async (req, res, next) => {
     try {
-        const _id = req.query._id;
-        const result = await userService.getUserProfile(_id);
-        res.json(result);
+        const profileId = req.query._id;
+        const result = await userService.getUserProfile(profileId);
+
+        res.set({
+            "Cache-Control": "no-store, no-cache, must-revalidate, private",
+            Pragma: "no-cache",
+            Expires: "0",
+        });
+
+        res.status(result.status).json(result);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
 
 // Create Follow:
 exports.createFollow = async (req, res, next) => {
-    const followingId = req.body.userId;
-    const userId = req.currentUser.id;
     try {
-        const result = await userService.createFollow(userId, followingId);
-        res.json(result);
+        const currentUserId = req.currentUser.id;
+        const followingId = req.body.userId;
+
+        const result = await userService.createFollow(
+            currentUserId,
+            followingId
+        );
+
+        res.status(result.status).json(result);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
 
 // Delete Follow:
 exports.deleteFollow = async (req, res, next) => {
-    const followingId = req.body.userId;
-    const userId = req.currentUser.id;
     try {
-        const result = await userService.deleteFollow(userId, followingId);
-        res.json(result);
+        const currentUserId = req.currentUser.id;
+        const followingId = req.body.userId;
+
+        const result = await userService.deleteFollow(
+            currentUserId,
+            followingId
+        );
+
+        res.status(result.status).json(result);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
