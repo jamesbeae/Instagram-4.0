@@ -22,46 +22,33 @@ export const getSuggestedUsers = async (privateHttp: AxiosInstance) => {
 };
 
 // Get User Profile Service:
-export const getUserProfile = async (
+export const getUserProfile = (
     privateHttp: AxiosInstance,
-    _id: string
+    profileId: string
 ) => {
-    try {
-        const res = await privateHttp.get(`/user/get-profile`, {
-            params: { _id },
-        });
-        return res;
-    } catch (error) {
-        console.log(error);
-    }
+    return privateHttp.get("/user/get-profile", {
+        params: {
+            _id: profileId,
+        },
+    });
 };
 
 // Create Follow Service:
-export const createFollow = async (
+export const createFollow = (
     privateHttp: AxiosInstance,
     userId: string
 ) => {
-    try {
-        const res = await privateHttp.post("/user/create-follow", {
-            userId,
-        });
-        return res;
-    } catch (error) {
-        console.log(error);
-    }
+    return privateHttp.post("/user/create-follow", {
+        userId,
+    });
 };
 
 // Delete Follow Service:
-export const deleteFollow = async (
+export const deleteFollow = (
     privateHttp: AxiosInstance,
     userId: string
 ) => {
-    try {
-        const res = await privateHttp.post("/user/delete-follow", {
-            userId,
-        });
-        return res;
-    } catch (error) {
-        console.log(error);
-    }
+    return privateHttp.post("/user/delete-follow", {
+        userId,
+    });
 };
