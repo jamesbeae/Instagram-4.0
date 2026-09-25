@@ -33,6 +33,19 @@ exports.getPostDetail = async (req, res, next) => {
     }
 };
 
+exports.updatePost = async (req, res, next) => {
+    try {
+        const result = await postService.updatePost({
+            postId: req.params.postId,
+            userId: req.currentUser.id,
+            ...req.body,
+        });
+        res.status(result.status).json(result);
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.deletePost = async (req, res, next) => {
     try {
         const result = await postService.deletePost({

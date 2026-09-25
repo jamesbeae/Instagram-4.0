@@ -8,6 +8,13 @@ exports.createPostSchema = Joi.object({
         .required(),
 });
 
+exports.updatePostSchema = Joi.object({
+    content: Joi.string().trim().min(1).max(2200),
+    mediaUrl: Joi.string()
+        .trim()
+        .uri({ scheme: ["http", "https"] }),
+}).or("content", "mediaUrl");
+
 exports.feedQuerySchema = Joi.object({
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(50).default(10),

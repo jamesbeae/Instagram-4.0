@@ -5,6 +5,7 @@ const {
     deletePost,
     getFeed,
     getPostDetail,
+    updatePost,
 } = require("../controllers/postController");
 const { verifyJWT } = require("../middlewares/verifyJWT");
 const {
@@ -16,6 +17,7 @@ const {
     createPostSchema,
     feedQuerySchema,
     postIdParamSchema,
+    updatePostSchema,
 } = require("../validations/postValidation");
 
 // Create Post:
@@ -39,6 +41,14 @@ router.get(
     "/:postId",
     validateReqParams(postIdParamSchema),
     getPostDetail
+);
+
+router.patch(
+    "/:postId",
+    verifyJWT,
+    validateReqParams(postIdParamSchema),
+    validateReqBody(updatePostSchema),
+    updatePost
 );
 
 router.delete(
