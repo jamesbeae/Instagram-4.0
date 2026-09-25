@@ -9,6 +9,20 @@ const serializePost = (post) => {
     return { ...data, _id: data.id };
 };
 
+const findOwnedPost = async (postId, userId, forbiddenMessage) => {
+    const post = await postQuery.findPostById(postId);
+    if (!post) {
+        throw httpError(StatusCodes.NOT_FOUND, "Post not found");
+    }
+    if (post.userId !== userId) {
+        throw httpError(
+            StatusCodes.FORBIDDEN,
+            forbiddenMessage
+        );
+    }
+    return post;
+};
+
 exports.createPost = async ({ content, mediaUrl, userId }) => {
     const createdPost = await postQuery.createPost({
         content,
@@ -54,17 +68,40 @@ exports.getPostDetail = async (postId) => {
     };
 };
 
-exports.deletePost = async ({ postId, userId }) => {
-    const post = await postQuery.findPostById(postId);
-    if (!post) {
+exports.updatePost = async ({ postId, userId, content, mediaUrl }) => {
+    await findOwnedPost(
+        postId,
+        userId,
+        "You can only update your own posts"
+    );
+
+    const data = {};
+    if (content !== undefined) data.content = content;
+    if (mediaUrl !== undefined) data.mediaUrl = mediaUrl;
+
+    const [updatedCount] = await postQuery.updatePost({
+        postId,
+        userId,
+        data,
+    });
+    if (updatedCount === 0) {
         throw httpError(StatusCodes.NOT_FOUND, "Post not found");
     }
-    if (post.userId !== userId) {
-        throw httpError(
-            StatusCodes.FORBIDDEN,
-            "You can only delete your own posts"
-        );
-    }
+
+    const updatedPost = await postQuery.findPostById(postId);
+    return {
+        status: StatusCodes.OK,
+        message: "Post updated successfully",
+        post: serializePost(updatedPost),
+    };
+};
+
+exports.deletePost = async ({ postId, userId }) => {
+    await findOwnedPost(
+        postId,
+        userId,
+        "You can only delete your own posts"
+    );
 
     const deletedCount = await postQuery.deletePost({ postId, userId });
     if (deletedCount === 0) {

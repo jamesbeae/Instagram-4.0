@@ -1,6 +1,6 @@
 # Post API test results
 
-- Date: 2026-09-24
+- Date: 2026-09-25
 - Database: PostgreSQL 16 in local Docker
 - Runner: Newman 6.2.2
 - Collection: `Instagram_Posts_API.postman_collection.json`
@@ -11,11 +11,11 @@
 | Metric | Executed | Failed |
 | --- | ---: | ---: |
 | Iterations | 1 | 0 |
-| Requests | 13 | 0 |
-| Test scripts | 13 | 0 |
-| Assertions | 13 | 0 |
+| Requests | 18 | 0 |
+| Test scripts | 18 | 0 |
+| Assertions | 18 | 0 |
 
-Total run duration was 2.4 seconds. Average response time was 108 ms on the
+Total run duration was 2.8 seconds. Average response time was 78 ms on the
 local test machine.
 
 ## Verified scenarios
@@ -30,6 +30,11 @@ local test machine.
 | Feed limit above 50 | 400 | Passed |
 | Existing post detail | 200 | Passed |
 | Invalid post UUID | 400 | Passed |
+| Update without token | 401 | Passed |
+| Update by a non-owner | 403 | Passed |
+| Update with an empty body | 400 | Passed |
+| Update content by the owner | 200 | Passed |
+| Update media URL by the owner | 200 | Passed |
 | Delete without token | 401 | Passed |
 | Delete by a non-owner | 403 | Passed |
 | Post remains after non-owner deletion attempt | 200 | Passed |
