@@ -5,6 +5,9 @@ const {
     Follow,
     Post,
 } = require("../../database/models");
+const {
+    storePhotoVideoToCloudinary,
+} = require("../helpers/photoVideoHelper");
 const serializeUser = (user) => {
     const data =
         typeof user.get === "function"
@@ -242,5 +245,44 @@ exports.deleteFollow = async (userId, followingId) => {
         status: StatusCodes.OK,
         message: "Unfollowed successfully!",
         following: false,
+    };
+};
+// Update current user's profile:
+exports.updateProfile = async (
+    userId,
+    { fullName, bio, avatarData }
+) => {
+    const user = await SequelizeUser.findByPk(userId);
+
+    if (!user) {
+        throw httpError(
+            StatusCodes.NOT_FOUND,
+            "User not found"
+        );
+    }
+
+    const updateData = {};
+
+    if (fullName !== undefined) {
+        updateData.fullName = fullName;
+    }
+
+    if (bio !== undefined) {
+        updateData.bio = bio;
+    }
+
+    if (avatarData === null) {
+        updateData.avatar = null;
+    } else if (avatarData) {
+        updateData.avatar =
+            await storePhotoVideoToCloudinary(avatarData);
+    }
+
+    await user.update(updateData);
+
+    return {
+        status: StatusCodes.OK,
+        message: "Profile updated successfully",
+        userInfo: serializeUser(user),
     };
 };

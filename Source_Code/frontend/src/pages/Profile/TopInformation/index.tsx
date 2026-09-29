@@ -7,8 +7,18 @@ import { useAppSelector } from "../../../hooks/useStore";
 import { createFollow, deleteFollow } from "../../../services/userService";
 import usePrivateHttp from "../../../hooks/usePrivateHttp";
 import { socket } from "../../../socket/socket";
+import { User } from "../../../models/User";
+import EditProfileModal from "../EditProfileModal";
 
-const TopInformation: React.FC<{ profile: Profile }> = ({ profile }) => {
+type TopInformationProps = {
+            profile: Profile;
+            onProfileUpdated: (user: User) => void;
+        };
+
+        const TopInformation = ({
+            profile,
+            onProfileUpdated,
+        }: TopInformationProps) => {
     const privateHttp = usePrivateHttp();
     const currentUser = useAppSelector(
         (state) => state.authSlice.userInfo
@@ -16,6 +26,8 @@ const TopInformation: React.FC<{ profile: Profile }> = ({ profile }) => {
 
     const currentUserId = currentUser?._id;
     const isOwnProfile = profile._id === currentUserId;
+    const [isEditModalOpen, setIsEditModalOpen] =
+        React.useState(false);
     const [followers, setFollowers] = React.useState<number>(
         profile.followers ? profile.followers.length : 0
     );
@@ -83,6 +95,7 @@ const TopInformation: React.FC<{ profile: Profile }> = ({ profile }) => {
                         <>
                             <Button
                                 content="Edit profile"
+                                onClick={() => setIsEditModalOpen(true)}
                                 className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded"
                             />
 
@@ -147,6 +160,13 @@ const TopInformation: React.FC<{ profile: Profile }> = ({ profile }) => {
                     )}
                 </div>
             </div>
+            {isEditModalOpen && (
+                <EditProfileModal
+                    user={profile}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onUpdated={onProfileUpdated}
+                />
+            )}
         </div>
     );
 };

@@ -5,6 +5,7 @@ import { getUserProfile } from "../../services/userService";
 import usePrivateHttp from "../../hooks/usePrivateHttp";
 import TopInformation from "./TopInformation";
 import PostList from "./PostList";
+import { User } from "../../models/User";
 
 const Profile = () => {
     const { _id } = useParams<{ _id: string }>();
@@ -43,7 +44,22 @@ const Profile = () => {
 
         getProfile();
     }, [_id, privateHttp]);
+    const handleProfileUpdated = (updatedUser: User) => {
+        setProfile((currentProfile) => {
+            if (!currentProfile) {
+                return currentProfile;
+            }
 
+            return {
+                ...currentProfile,
+                ...updatedUser,
+                posts: currentProfile.posts,
+                saved: currentProfile.saved,
+                followers: currentProfile.followers,
+                followings: currentProfile.followings,
+            };
+        });
+    };
     if (isLoading) {
         return (
             <div className="text-white text-center mt-10">
@@ -70,7 +86,10 @@ const Profile = () => {
 
     return (
         <div className="max-w-[935px] w-[calc(100%-40px)] mx-auto py-[30px] px-5 overflow-y-auto scrollbar-hide">
-            <TopInformation profile={profile} />
+            <TopInformation
+                profile={profile}
+                onProfileUpdated={handleProfileUpdated}
+            />
 
             <PostList
                 posts={profile.posts || []}

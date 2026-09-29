@@ -74,3 +74,26 @@ exports.deleteFollow = async (req, res, next) => {
         next(error);
     }
 };
+
+// Update current user's profile:
+exports.updateProfile = async (req, res, next) => {
+    try {
+        const currentUserId = req.currentUser.id;
+
+        const result = await userService.updateProfile(
+            currentUserId,
+            req.body
+        );
+
+        res.set({
+            "Cache-Control":
+                "no-store, no-cache, must-revalidate, private",
+            Pragma: "no-cache",
+            Expires: "0",
+        });
+
+        res.status(result.status).json(result);
+    } catch (error) {
+        next(error);
+    }
+};
