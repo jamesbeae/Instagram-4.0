@@ -31,12 +31,12 @@ router.patch('/post/:postId', verifyJWT, wrap(req => {
     const data = validated(Joi.object({ content: Joi.string().trim().min(1).max(2200), mediaUrl: Joi.string().trim().uri({ scheme: ['http', 'https'] }).max(2048) }).min(1), req.body);
     return require('../services/postService').updatePost({ postId: req.params.postId, userId: req.currentUser.id, ...data });
 }));
-router.patch('/user/me', verifyJWT, wrap(async (req) => {
-    const data = validated(Joi.object({ fullName: Joi.string().trim().min(1).max(120), bio: Joi.string().max(2000).allow(''), avatar: Joi.string().uri({ scheme: ['http', 'https'] }).allow(null, '') }).min(1), req.body);
-    const user = await User.findByPk(req.currentUser.id);
-    await user.update(data);
-    return { status: 200, userInfo: { ...s.safeUser(user), email: user.email } };
-}));
+const updateProfile = wrap(async req => {
+    const data = validated(Joi.object({ fullName: Joi.string().trim().min(1).max(120), bio: Joi.string().max(2000).allow(''), avatar: Joi.string().uri({ scheme: ['http', 'https'] }).allow(null, ''), avatarData: Joi.string().pattern(/^data:image\/(png|jpeg|webp);base64,/).max(7000000).allow(null) }).oxor('avatar', 'avatarData').min(1), req.body);
+    const result = await require('../services/userService').updateProfile(req.currentUser.id, data);
+    return { ...result, userInfo: { ...result.userInfo, role: req.currentUser.role } };
+});
+router.patch('/user/me', verifyJWT, updateProfile);
 router.post('/auth/change-password', verifyJWT, wrap(async (req) => {
     const data = validated(Joi.object({ currentPassword: Joi.string().required(), newPassword: Joi.string().min(8).max(128).required() }), req.body);
     const bcrypt = require('bcryptjs'), user = await User.findByPk(req.currentUser.id);

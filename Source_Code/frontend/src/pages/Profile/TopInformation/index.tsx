@@ -1,5 +1,6 @@
 import React from "react";
-import ProfileEditor from "../../../components/ProfileEditor";
+import EditProfileModal from "../EditProfileModal";
+import { User } from "../../../models/User";
 import { useNavigate } from "react-router-dom";
 import { Profile } from "../../../models/Profile";
 import Avatar from "../../../components/UI/Avatar/Avatar";
@@ -9,7 +10,8 @@ import { createFollow, deleteFollow } from "../../../services/userService";
 import usePrivateHttp from "../../../hooks/usePrivateHttp";
 const TopInformation: React.FC<{
     profile: Profile;
-}> = ({ profile }) => {
+    onProfileUpdated: (user: User) => void;
+}> = ({ profile, onProfileUpdated }) => {
     const [editing, setEditing] = React.useState(false);
     const navigate = useNavigate();
     const privateHttp = usePrivateHttp();
@@ -55,7 +57,7 @@ const TopInformation: React.FC<{
             console.log(error);
         }
     };
-    return (<> {editing && <ProfileEditor profile={profile} onClose={() => setEditing(false)}/>}<div className="grid grid-cols-3 text-white px-4 py-6">
+    return (<> {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)}/>}<div className="grid grid-cols-3 text-white px-4 py-6">
             {/* <LeftAvatar avatarUrl={profile.avatar} />
         <RightContent profile={profile} /> */}
 

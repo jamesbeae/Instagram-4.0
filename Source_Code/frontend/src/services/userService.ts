@@ -52,3 +52,15 @@ export const deleteFollow = (
         userId,
     });
 };
+export type UpdateProfileData = {
+    fullName?: string;
+    bio?: string;
+    avatarData?: string | null;
+};
+
+export const updateProfile = (
+    privateHttp: AxiosInstance,
+    data: UpdateProfileData
+) => {
+    return privateHttp.patch("/user/profile", data);
+};

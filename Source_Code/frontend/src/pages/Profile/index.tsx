@@ -60,7 +60,7 @@ const Profile = () => {
             </div>);
     }
     return (<div className="max-w-[935px] w-[calc(100%-40px)] mx-auto py-[30px] px-5 overflow-y-auto scrollbar-hide">
-            <TopInformation profile={profile}/>
+            <TopInformation profile={profile} onProfileUpdated={user => setProfile(current => current ? { ...current, ...user } : current)}/>
 
             <PostList posts={profile.posts || []} saved={profile.saved || []}/>
         </div>);

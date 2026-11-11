@@ -24,6 +24,9 @@ const authSlice = createSlice({
                 accessToken: action.payload,
             };
         },
+        profileUpdated: (state, action) => {
+            if (state.userInfo) state.userInfo = { ...state.userInfo, ...action.payload };
+        },
         loggedOut: () => initialState,
     },
 });

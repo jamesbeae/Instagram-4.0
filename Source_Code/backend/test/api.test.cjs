@@ -69,6 +69,38 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
         await request('POST', '/post/' + post._id + '/interaction', { type: 'VIEW' }, v);
         assert.equal((await request('GET', '/user/activity', null, v)).data.activity.filter(x => x.type === 'VIEW').length, 1);
         assert.equal((await request('PATCH', '/user/me', { fullName: 'Changed viewer', bio: 'Integration test' }, v)).status, 200);
+        await t.test('merged post editing preserves ownership and updates displayed media', async () => {
+            const body = { mediaUrl: 'https://example.com/replacement.jpg' };
+            assert.equal((await request('PATCH', '/post/' + post._id, body, v)).status, 403);
+            assert.equal((await request('PATCH', '/post/' + post._id, {}, o)).status, 400);
+            const edit = await request('PATCH', '/post/' + post._id, body, o);
+            assert.equal(edit.status, 200);
+            assert.equal(edit.data.post.photoVideo[0].url, body.mediaUrl);
+            assert.equal(edit.data.post.caption, 'Updated caption');
+            // Restore the video used by the Reels scenario below.
+            assert.equal((await request('PATCH', '/post/' + post._id, { mediaUrl: 'https://example.com/b.webm' }, o)).status, 200);
+        });
+        await t.test('merged avatar upload validates, persists and serves a public profile image', async () => {
+            const avatarData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6zQAAAABJRU5ErkJggg==';
+            assert.equal((await request('PATCH', '/user/profile', { avatarData })).status, 401);
+            assert.equal((await request('PATCH', '/user/profile', { avatarData: 'data:image/png;base64,YWJj' }, v)).status, 400);
+            const update = await request('PATCH', '/user/profile', { avatarData, fullName: 'Updated viewer' }, v);
+            assert.equal(update.status, 200);
+            const avatar = new URL(update.data.userInfo.avatar);
+            assert.match(avatar.pathname, /^\/avatars\/[0-9a-f-]+\.png$/);
+            try {
+                const image = await fetch('http://127.0.0.1:18000' + avatar.pathname);
+                assert.equal(image.status, 200);
+                assert.match(image.headers.get('content-type'), /image\/png/);
+                await image.arrayBuffer();
+                const profile = await request('GET', '/user/get-profile?_id=' + viewerId, null, o);
+                assert.equal(profile.data.profile.avatar, avatar.href);
+                assert.equal(profile.data.profile.fullName, 'Updated viewer');
+                assert.equal((await request('PATCH', '/user/profile', { avatarData: null }, v)).data.userInfo.avatar, null);
+            } finally {
+                await require('node:fs/promises').unlink(require('node:path').join(__dirname, '../uploads/avatars', require('node:path').basename(avatar.pathname)));
+            }
+        });
         const { io } = require('../../frontend/node_modules/socket.io-client');
         const connect = token => new Promise((resolve, reject) => { const socket = io('http://127.0.0.1:18000', { auth: { token }, reconnection: false, timeout: 3000 }); socket.once('connect', () => resolve(socket)); socket.once('connect_error', e => { socket.close(); reject(e); }); });
         await assert.rejects(connect('invalid'));

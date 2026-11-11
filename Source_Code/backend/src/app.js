@@ -17,6 +17,7 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: "35mb" }));
 app.use(bodyParser.urlencoded(bodyParserUrlencodedConfigs));
+app.use('/avatars', express.static(require('./api/services/mediaService').avatarDir, { dotfiles: 'deny', setHeaders: res => res.set('X-Content-Type-Options', 'nosniff') }));
 app.use("/uploads", require("./api/middlewares/mediaAccess"), require("./api/middlewares/cloudMedia"), express.static(require("./api/services/mediaService").uploadDir, { dotfiles: "deny", setHeaders: res => res.set("X-Content-Type-Options", "nosniff").set("Cache-Control", "private, no-store") }));
 app.use("/health", healthRoute);
 // router:

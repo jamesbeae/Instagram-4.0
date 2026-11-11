@@ -39,3 +39,11 @@ exports.deleteFollow = async (userId, followingId) => {
     });
     return { status: 200, following: false };
 };
+
+exports.updateProfile = async (userId, { avatarData, ...update }) => {
+    const user = await User.findByPk(userId);
+    if (!user) throw s.error(404, 'User not found');
+    if (avatarData !== undefined) update.avatar = avatarData === null ? null : await require('./mediaService').prepareAvatar(avatarData);
+    await user.update(update);
+    return { status: 200, userInfo: { ...s.safeUser(user), email: user.email } };
+};
