@@ -222,7 +222,7 @@
             ]
         },
         {
-            "name": "P3-03 Detail and ownership delete",
+            "name": "P3-03 Detail, update and ownership delete",
             "item": [
                 {
                     "name": "Get post detail",
@@ -267,6 +267,210 @@
                             "raw": "{{baseUrl}}/post/not-a-uuid",
                             "host": ["{{baseUrl}}"],
                             "path": ["post", "not-a-uuid"]
+                        }
+                    }
+                },
+                {
+                    "name": "Reject update without token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Update without token returns 401\", () => pm.response.to.have.status(401));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"content\": \"Không được phép cập nhật\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/post/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "{{postId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Reject update by non-owner",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Non-owner update returns 403\", () => pm.response.to.have.status(403));",
+                                    "pm.expect(pm.response.json().message).to.eql(\"You can only update your own posts\");"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{viewerToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"content\": \"Viewer không được phép sửa bài\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/post/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "{{postId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Reject empty update body",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Empty update returns 400\", () => pm.response.to.have.status(400));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{ownerToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/post/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "{{postId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update post content as owner",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Owner content update returns 200\", () => pm.response.to.have.status(200));",
+                                    "const body = pm.response.json();",
+                                    "pm.expect(body.post.content).to.eql(\"Nội dung đã được owner cập nhật\");",
+                                    "pm.expect(body.post.mediaUrl).to.eql(\"https://example.com/postman-test.jpg\");",
+                                    "pm.expect(body.post.userId).to.eql(pm.collectionVariables.get(\"ownerId\"));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{ownerToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"content\": \"Nội dung đã được owner cập nhật\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/post/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "{{postId}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update post media URL as owner",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Owner media update returns 200\", () => pm.response.to.have.status(200));",
+                                    "const body = pm.response.json();",
+                                    "pm.expect(body.post.content).to.eql(\"Nội dung đã được owner cập nhật\");",
+                                    "pm.expect(body.post.mediaUrl).to.eql(\"https://example.com/postman-updated.jpg\");"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{ownerToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"mediaUrl\": \"https://example.com/postman-updated.jpg\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/post/{{postId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["post", "{{postId}}"]
                         }
                     }
                 },

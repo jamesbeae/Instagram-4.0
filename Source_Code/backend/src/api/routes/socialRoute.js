@@ -27,13 +27,9 @@ router.post('/post/:postId/interaction', verifyJWT, wrap(async (req) => {
         await s.record(req.currentUser.id, type, req.params.postId);
     return { status: 201 };
 }));
-router.patch('/post/:postId', verifyJWT, wrap(async (req) => {
-    const { content } = validated(Joi.object({ content: Joi.string().trim().min(1).max(2200).required() }), req.body);
-    const post = await s.findPost(req.params.postId);
-    if (post.userId !== req.currentUser.id)
-        throw s.error(403, 'You may only edit your own posts');
-    await post.update({ content });
-    return { status: 200, post: s.postJSON(await s.findPost(post.id, req.currentUser.id), req.currentUser.id) };
+router.patch('/post/:postId', verifyJWT, wrap(req => {
+    const data = validated(Joi.object({ content: Joi.string().trim().min(1).max(2200), mediaUrl: Joi.string().trim().uri({ scheme: ['http', 'https'] }).max(2048) }).min(1), req.body);
+    return require('../services/postService').updatePost({ postId: req.params.postId, userId: req.currentUser.id, ...data });
 }));
 router.patch('/user/me', verifyJWT, wrap(async (req) => {
     const data = validated(Joi.object({ fullName: Joi.string().trim().min(1).max(120), bio: Joi.string().max(2000).allow(''), avatar: Joi.string().uri({ scheme: ['http', 'https'] }).allow(null, '') }).min(1), req.body);

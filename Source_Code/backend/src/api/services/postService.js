@@ -34,3 +34,22 @@ exports.deletePost = async ({ postId, userId }) => {
     await removeMedia(media);
     return { status: 200, message: 'Post deleted' };
 };
+
+exports.updatePost = async ({ postId, userId, content, mediaUrl }) => {
+    const oldMedia = await sequelize.transaction(async transaction => {
+        const post = await Post.findByPk(social.id(postId), { transaction, lock: transaction.LOCK.UPDATE });
+        if (!post) throw social.error(404, 'Post not found');
+        if (post.userId !== userId) throw social.error(403, 'You may only edit your own posts');
+        await require('./accessService').assertView(post, userId);
+        const previous = post.media || [];
+        const update = content === undefined ? {} : { content };
+        if (mediaUrl !== undefined && mediaUrl !== post.mediaUrl) {
+            update.media = await prepareMedia([{ url: mediaUrl, type: /\.(mp4|webm|mov)(\?|$)/i.test(mediaUrl) ? 'VIDEO' : 'PHOTO' }]);
+            update.mediaUrl = mediaUrl;
+        }
+        await post.update(update, { transaction });
+        return update.media ? previous : [];
+    });
+    await removeMedia(oldMedia);
+    return { status: 200, post: social.postJSON(await social.findPost(postId, userId), userId) };
+};

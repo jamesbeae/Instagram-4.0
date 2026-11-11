@@ -22,6 +22,14 @@ exports.getFeed = ({ limit, offset }) =>
         distinct: true,
     });
 
+exports.updatePost = ({ postId, userId, data }) =>
+    Post.update(data, {
+        where: {
+            id: postId,
+            userId,
+        },
+    });
+
 exports.deletePost = ({ postId, userId }) =>
     Post.destroy({
         where: {
