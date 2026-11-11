@@ -1,3 +1,5 @@
 node_modules
 .env
 src/configs/cli/config.json
+
+uploads/

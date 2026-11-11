@@ -1,43 +1,16 @@
-import SignUpForm from "./SignUpForm";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
-import { BrowserRouter } from "react-router-dom";
-
-import "@testing-library/jest-dom";
-// import { describe, expect, it } from "vitest";
-
-// Test disable sign up button:
-describe("Check Sign up button", () => {
-    it("check initial sign up button", () => {
-        render(
-            <BrowserRouter>
-                <SignUpForm />
-            </BrowserRouter>
-        );
-
-        const signUpButton = screen.getByRole("button", { name: /sign up/i });
-
-        expect(signUpButton).toHaveClass("opacity-70");
-    });
-
-    it("check to enable sign up button", () => {
-        render(
-            <BrowserRouter>
-                <SignUpForm />
-            </BrowserRouter>
-        );
-        const emailInput = screen.getByPlaceholderText("Email");
-        const fullNameInput = screen.getByPlaceholderText("Full Name");
-        const usernameInput = screen.getByPlaceholderText("Username");
-        const passwordInput = screen.getByPlaceholderText("Password");
-        const signUpButton = screen.getByRole("button", { name: /sign up/i });
-
-        // type in to all inputs:
-        fireEvent.change(emailInput, { target: { value: "12345..." } });
-        fireEvent.change(fullNameInput, { target: { value: "12345..." } });
-        fireEvent.change(usernameInput, { target: { value: "12345..." } });
-        fireEvent.change(passwordInput, { target: { value: "12345..." } });
-
-        expect(signUpButton).not.toHaveClass("opacity-70");
-    });
+import '@testing-library/jest-dom';
+import SignUpForm from './SignUpForm';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { describe, it, expect, afterEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import authSlice from '../../lib/redux/authSlice';
+afterEach(cleanup);
+const mount = () => render(<Provider store={configureStore({ reducer: { authSlice: authSlice.reducer } })}><MemoryRouter><SignUpForm /></MemoryRouter></Provider>);
+describe('Sign up form', () => {
+    it('disables submission until required fields are filled', () => { mount(); expect(screen.getByRole('button', { name: /sign up/i })).toHaveClass('opacity-70'); });
+    it('enables submission after fields are filled', () => { mount(); for (const placeholder of ['Email', 'Full Name', 'Username', 'Password'])
+        fireEvent.change(screen.getByPlaceholderText(placeholder), { target: { value: placeholder === 'Email' ? 'test@example.com' : 'example123' } }); expect(screen.getByRole('button', { name: /sign up/i })).not.toHaveClass('opacity-70'); });
+    it('does not expose an unconfigured Facebook login', () => { mount(); expect(screen.queryByText(/login with facebook/i)).not.toBeInTheDocument(); });
 });

@@ -1,7 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-
 const getSecret = (name) => {
     const secret = process.env[name];
     if (!secret) {
@@ -9,51 +8,39 @@ const getSecret = (name) => {
     }
     return secret;
 };
-
 // hash password:
 exports.hashPassword = (password) => {
     return bcrypt.hash(password, 12);
 };
-
 // compare password:
 exports.comparePassword = (p1, p2) => {
     return bcrypt.compare(p1, p2);
 };
-
 // generate access token:
 exports.generateAccessToken = (userInfo) => {
-    const accessToken = jwt.sign(
-        {
-            userInfo: {
-                username: userInfo.username,
-                id: userInfo.id,
-            },
+    const accessToken = jwt.sign({
+        userInfo: {
+            username: userInfo.username,
+            id: userInfo.id,
+            tokenVersion: userInfo.tokenVersion || 0,
         },
-        getSecret("ACCESS_TOKEN_CODE"),
-        {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "30d",
-        }
-    );
+    }, getSecret("ACCESS_TOKEN_CODE"), {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "15m",
+    });
     return accessToken;
 };
-
 // generate refresh token token:
 exports.generateRefreshToken = (userInfo) => {
-    const refreshToken = jwt.sign(
-        {
-            userInfo: {
-                username: userInfo.username,
-                id: userInfo.id || userInfo.facebookId,
-            },
+    const refreshToken = jwt.sign({
+        userInfo: {
+            username: userInfo.username,
+            id: userInfo.id || userInfo.facebookId,
         },
-        getSecret("REFRESH_TOKEN_CODE"),
-        {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "30d",
-        }
-    );
+    }, getSecret("REFRESH_TOKEN_CODE"), {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "30d",
+    });
     return refreshToken;
 };
-
 // store refresh token to cookie:
 exports.storeRefreshTokenToCookie = (res, refreshToken, cookieConfigs = {}) => {
     const isProduction = process.env.NODE_ENV === "production";

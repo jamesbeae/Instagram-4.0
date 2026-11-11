@@ -1,9 +1,4 @@
-import React from 'react'
-
 const FileInput = () => {
-  return (
-    <input type="file" name='file' id='file' accept='image/*|video/*'/>
-  )
-}
-
-export default FileInput
+    return (<input type="file" name='file' id='file' accept='image/*|video/*'/>);
+};
+export default FileInput;

@@ -14,3 +14,5 @@ em-emoji-picker {
     /* width: 100%; */
     height: 320px;
 }
+
+@media(max-width:1100px){.app-sidebar{width:72px!important;padding-left:8px;padding-right:8px}.app-sidebar .navigation-label{display:none}.app-sidebar p{overflow:hidden}.app-sidebar>div:first-child{max-width:55px;overflow:hidden}}

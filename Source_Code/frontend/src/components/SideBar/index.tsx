@@ -8,58 +8,42 @@ import { useEffect, useState } from "react";
 import { socket } from "../../socket/socket";
 import { Notification } from "../../models/Notification";
 import usePrivateHttp from "../../hooks/usePrivateHttp";
-
 const SideBar = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const privateHttp = usePrivateHttp();
-    const openedModal = useAppSelector(
-        (state) => state.sideBarSlice
-    ).openedModal;
+    const openedModal = useAppSelector((state) => state.sideBarSlice).openedModal;
     const isSmall = useAppSelector((state) => state.sideBarSlice).isSmall;
-    const creatingPost = useAppSelector(
-        (state) => state.sideBarSlice
-    ).creatingPost;
-
+    const creatingPost = useAppSelector((state) => state.sideBarSlice).creatingPost;
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
                 const response = await privateHttp.get("/notification/get-all");
                 const data = response.data;
                 setNotifications(data.notifications);
-            } catch (error) {
+            }
+            catch (error) {
                 console.error("Error fetching notifications:", error);
             }
         };
-
         fetchNotifications();
     }, [privateHttp]);
-
     useEffect(() => {
         socket.on("receiveNotification", (notification: Notification) => {
             console.log("Received Notification:", notification);
             setNotifications((prev: Notification[]) => [notification, ...prev]);
         });
-
         return () => {
-            socket.off("receiveMessage");
+            socket.off("receiveNotification");
         };
     }, []);
-
-    return (
-        <>
-            <div
-                className={`h-full ${
-                    openedModal || isSmall ? "w-72px" : "w-60"
-                } flex flex-col px-3 pt-2 pb-5 border-r-0.5 border-lightDark transition-all delay-300 ease-in`}
-            >
+    return (<>
+            <div className={`app-sidebar shrink-0 h-full ${openedModal || isSmall ? "w-72px" : "w-60"} flex flex-col px-3 pt-2 pb-5 border-r-0.5 border-lightDark transition-all delay-300 ease-in`}>
                 <SideBarLogo />
                 <NavigationList />
             </div>
             <SearchModal />
-            <NotificationsModal notifications={notifications} />
+            <NotificationsModal notifications={notifications}/>
             {creatingPost ? <CreatePost /> : null}
-        </>
-    );
+        </>);
 };
-
 export default SideBar;

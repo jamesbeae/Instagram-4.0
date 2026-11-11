@@ -6,20 +6,20 @@ import split1000 from "../../../../utils/split1000";
 import LikeIcon from "../../../UI/Icons/LikeIcon";
 
 const Comment: React.FC<{ commentData: CommentModel }> = ({ commentData }) => {
-    console.log(commentData);
+
     return (
         <div className="flex pt-3">
             <Avatar
-                className="w-[32px] h-[32px] mr-[18px]"
+                className="w-[32px] h-[32px] mr-[18px] shrink-0"
                 username={commentData.userId.username}
                 avatarUrl={commentData.userId.avatar}
             />
-            <div className="flex flex-col flex-1">
+            <div className="flex flex-col flex-1 min-w-0">
                 <div className="text-white text-sm flex-1">
                     <span className=" font-semibold cursor-pointer mr-1">
                         {commentData.userId.username}
                     </span>
-                    <span>{commentData.content}</span>
+                    <span className="whitespace-pre-wrap break-words">{commentData.content}</span>
                 </div>
                 <div className="flex gap-3 mt-[4px] text-textSecondGray text-xs">
                     <div>{calculateTimeAgo(commentData.createdAt)}</div>

@@ -1,5 +1,9 @@
 export type User = {
     _id: string;
+    role?: {
+        name: string;
+        id: string;
+    };
     username?: string;
     password?: string;
     email: string;

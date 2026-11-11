@@ -5,15 +5,14 @@ import { getUserProfile } from "../../services/userService";
 import usePrivateHttp from "../../hooks/usePrivateHttp";
 import TopInformation from "./TopInformation";
 import PostList from "./PostList";
-
 const Profile = () => {
-    const { _id } = useParams<{ _id: string }>();
+    const { _id } = useParams<{
+        _id: string;
+    }>();
     const privateHttp = usePrivateHttp();
-
     const [profile, setProfile] = useState<ProfileType | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
-
     useEffect(() => {
         const getProfile = async () => {
             if (!_id) {
@@ -21,63 +20,49 @@ const Profile = () => {
                 setIsLoading(false);
                 return;
             }
-
             setIsLoading(true);
             setErrorMessage("");
-
             try {
-                const response = await getUserProfile(
-                    privateHttp,
-                    _id
-                );
-
+                const response = await getUserProfile(privateHttp, _id);
                 setProfile(response.data.profile);
-            } catch (error) {
+            }
+            catch (error) {
                 console.error(error);
                 setErrorMessage("Không thể tải hồ sơ người dùng");
                 setProfile(null);
-            } finally {
+            }
+            finally {
                 setIsLoading(false);
             }
         };
-
         getProfile();
     }, [_id, privateHttp]);
-
+    useEffect(() => {
+        const remove = (e: Event) => setProfile(p => p ? { ...p, posts: p.posts.filter(post => post._id !== (e as CustomEvent<string>).detail), saved: (p.saved || []).filter(post => post._id !== (e as CustomEvent<string>).detail) } : p);
+        const update = (e: Event) => setProfile(p => p ? { ...p, posts: p.posts.map(post => post._id === (e as CustomEvent).detail._id ? (e as CustomEvent).detail : post), saved: (p.saved || []).map(post => post._id === (e as CustomEvent).detail._id ? (e as CustomEvent).detail : post) } : p);
+        window.addEventListener('post-deleted', remove);
+        window.addEventListener('post-updated', update);
+        return () => { window.removeEventListener('post-deleted', remove); window.removeEventListener('post-updated', update); };
+    }, []);
     if (isLoading) {
-        return (
-            <div className="text-white text-center mt-10">
+        return (<div className="text-white text-center mt-10">
                 Đang tải hồ sơ...
-            </div>
-        );
+            </div>);
     }
-
     if (errorMessage) {
-        return (
-            <div className="text-red-500 text-center mt-10">
+        return (<div className="text-red-500 text-center mt-10">
                 {errorMessage}
-            </div>
-        );
+            </div>);
     }
-
     if (!profile) {
-        return (
-            <div className="text-white text-center mt-10">
+        return (<div className="text-white text-center mt-10">
                 Không tìm thấy người dùng
-            </div>
-        );
+            </div>);
     }
+    return (<div className="max-w-[935px] w-[calc(100%-40px)] mx-auto py-[30px] px-5 overflow-y-auto scrollbar-hide">
+            <TopInformation profile={profile}/>
 
-    return (
-        <div className="max-w-[935px] w-[calc(100%-40px)] mx-auto py-[30px] px-5 overflow-y-auto scrollbar-hide">
-            <TopInformation profile={profile} />
-
-            <PostList
-                posts={profile.posts || []}
-                saved={profile.saved || []}
-            />
-        </div>
-    );
+            <PostList posts={profile.posts || []} saved={profile.saved || []}/>
+        </div>);
 };
-
 export default Profile;

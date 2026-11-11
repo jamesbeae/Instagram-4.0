@@ -1,16 +1,15 @@
-import { useEffect } from "react";
-import { socket } from "../socket/socket";
-
+import { useEffect } from 'react';
+import { useAppSelector } from './useStore';
+import { socket } from '../socket/socket';
 export const useSocket = (userId?: string) => {
+    const token = useAppSelector(s => s.authSlice.accessToken);
     useEffect(() => {
-        console.log("useSocket called with userId:", userId);
-        if (!userId) {
+        if (!userId || !token) {
+            socket.disconnect();
             return;
         }
-        socket.emit("addUser", userId);
-
-        return () => {
-            socket.disconnect();
-        };
-    }, [userId]);
+        socket.auth = { token };
+        socket.connect();
+        return () => { socket.disconnect(); };
+    }, [userId, token]);
 };

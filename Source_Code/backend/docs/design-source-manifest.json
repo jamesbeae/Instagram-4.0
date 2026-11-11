@@ -1,0 +1,34 @@
+{
+  "reviewedOn": "2026-10-28",
+  "thread": {
+    "id": "01a108e5-18d2-7152-9cb1-d13a6cf6063d",
+    "title": "Tìm báo cáo đồ án CNTT tương tự"
+  },
+  "sources": [
+    {
+      "id": "1ozqJqrowIdn1c88deoTmJPLpXHqoMXft5v8AnMlAyVU",
+      "url": "https://docs.google.com/document/d/1ozqJqrowIdn1c88deoTmJPLpXHqoMXft5v8AnMlAyVU/edit",
+      "modifiedTime": "2026-10-28T09:55:57.903Z",
+      "characters": 68696
+    },
+    {
+      "id": "1Fw5QULxo4um-22x03x2v83jL5FTquBPRgf4Pl0mGWkI",
+      "url": "https://docs.google.com/document/d/1Fw5QULxo4um-22x03x2v83jL5FTquBPRgf4Pl0mGWkI/edit",
+      "modifiedTime": "2026-10-22T09:18:18.474Z",
+      "characters": 27919
+    }
+  ],
+  "localSources": [
+    "C:/Users/ADMIN/Downloads/01_schema_postgresql.sql",
+    "Database_Design/schema_verified.json",
+    "Architecture_Design/content.json",
+    "Activity_Visual_Paradigm/activity_model.json",
+    "API_Design/content_complete_concise.json",
+    "article-recommender/README.md"
+  ],
+  "unavailableSource": {
+    "id": "1IRuxP2dYkJMAtoZG7fVu9buTt4ciCf1te1qftWzlVU4",
+    "status": "NOT_FOUND",
+    "fallback": "Database section of combined design document and local SQL"
+  }
+}

@@ -1,38 +1,39 @@
 const postService = require("../services/postService");
-
 // create a Post:
 exports.createPost = async (req, res, next) => {
     try {
-        const { content, mediaUrl } = req.body;
+        const content = req.body.content ?? req.body.caption;
+        const { mediaUrl, photoVideoList, kind, visibility, groupId } = req.body;
         const result = await postService.createPost({
             content,
             mediaUrl,
+            photoVideoList, kind, visibility, groupId,
             userId: req.currentUser.id,
         });
         res.status(result.status).json(result);
-    } catch (error) {
+    }
+    catch (error) {
         next(error);
     }
 };
-
 exports.getFeed = async (req, res, next) => {
     try {
-        const result = await postService.getFeed(req.validatedQuery);
+        const result = await postService.getFeed({ ...req.validatedQuery, currentUserId: req.currentUser?.id });
         res.status(result.status).json(result);
-    } catch (error) {
+    }
+    catch (error) {
         next(error);
     }
 };
-
 exports.getPostDetail = async (req, res, next) => {
     try {
-        const result = await postService.getPostDetail(req.params.postId);
+        const result = await postService.getPostDetail(req.params.postId, req.currentUser?.id);
         res.status(result.status).json(result);
-    } catch (error) {
+    }
+    catch (error) {
         next(error);
     }
 };
-
 exports.deletePost = async (req, res, next) => {
     try {
         const result = await postService.deletePost({
@@ -40,7 +41,8 @@ exports.deletePost = async (req, res, next) => {
             userId: req.currentUser.id,
         });
         res.status(result.status).json(result);
-    } catch (error) {
+    }
+    catch (error) {
         next(error);
     }
 };

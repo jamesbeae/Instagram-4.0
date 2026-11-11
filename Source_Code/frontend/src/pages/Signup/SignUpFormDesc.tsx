@@ -1,8 +1,5 @@
-import React from "react";
-
 const SignUpFormDesc = () => {
-    return (
-        <p className="my-3 mx-12 flex flex-col items-center gap-4 text-textGray text-xs text-center">
+    return (<p className="my-3 mx-12 flex flex-col items-center gap-4 text-textGray text-xs text-center">
             <span>
                 People who use our service may have uploaded your contact
                 information to Instagram.
@@ -25,8 +22,6 @@ const SignUpFormDesc = () => {
                     Cookies
                 </a>
             </span>
-        </p>
-    );
+        </p>);
 };
-
 export default SignUpFormDesc;

@@ -1,0 +1,100 @@
+{
+  "source": "https://zenodo.org/records/14669616",
+  "archive_md5": "499b99ae97e284240285f0d26e30d8cf",
+  "feed": "Science",
+  "seed": 42,
+  "rows": 730862,
+  "split": {
+    "method": "global chronological 70/15/15; equal timestamps kept in the same partition",
+    "validation_from": "202312311653",
+    "test_from": "202402110638",
+    "train": 511601,
+    "validation": 109631,
+    "test": 109630
+  },
+  "protocol": "100 sampled candidates per user: one eligible future positive and 99 uniform negatives from training catalog; training likes excluded. Warm users with >=5 distinct training likes; maximum 2000 users. Test held untouched during hyperparameter selection.",
+  "validation_grid": [
+    {
+      "author_affinity_weight": 0,
+      "metrics": {
+        "users": 1109,
+        "sampled_hit_rate_at_10": 0.5419296663660956,
+        "sampled_recall_at_10": 0.5419296663660956,
+        "sampled_precision_at_10": 0.05419296663660956,
+        "sampled_ndcg_at_10": 0.33852557476082734
+      }
+    },
+    {
+      "author_affinity_weight": 0.25,
+      "metrics": {
+        "users": 1109,
+        "sampled_hit_rate_at_10": 0.6131650135256989,
+        "sampled_recall_at_10": 0.6131650135256989,
+        "sampled_precision_at_10": 0.061316501352569885,
+        "sampled_ndcg_at_10": 0.3919827321075002
+      }
+    },
+    {
+      "author_affinity_weight": 0.5,
+      "metrics": {
+        "users": 1109,
+        "sampled_hit_rate_at_10": 0.6185752930568079,
+        "sampled_recall_at_10": 0.6185752930568079,
+        "sampled_precision_at_10": 0.061857529305680795,
+        "sampled_ndcg_at_10": 0.38769998677102696
+      }
+    },
+    {
+      "author_affinity_weight": 1,
+      "metrics": {
+        "users": 1109,
+        "sampled_hit_rate_at_10": 0.5834084761045988,
+        "sampled_recall_at_10": 0.5834084761045988,
+        "sampled_precision_at_10": 0.05834084761045987,
+        "sampled_ndcg_at_10": 0.35201098839644934
+      }
+    },
+    {
+      "author_affinity_weight": 2,
+      "metrics": {
+        "users": 1109,
+        "sampled_hit_rate_at_10": 0.539224526600541,
+        "sampled_recall_at_10": 0.539224526600541,
+        "sampled_precision_at_10": 0.053922452660054104,
+        "sampled_ndcg_at_10": 0.316119183687757
+      }
+    },
+    {
+      "author_affinity_weight": 4,
+      "metrics": {
+        "users": 1109,
+        "sampled_hit_rate_at_10": 0.5347159603246168,
+        "sampled_recall_at_10": 0.5347159603246168,
+        "sampled_precision_at_10": 0.053471596032461675,
+        "sampled_ndcg_at_10": 0.3102202503584248
+      }
+    }
+  ],
+  "selected_author_affinity_weight": 0.25,
+  "test_popularity_baseline": {
+    "users": 995,
+    "sampled_hit_rate_at_10": 0.6633165829145728,
+    "sampled_recall_at_10": 0.6633165829145728,
+    "sampled_precision_at_10": 0.06633165829145729,
+    "sampled_ndcg_at_10": 0.467161623613942
+  },
+  "test_selected_model": {
+    "users": 995,
+    "sampled_hit_rate_at_10": 0.6743718592964824,
+    "sampled_recall_at_10": 0.6743718592964824,
+    "sampled_precision_at_10": 0.06743718592964824,
+    "sampled_ndcg_at_10": 0.48594096058496583
+  },
+  "limitations": [
+    "One Science feed only, anonymized likes only.",
+    "Sampled metrics do not equal full-catalog metrics.",
+    "Cold-start users/items excluded from this evaluation.",
+    "Only the author-affinity component is evaluated; no evidence yet for the complete live hybrid ranker.",
+    "No external identities are imported into the live app."
+  ]
+}

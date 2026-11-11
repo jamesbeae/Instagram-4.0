@@ -1,122 +1,84 @@
 import React from "react";
+import ProfileEditor from "../../../components/ProfileEditor";
+import { useNavigate } from "react-router-dom";
 import { Profile } from "../../../models/Profile";
-
 import Avatar from "../../../components/UI/Avatar/Avatar";
 import Button from "../../../components/UI/Button/Button";
 import { useAppSelector } from "../../../hooks/useStore";
 import { createFollow, deleteFollow } from "../../../services/userService";
 import usePrivateHttp from "../../../hooks/usePrivateHttp";
-import { socket } from "../../../socket/socket";
-
-const TopInformation: React.FC<{ profile: Profile }> = ({ profile }) => {
+const TopInformation: React.FC<{
+    profile: Profile;
+}> = ({ profile }) => {
+    const [editing, setEditing] = React.useState(false);
+    const navigate = useNavigate();
     const privateHttp = usePrivateHttp();
-    const currentUser = useAppSelector(
-        (state) => state.authSlice.userInfo
-    );
-
+    const currentUser = useAppSelector((state) => state.authSlice.userInfo);
     const currentUserId = currentUser?._id;
     const isOwnProfile = profile._id === currentUserId;
-    const [followers, setFollowers] = React.useState<number>(
-        profile.followers ? profile.followers.length : 0
-    );
+    const [followers, setFollowers] = React.useState<number>(profile.followers ? profile.followers.length : 0);
     console.log("TopInformation", profile);
-    const [isFollowing, setIsFollowing] = React.useState<boolean>(
-        !!(
-            currentUserId &&
-            profile.followers?.some((follower) => {
-                return follower._id === currentUserId;
-            })
-        )
-    );
+    const [isFollowing, setIsFollowing] = React.useState<boolean>(!!(currentUserId &&
+        profile.followers?.some((follower) => {
+            return follower._id === currentUserId;
+        })));
     React.useEffect(() => {
         setFollowers(profile.followers?.length || 0);
-
-        const currentUserIsFollowing = !!(
-            currentUserId &&
-            profile.followers?.some(
-                (follower) => follower._id === currentUserId
-            )
-        );
-
+        const currentUserIsFollowing = !!(currentUserId &&
+            profile.followers?.some((follower) => follower._id === currentUserId));
         setIsFollowing(currentUserIsFollowing);
     }, [profile, currentUserId]);
     const handleFollowUser = async () => {
         try {
             if (!isFollowing && profile._id) {
                 const response = await createFollow(privateHttp, profile._id);
+                if (!response || response.status >= 400) {
+                    alert("Unable to follow user");
+                    return;
+                }
                 setIsFollowing(true);
                 setFollowers((prev) => prev + 1);
-                socket.emit("sendNotification", {
-                    senderId: currentUserId,
-                    receiverId: profile._id,
-                    type: "FOLLOW",
-                    content: `${currentUser?.fullName || currentUser?.username} started following you`,
-                });
                 console.log(response);
-            } else if (profile._id) {
+            }
+            else if (profile._id) {
                 const response = await deleteFollow(privateHttp, profile._id);
+                if (!response || response.status >= 400) {
+                    alert("Unable to unfollow user");
+                    return;
+                }
                 setIsFollowing(false);
                 setFollowers((prev) => Math.max(0, prev - 1));
                 console.log(response);
             }
-        } catch (error) {
+        }
+        catch (error) {
             console.log(error);
         }
     };
-    return (
-        <div className="grid grid-cols-3 text-white px-4 py-6">
+    return (<> {editing && <ProfileEditor profile={profile} onClose={() => setEditing(false)}/>}<div className="grid grid-cols-3 text-white px-4 py-6">
             {/* <LeftAvatar avatarUrl={profile.avatar} />
-            <RightContent profile={profile} /> */}
+        <RightContent profile={profile} /> */}
 
             {/* Profile Picture */}
             <div className="relative">
-                <Avatar
-                    avatarUrl={profile.avatar}
-                    className="w-[150px] h-[150px]"
-                />
+                <Avatar avatarUrl={profile.avatar} className="w-[150px] h-[150px]"/>
             </div>
 
             {/* Profile Stats and Info */}
             <div className="flex-1 col-span-2">
                 <div className="flex gap-2 mb-6">
-                    {isOwnProfile ? (
-                        <>
-                            <Button
-                                content="Edit profile"
-                                className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded"
-                            />
+                    {isOwnProfile ? (<>
+                            <Button content="Edit profile" onClick={() => setEditing(true)} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded"/>
 
-                            <Button
-                                content="View activity"
-                                className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded "
-                            />
+                            <Button content="View activity" onClick={async () => { const r = await privateHttp.get("/user/activity"); alert(r.data.activity.map((a: any) => a.type + " · " + new Date(a.createdAt).toLocaleString()).join("\n") || "No activity yet"); }} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded "/>
 
-                            <Button
-                                content="..."
-                                className="w-8 h-8 bg-textGray hover:bg-gray-600 rounded"
-                            />
-                        </>
-                    ) : (
-                        <>
-                            <Button
-                                onClick={handleFollowUser}
-                                content={isFollowing ? "Following" : "Follow"}
-                                className="flex items-center gap-1 px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded"
-                            />
+                            <Button content="..." className="w-8 h-8 bg-textGray hover:bg-gray-600 rounded"/>
+                        </>) : (<>
+                            <Button onClick={handleFollowUser} content={isFollowing ? "Following" : "Follow"} className="flex items-center gap-1 px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded"/>
 
-                            {isFollowing && (
-                                <Button
-                                    onClick={handleFollowUser}
-                                    content="Unfollow"
-                                    className="px-4 py-1.5 text-sm bg-red-500 hover:bg-red-600 rounded"
-                                />
-                            )}
-                            <Button
-                                content="Message"
-                                className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded"
-                            />
-                        </>
-                    )}
+                            {isFollowing && (<Button onClick={handleFollowUser} content="Unfollow" className="px-4 py-1.5 text-sm bg-red-500 hover:bg-red-600 rounded"/>)}
+                            <Button content="Message" onClick={() => navigate("/message/" + profile._id, { state: { user: profile } })} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded"/>
+                        </>)}
                 </div>
                 {/* Stats */}
                 <div className="flex gap-8 mb-4">
@@ -142,13 +104,9 @@ const TopInformation: React.FC<{ profile: Profile }> = ({ profile }) => {
                 <div className="space-y-1">
                     <h2 className="font-semibold">{profile.fullName}</h2>
                     {profile.bio && <p className="text-sm">{profile.bio}</p>}
-                    {profile.email && (
-                        <p className="text-sm">{profile.email}</p>
-                    )}
+                    {profile.email && (<p className="text-sm">{profile.email}</p>)}
                 </div>
             </div>
-        </div>
-    );
+        </div></>);
 };
-
 export default TopInformation;

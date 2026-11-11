@@ -1,246 +1,41 @@
-const { StatusCodes } = require("http-status-codes");
-
-const {
-    User: SequelizeUser,
-    Follow,
-    Post,
-} = require("../../database/models");
-const serializeUser = (user) => {
-    const data =
-        typeof user.get === "function"
-            ? user.get({ plain: true })
-            : user;
-
-    const {
-        passwordHash,
-        refreshToken,
-        roleId,
-        Follow: _follow,
-        ...safeUser
-    } = data;
-
-    return {
-        ...safeUser,
-        _id: data.id,
-    };
+const { Op } = require('sequelize');
+const { User, Follow, Post, Save, sequelize } = require('../../database/models');
+const s = require('./socialService');
+exports.getAllUsers = async () => ({ status: 200, users: (await User.findAll({ where: { disabled: false }, attributes: ['id', 'username', 'fullName', 'bio', 'avatar'], order: [['username', 'ASC']], limit: 500 })).map(s.safeUser) });
+exports.getSuggestedUsers = s.suggestedUsers;
+exports.getUserProfile = async (profileId, currentUserId) => {
+    const user = await User.findByPk(s.id(profileId));
+    if (!user)
+        throw s.error(404, 'User not found');
+    const [followers, following, posts, saved] = await Promise.all([
+        Follow.findAll({ where: { followingId: profileId } }), Follow.findAll({ where: { followerId: profileId } }),
+        Post.findAll({ where: { userId: profileId, kind: 'POST', ...require('./accessService').visibleWhere(currentUserId) }, include: s.includes, order: [['createdAt', 'DESC']] }),
+        profileId === currentUserId ? Save.findAll({ where: { userId: profileId }, include: [{ model: Post, as: 'post', include: s.includes }], order: [['createdAt', 'DESC']] }) : []
+    ]);
+    const users = async (ids) => ids.length ? (await User.findAll({ where: { id: { [Op.in]: ids } } })).map(s.safeUser) : [];
+    return { status: 200, profile: { ...s.safeUser(user), ...(profileId === currentUserId ? { email: user.email } : {}), followers: await users(followers.map(f => f.followerId)), followings: await users(following.map(f => f.followingId)), posts: posts.map(p => s.postJSON(p, currentUserId)), saved: (await Promise.all(saved.filter(x => x.post).map(async (x) => (await require('./accessService').canView(x.post, currentUserId)) ? s.postJSON(x.post, currentUserId) : null))).filter(Boolean) } };
 };
-const serializeProfilePost = (post) => {
-    const data =
-        typeof post.get === "function"
-            ? post.get({ plain: true })
-            : post;
-
-    return {
-        ...data,
-        _id: data.id,
-        caption: data.content,
-        photoVideo: data.mediaUrl
-            ? [
-                  {
-                      _id: data.id,
-                      url: data.mediaUrl,
-                  },
-              ]
-            : [],
-        likes: [],
-        comments: [],
-    };
-};
-const httpError = (status, message) =>
-    Object.assign(new Error(message), { status });
-// Get All Users:
-exports.getAllUsers = async () => {
-    try {
-        const allUsers = await SequelizeUser.findAll({
-            attributes: [
-                "id",
-                "username",
-                "email",
-                "fullName",
-                "bio",
-                "avatar",
-                "createdAt",
-                "updatedAt",
-            ],
-            order: [["createdAt", "ASC"]],
-        });
-
-        return {
-            users: allUsers.map(serializeUser),
-            status: StatusCodes.OK,
-        };
-    } catch (error) {
-        console.log(error);
-        throw {
-            status: StatusCodes.INTERNAL_SERVER_ERROR,
-            message: "Error to get all users!",
-        };
-    }
-};
-
-// Get Suggested Users:
-exports.getSuggestedUsers = (currentUserId) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const suggestedUsers = await userQuery.getSuggestedUsers(
-                currentUserId
-            );
-
-            resolve({
-                users: suggestedUsers,
-                status: StatusCodes.OK,
-            });
-        } catch (error) {
-            reject({
-                status: StatusCodes.INTERNAL_SERVER_ERROR,
-                message: "Error to get suggested users!",
-            });
-        }
-    });
-};
-
-// Get User Profile:
-exports.getUserProfile = async (profileId) => {
-    if (!profileId) {
-        throw httpError(
-            StatusCodes.BAD_REQUEST,
-            "Profile id is required"
-        );
-    }
-
-    const user = await SequelizeUser.findByPk(profileId, {
-        attributes: {
-            exclude: ["passwordHash", "refreshToken"],
-        },
-        include: [
-            {
-                model: SequelizeUser,
-                as: "followers",
-                attributes: [
-                    "id",
-                    "username",
-                    "email",
-                    "fullName",
-                    "bio",
-                    "avatar",
-                ],
-                through: {
-                    attributes: [],
-                },
-            },
-            {
-                model: SequelizeUser,
-                as: "followings",
-                attributes: [
-                    "id",
-                    "username",
-                    "email",
-                    "fullName",
-                    "bio",
-                    "avatar",
-                ],
-                through: {
-                    attributes: [],
-                },
-            },
-            {
-                model: Post,
-                as: "posts",
-                separate: true,
-                order: [["createdAt", "DESC"]],
-            },
-        ],
-    });
-
-    if (!user) {
-        throw httpError(StatusCodes.NOT_FOUND, "User not found");
-    }
-
-    const data = user.get({ plain: true });
-
-    return {
-        status: StatusCodes.OK,
-        profile: {
-            ...serializeUser(data),
-            followers: (data.followers || []).map(serializeUser),
-            followings: (data.followings || []).map(serializeUser),
-            posts: (data.posts || []).map(serializeProfilePost),
-            saved: [],
-        },
-    };
-};
-
-// Create Follow:
 exports.createFollow = async (userId, followingId) => {
-    if (!followingId) {
-        throw httpError(
-            StatusCodes.BAD_REQUEST,
-            "Following user id is required"
-        );
-    }
-
-    if (userId === followingId) {
-        throw httpError(
-            StatusCodes.BAD_REQUEST,
-            "You cannot follow yourself"
-        );
-    }
-
-    const followingUser = await SequelizeUser.findByPk(followingId);
-
-    if (!followingUser) {
-        throw httpError(
-            StatusCodes.NOT_FOUND,
-            "User not found"
-        );
-    }
-
-    const [, created] = await Follow.findOrCreate({
-        where: {
-            followerId: userId,
-            followingId,
-        },
-        defaults: {
-            followerId: userId,
-            followingId,
-        },
+    s.id(followingId);
+    if (userId === followingId)
+        throw s.error(400, 'You cannot follow yourself');
+    if (!await User.findByPk(followingId))
+        throw s.error(404, 'User not found');
+    const created = await sequelize.transaction(async (transaction) => {
+        const [, created] = await Follow.findOrCreate({ where: { followerId: userId, followingId }, transaction });
+        if (created)
+            await s.record(userId, 'FOLLOW', null, followingId, transaction);
+        return created;
     });
-
-    return {
-        status: StatusCodes.OK,
-        message: created
-            ? "Followed successfully!"
-            : "You are already following this user",
-        following: true,
-    };
+    if (created)
+        await s.notify(userId, followingId, 'FOLLOW');
+    return { status: 200, following: true };
 };
-
-// Delete Follow:
 exports.deleteFollow = async (userId, followingId) => {
-    if (!followingId) {
-        throw httpError(
-            StatusCodes.BAD_REQUEST,
-            "Following user id is required"
-        );
-    }
-
-    const deletedCount = await Follow.destroy({
-        where: {
-            followerId: userId,
-            followingId,
-        },
+    s.id(followingId);
+    await sequelize.transaction(async transaction => {
+        const removed = await Follow.destroy({ where: { followerId: userId, followingId }, transaction });
+        if (removed) await s.record(userId, 'UNFOLLOW', null, followingId, transaction);
     });
-
-    if (deletedCount === 0) {
-        throw httpError(
-            StatusCodes.NOT_FOUND,
-            "Follow relationship not found"
-        );
-    }
-
-    return {
-        status: StatusCodes.OK,
-        message: "Unfollowed successfully!",
-        following: false,
-    };
+    return { status: 200, following: false };
 };

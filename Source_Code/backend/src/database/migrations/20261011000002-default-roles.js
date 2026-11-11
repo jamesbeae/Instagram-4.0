@@ -1,0 +1,1 @@
+module.exports = { async up(q) { await q.sequelize.query("INSERT INTO roles(id,name,created_at,updated_at) VALUES (gen_random_uuid(),'user',now(),now()),(gen_random_uuid(),'creator',now(),now()),(gen_random_uuid(),'admin',now(),now()) ON CONFLICT(name) DO NOTHING"); }, async down() { } };

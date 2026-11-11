@@ -14,7 +14,7 @@ const PhotoVideoPreview: React.FC<{
     }, []);
 
     return (
-        <div className="h-full w-3/5 my-auto relative ">
+        <div className="h-[280px] sm:h-full w-full sm:w-3/5 shrink-0 relative">
             <VideoPhotoSwiper
                 videoPhotoList={photoVideoList}
                 deleteVideoPhoto={deleteVideoPhotoHandler}

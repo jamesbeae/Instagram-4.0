@@ -1,20 +1,15 @@
-const messageService = require("../services/messageService");
-
-const getMessages = async (req, res) => {
+exports.getMessages = async (req, res, next) => {
     try {
-        const { sender_id, receiver_id } = req.query;
-        // Assuming you have a service to fetch messages
-        const messages = await messageService.getMessages(
-            sender_id,
-            receiver_id
-        );
-        res.json(messages);
-    } catch (error) {
-        console.error("Error fetching messages:", error);
-        res.status(500).json({ message: "Internal server error" });
+        const Joi = require('joi');
+        const s = require('../services/socialService');
+        if (req.query.sender_id && req.query.sender_id !== req.currentUser.id)
+            throw s.error(403, 'You may only read your own conversations');
+        const { value, error } = Joi.object({ page: Joi.number().integer().min(1).default(1), limit: Joi.number().integer().min(1).max(100).default(50) }).validate({ page: req.query.page, limit: req.query.limit });
+        if (error)
+            throw s.error(400, error.message);
+        res.json(await s.getMessages(req.currentUser.id, req.query.receiver_id, value));
     }
-};
-
-module.exports = {
-    getMessages,
+    catch (e) {
+        next(e);
+    }
 };

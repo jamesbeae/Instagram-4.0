@@ -1,16 +1,11 @@
 const { DataTypes } = require("sequelize");
-
 module.exports = {
     async up(queryInterface) {
-        await queryInterface.sequelize.query(
-            'CREATE EXTENSION IF NOT EXISTS "pgcrypto";'
-        );
+        // PostgreSQL 16 provides gen_random_uuid() without an extension.
         await queryInterface.createTable("roles", {
             id: {
                 type: DataTypes.UUID,
-                defaultValue: queryInterface.sequelize.literal(
-                    "gen_random_uuid()"
-                ),
+                defaultValue: queryInterface.sequelize.literal("gen_random_uuid()"),
                 primaryKey: true,
                 allowNull: false,
             },
@@ -23,7 +18,6 @@ module.exports = {
             updated_at: { type: DataTypes.DATE, allowNull: false },
         });
     },
-
     async down(queryInterface) {
         await queryInterface.dropTable("roles");
     },

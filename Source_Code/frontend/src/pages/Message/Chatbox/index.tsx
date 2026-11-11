@@ -1,72 +1,61 @@
-import React, { useEffect, useState } from "react";
-import ChatBoxHeader from "./ChatBoxHeader";
-import { useLocation, useParams } from "react-router-dom";
-import ChatBoxInput from "./ChatBoxInput";
-import ChatBoxList from "./ChatBoxList";
-import usePrivateHttp from "../../../hooks/usePrivateHttp";
-import { useAppSelector } from "../../../hooks/useStore";
-import { socket } from "../../../socket/socket";
-import { Message } from "../../../models/Message";
-const ChatBox = () => {
-    const sendingUser = useLocation().state?.user;
-    const currentUser = useAppSelector((state) => state.authSlice.userInfo);
-    const privateHttp = usePrivateHttp();
+import { useEffect, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
+import ChatBoxHeader from './ChatBoxHeader';
+import ChatBoxInput from './ChatBoxInput';
+import ChatBoxList from './ChatBoxList';
+import usePrivateHttp from '../../../hooks/usePrivateHttp';
+import { useAppSelector } from '../../../hooks/useStore';
+import { socket } from '../../../socket/socket';
+import { Message } from '../../../models/Message';
+import { User } from '../../../models/User';
+export default function ChatBox() {
+    const { user_id } = useParams();
+    const initialUser = useLocation().state?.user;
+    const [user, setUser] = useState<User | undefined>(initialUser);
     const [messages, setMessages] = useState<Message[]>([]);
-    // get user data and chats:
-    const getChatHistory = async () => {
-        try {
-            const response = await privateHttp.get("/message", {
-                params: {
-                    sender_id: currentUser?._id,
-                    receiver_id: sendingUser?._id,
-                },
-            });
-            console.log("Chat history:", response.data);
-            setMessages(response.data);
-        } catch (error) {
-            console.error("Error fetching chat history:", error);
+    const [error, setError] = useState('');
+    const currentUser = useAppSelector(s => s.authSlice.userInfo);
+    const http = usePrivateHttp();
+    useEffect(() => {
+        let active = true;
+        setMessages([]);
+        setError('');
+        if (!user_id)
+            return;
+        Promise.all([http.get('/user/get-profile', { params: { _id: user_id } }), http.get('/message', { params: { receiver_id: user_id } })])
+            .then(([u, m]) => { if (active) {
+            setUser(u.data.profile);
+            setMessages(m.data);
+        } })
+            .catch(() => { if (active)
+            setError('Unable to load conversation'); });
+        return () => { active = false; };
+    }, [user_id, http]);
+    useEffect(() => {
+        const receive = (m: Message) => { if (m.sender_id === user_id && m.receiver_id === currentUser?._id)
+            setMessages(prev => prev.some(x => x._id === m._id) ? prev : [...prev, m]); };
+        socket.on('receiveMessage', receive);
+        return () => { socket.off('receiveMessage', receive); };
+    }, [user_id, currentUser?._id]);
+    const sendMessage = async (contents: string) => {
+        if (!contents.trim() || !user_id)
+            return false;
+        if (!socket.connected) {
+            setError('Connection unavailable. Please try again.');
+            return false;
         }
+        return new Promise<boolean>(resolve => socket.timeout(10000).emit('sendMessage', { receiverId: user_id, contents }, (err: any, result: any) => {
+            if (err || !result?.ok) {
+                setError(result?.message || 'Unable to send message');
+                resolve(false);
+                return;
+            }
+            setError('');
+            setMessages(prev => [...prev, result.message]);
+            resolve(true);
+        }));
     };
-
-    const sendMessage = async (message: string) => {
-        if (!message.trim()) return;
-
-        socket.emit("sendMessage", {
-            senderId: currentUser?._id,
-            receiverId: sendingUser?._id,
-            contents: message,
-        });
-        const newMessage: Message = {
-            _id: Date.now().toString(),
-            contents: message,
-            receiver_id: sendingUser?._id,
-            sender_id: currentUser?._id,
-            createdAt: new Date(),
-        };
-        setMessages((prev: Message[]) => [...prev, newMessage]);
-    };
-
-    useEffect(() => {
-        getChatHistory();
-    }, [sendingUser]);
-
-    useEffect(() => {
-        socket.on("receiveMessage", (message: Message) => {
-            console.log("Received message:", message);
-            setMessages((prev: Message[]) => [...prev, message]);
-        });
-
-        return () => {
-            socket.off("receiveMessage");
-        };
-    }, []);
-    return (
-        <div className="flex-1 h-full flex flex-col">
-            <ChatBoxHeader user={sendingUser} />
-            <ChatBoxList messages={messages} sendingUser={sendingUser} />
-            <ChatBoxInput sendMessage={sendMessage} />
-        </div>
-    );
-};
-
-export default ChatBox;
+    if (!user)
+        return <p role="status" className="text-white p-6">{error || 'Loading conversation…'}</p>;
+    return <div className="flex-1 h-full flex flex-col"><ChatBoxHeader user={user}/>{error && <p role="alert" className="text-red-400 p-2">{error}</p>}<ChatBoxList messages={messages} sendingUser={user}/><ChatBoxInput sendMessage={sendMessage}/></div>;
+}

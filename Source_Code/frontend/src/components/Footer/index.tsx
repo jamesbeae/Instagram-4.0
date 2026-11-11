@@ -1,8 +1,5 @@
-import React from "react";
-
 const Footer = () => {
-    return (
-        <div className="flex flex-col gap-6 items-center justify-center text-xs text-textGray">
+    return (<div className="flex flex-col gap-6 items-center justify-center text-xs text-textGray">
             <ul className="px-2 flex flex-wrap justify-center gap-6 transition">
                 <li className="cursor-pointer hover:underline">Meta</li>
                 <li className="cursor-pointer hover:underline">About</li>
@@ -27,8 +24,6 @@ const Footer = () => {
                 <li>English</li>
                 <li>© 2026 INSTAGRAM FROM huydayne1608</li>
             </ul>
-        </div>
-    );
+        </div>);
 };
-
 export default Footer;

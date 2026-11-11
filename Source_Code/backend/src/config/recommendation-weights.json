@@ -1,0 +1,7 @@
+{
+  "version": "zenodo-science-author-v1",
+  "authorAffinityWeight": 0.25,
+  "popularityWeight": 0.3,
+  "source": "https://zenodo.org/records/14669616",
+  "evaluationProtocol": "100 sampled candidates per user: one eligible future positive and 99 uniform negatives from training catalog; training likes excluded. Warm users with >=5 distinct training likes; maximum 2000 users. Test held untouched during hyperparameter selection."
+}

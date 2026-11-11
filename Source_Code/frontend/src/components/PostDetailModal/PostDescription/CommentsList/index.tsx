@@ -1,67 +1,31 @@
-import React, { useContext, useEffect } from "react";
-import { Comment as CommentModel } from "../../../../models/Comment";
-import Avatar from "../../../UI/Avatar/Avatar";
-import { Post } from "../../../../models/Post";
-import Comment from "./Comment";
-import { getComments } from "../../../../services/commentService";
-import { CommentListContext } from "..";
+import { useContext, useEffect, useState } from 'react';
+import Avatar from '../../../UI/Avatar/Avatar';
+import { Post } from '../../../../models/Post';
+import Comment from './Comment';
+import usePrivateHttp from '../../../../hooks/usePrivateHttp';
+import { CommentListContext } from '..';
 
-const CommentsList: React.FC<{
-    postData: Post;
-}> = ({ postData }) => {
-    const commentsListContext = useContext(CommentListContext);
-    const [commentsList, setCommentsList] = React.useState<CommentModel[]>(
-        commentsListContext?.commentListState.commentsList
-    );
-    // Get Comments List:
-    const getCommentsListHandler = async () => {
-        try {
-            const result = await getComments(postData._id);
-            commentsListContext.commentListDispatch({
-                type: "SET_COMMENTS",
-                payload: result.comments,
-            });
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
+export default function CommentsList({ postData }: { postData: Post }) {
+    const http = usePrivateHttp();
+    const { commentListState, commentListDispatch } = useContext(CommentListContext);
+    const [loading, setLoading] = useState(true), [error, setError] = useState('');
     useEffect(() => {
-        getCommentsListHandler();
-    }, [postData._id]);
-
-    useEffect(() => {
-        setCommentsList(commentsListContext.commentListState.commentsList);
-    }, [commentsListContext.commentListState.commentsList]);
-    console.log(commentsList);
-
-    return (
-        <div className="h-full w-full absolute p-4 border-l border-b border-lightDark overflow-auto scrollbar-hide">
-            {/* Post Caption */}
-            <div className="flex items-center pb-4 pr-4 pt-[5px]">
-                <Avatar
-                    avatarUrl={postData.userId.avatar}
-                    username={postData.userId.username}
-                    className="w-8 h-8 mr-[18px]"
-                />
-                <div className="text-white text-sm flex-1">
-                    <span className="font-semibold cursor-pointer mr-1">
-                        {postData.userId.username}
-                    </span>
-                    <span>{postData.caption}</span>
-                </div>
-            </div>
-
-            {/* Comments */}
-            {commentsList && commentsList.length > 0 ? (
-                commentsList.map((comment) => {
-                    return <Comment key={comment._id} commentData={comment} />;
-                })
-            ) : (
-                <div></div>
-            )}
+        let active = true;
+        setLoading(true); setError('');
+        http.get('/comment/get-comments', { params: { postId: postData._id } })
+            .then(response => { if (active) commentListDispatch({ type: 'SET_COMMENTS', payload: response.data.comments }); })
+            .catch(() => { if (active) setError('Unable to load comments. Please reopen the post to try again.'); })
+            .finally(() => { if (active) setLoading(false); });
+        return () => { active = false; };
+    }, [postData._id, http, commentListDispatch]);
+    return <section aria-label="Comments" className="absolute inset-0 p-4 border-l border-b border-lightDark overflow-y-auto">
+        <div className="flex items-start pb-4">
+            <Avatar avatarUrl={postData.userId.avatar} username={postData.userId.username} className="w-8 h-8 mr-4 shrink-0" />
+            <p className="text-white text-sm break-words min-w-0"><span className="font-semibold mr-1">{postData.userId.username}</span>{postData.caption}</p>
         </div>
-    );
-};
-
-export default CommentsList;
+        {commentListState.commentsList.map(comment => <Comment key={comment._id} commentData={comment} />)}
+        {loading && <p role="status" className="text-textGray text-sm">Loading comments…</p>}
+        {error && <p role="alert" className="text-errorText text-sm">{error}</p>}
+        {!loading && !error && !commentListState.commentsList.length && <p className="text-textGray text-sm">No comments yet.</p>}
+    </section>;
+}

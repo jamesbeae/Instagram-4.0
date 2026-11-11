@@ -1,7 +1,5 @@
 import axios from "axios";
-
-const baseURL = import.meta.env.VITE_REACT_API_URL;
-
+const baseURL = import.meta.env.VITE_REACT_API_URL || "http://localhost:8000/v1/api";
 const http = axios.create({
     baseURL,
     headers: {
@@ -9,7 +7,6 @@ const http = axios.create({
     },
     withCredentials: true,
 });
-
 const privateHttp = axios.create({
     baseURL,
     headers: {
@@ -17,6 +14,5 @@ const privateHttp = axios.create({
     },
     withCredentials: true,
 });
-
 export default http;
 export { privateHttp };

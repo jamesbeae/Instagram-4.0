@@ -20,7 +20,7 @@ const StatusInput: React.FC<{ getCaptionHandler: Function }> = ({
     }, []);
 
     return (
-        <div className="w-2/5 flex flex-col border-l-0.5 border-l-textGray">
+        <div className="w-full sm:w-2/5 min-h-[220px] shrink-0 flex flex-col border-t sm:border-t-0 sm:border-l border-textGray">
             <div className="my-5 mx-4 flex gap-3 items-center">
                 <Avatar
                     className={"w-7 h-7 shrink-0"}

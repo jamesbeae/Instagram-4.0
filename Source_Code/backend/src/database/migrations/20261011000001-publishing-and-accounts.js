@@ -1,0 +1,13 @@
+module.exports = { async up(q) {
+        await q.sequelize.transaction(async (transaction) => {
+            await q.sequelize.query(`
+ ALTER TABLE users ADD COLUMN disabled BOOLEAN NOT NULL DEFAULT false, ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0;
+ CREATE TABLE groups (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE, name VARCHAR(100) NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
+ CREATE TABLE group_members (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE, user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE(group_id,user_id));
+ ALTER TABLE posts ADD COLUMN kind VARCHAR(10) NOT NULL DEFAULT 'POST' CHECK(kind IN ('POST','STORY')), ADD COLUMN expires_at TIMESTAMPTZ, ADD COLUMN visibility VARCHAR(12) NOT NULL DEFAULT 'public' CHECK(visibility IN ('public','followers','group')), ADD COLUMN group_id UUID REFERENCES groups(id) ON DELETE CASCADE, ADD COLUMN hidden BOOLEAN NOT NULL DEFAULT false, ADD CONSTRAINT post_group_scope CHECK((visibility='group' AND group_id IS NOT NULL) OR (visibility!='group' AND group_id IS NULL));
+ CREATE TABLE reports (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), reporter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE, post_id UUID REFERENCES posts(id) ON DELETE CASCADE, target_user_id UUID REFERENCES users(id) ON DELETE CASCADE, reason VARCHAR(2000) NOT NULL, status VARCHAR(20) NOT NULL DEFAULT 'open', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), CHECK((post_id IS NOT NULL)::integer+(target_user_id IS NOT NULL)::integer=1));
+ CREATE TABLE password_resets (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE, token_hash VARCHAR(64) NOT NULL UNIQUE, expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
+ CREATE INDEX posts_visibility ON posts(visibility,kind,created_at);
+ `, { transaction });
+        });
+    }, async down(q) { await q.sequelize.transaction(async (transaction) => { await q.sequelize.query(`DROP TABLE password_resets,reports; ALTER TABLE posts DROP CONSTRAINT post_group_scope, DROP COLUMN kind, DROP COLUMN expires_at, DROP COLUMN visibility, DROP COLUMN group_id, DROP COLUMN hidden; DROP TABLE group_members,groups; ALTER TABLE users DROP COLUMN disabled,DROP COLUMN token_version;`, { transaction }); }); } };
