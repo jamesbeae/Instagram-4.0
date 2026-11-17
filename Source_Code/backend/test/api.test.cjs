@@ -212,6 +212,7 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             assert.equal((await request('DELETE', '/post/' + removableStory._id, null, o)).status, 200);
             assert.equal((await request('GET', '/post/' + removableStory._id, null, o)).status, 404);
             const removableReel = (await request('POST', '/post/create-post', { caption: 'Video post to delete', photoVideoList: [{ type: 'VIDEO', url: 'https://example.com/removable-reel.webm' }] }, o)).data.post;
+            assert.equal((await request('DELETE', '/post/' + removableReel._id, null, v)).status, 403);
             assert.equal((await request('DELETE', '/post/' + removableReel._id, null, o)).status, 200);
             assert.equal((await request('GET', '/post/' + removableReel._id, null, o)).status, 404);
             assert.equal((await request('POST', '/post/create-post', { caption: 'Invalid image', photoVideoList: [{ type: 'PHOTO', url: 'data:image/png;base64,bm90IGFuIGltYWdl' }] }, o)).status, 400);
