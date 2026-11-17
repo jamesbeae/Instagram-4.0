@@ -5,7 +5,7 @@ exports.getAllUsers = async () => ({ status: 200, users: (await User.findAll({ w
 exports.getSuggestedUsers = s.suggestedUsers;
 exports.getUserProfile = async (profileId, currentUserId) => {
     const user = await User.findByPk(s.id(profileId));
-    if (!user)
+    if (!user || user.disabled)
         throw s.error(404, 'User not found');
     const [followers, following, posts, saved] = await Promise.all([
         Follow.findAll({ where: { followingId: profileId } }), Follow.findAll({ where: { followerId: profileId } }),
@@ -19,20 +19,23 @@ exports.createFollow = async (userId, followingId) => {
     s.id(followingId);
     if (userId === followingId)
         throw s.error(400, 'You cannot follow yourself');
-    if (!await User.findByPk(followingId))
+    if (!await User.findOne({ where: { id: followingId, disabled: false } }))
         throw s.error(404, 'User not found');
-    const created = await sequelize.transaction(async (transaction) => {
+    const { created, notification } = await sequelize.transaction(async (transaction) => {
         const [, created] = await Follow.findOrCreate({ where: { followerId: userId, followingId }, transaction });
         if (created)
             await s.record(userId, 'FOLLOW', null, followingId, transaction);
-        return created;
+        const notification = created ? await s.notify(userId, followingId, 'FOLLOW', null, transaction) : null;
+        return { created, notification };
     });
     if (created)
-        await s.notify(userId, followingId, 'FOLLOW');
+        s.emitNotification(followingId, notification);
     return { status: 200, following: true };
 };
 exports.deleteFollow = async (userId, followingId) => {
     s.id(followingId);
+    if (!await User.findOne({ where: { id: followingId, disabled: false } }))
+        throw s.error(404, 'User not found');
     await sequelize.transaction(async transaction => {
         const removed = await Follow.destroy({ where: { followerId: userId, followingId }, transaction });
         if (removed) await s.record(userId, 'UNFOLLOW', null, followingId, transaction);

@@ -1,43 +1,42 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Input from "../../components/UI/Input/Input";
 import Button from "../../components/UI/Button/Button";
 import loginService from "../../services/loginService";
 import { useAppDispatch } from "../../hooks/useStore";
 import { authActions } from "../../lib/redux/authSlice";
-import useRedirect from "../../hooks/useRedirect";
 import FacebookLogin from "react-facebook-login";
 const inputClassName = "w-64 p-2 border border-textGray rounded-sm focus:outline-none text-sm placeholder:text-sm";
 const buttonClassName = "w-64 py-2 px-3 rounded-lg font-semibold bg-blue text-white";
 const LoginForm = () => {
     const dispatch = useAppDispatch();
-    const { gotoHomePage } = useRedirect();
+    const navigate = useNavigate();
     // Login form data:
-    const [username, setUsername] = useState<string>("");
+    const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     // Validation states:
     const [errorMess, setErrorMess] = useState<string>("");
     const [disableLoginButton, setDisableLoginButton] = useState<boolean>(true);
     // get inputs value functions:
-    const getUsernameHandler = useCallback((value: string) => {
-        setUsername(value);
+    const getEmailHandler = useCallback((value: string) => {
+        setEmail(value);
     }, []);
     const getPasswordHandler = useCallback((value: string) => {
         setPassword(value);
     }, []);
     // Disable button state:
     useEffect(() => {
-        if (username && password) {
+        if (email && password) {
             setDisableLoginButton(false);
         }
         else {
             setDisableLoginButton(true);
         }
-    }, [username, password]);
+    }, [email, password]);
     // Handle click Login button:
     const handleLogin = useCallback(async () => {
         const loginData = {
-            username,
+            email,
             password,
         };
         const validationResult = loginService.validateLoginData(loginData);
@@ -53,13 +52,13 @@ const LoginForm = () => {
                     userInfo: result.data.userInfo,
                     accessToken: result.data.accessToken,
                 }));
-                gotoHomePage();
+                navigate(result.data.userInfo.role?.name === "admin" ? "/admin" : "/");
             }
             else {
                 setErrorMess(result?.message ?? "Đăng nhập thất bại");
             }
         }
-    }, [username, password, dispatch, gotoHomePage]);
+    }, [email, password, dispatch, navigate]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleLoginWithFacebook = async (response: any) => {
         if (!response.accessToken) {
@@ -72,7 +71,7 @@ const LoginForm = () => {
                     userInfo: result.data.userInfo,
                     accessToken: result.data.accessToken,
                 }));
-                gotoHomePage();
+                navigate(result.data.userInfo.role?.name === "admin" ? "/admin" : "/");
             }
             else {
                 setErrorMess("Login with Facebook failed. Please try again later.");
@@ -80,7 +79,7 @@ const LoginForm = () => {
         }
     };
     return (<form className="flex flex-col items-center gap-2 mt-8">
-            <Input className={inputClassName} type="text" name="username" id="username" placeholder="Your username" getInputValueHandler={getUsernameHandler}/>
+            <Input className={inputClassName} type="email" name="email" id="email" placeholder="Email" getInputValueHandler={getEmailHandler}/>
 
             <Input className={inputClassName} type="password" name="password" id="password" placeholder="Your password" getInputValueHandler={getPasswordHandler}/>
 

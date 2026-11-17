@@ -35,7 +35,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"username\": \"{{ownerUsername}}\",\n    \"password\": \"{{demoPassword}}\"\n}"
+                            "raw": "{\n    \"email\": \"{{ownerEmail}}\",\n    \"password\": \"{{demoPassword}}\"\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/auth/login",
@@ -69,7 +69,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"username\": \"{{viewerUsername}}\",\n    \"password\": \"{{demoPassword}}\"\n}"
+                            "raw": "{\n    \"email\": \"{{viewerEmail}}\",\n    \"password\": \"{{demoPassword}}\"\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/auth/login",
@@ -618,13 +618,13 @@
             "type": "string"
         },
         {
-            "key": "ownerUsername",
-            "value": "owner",
+            "key": "ownerEmail",
+            "value": "owner@example.com",
             "type": "string"
         },
         {
-            "key": "viewerUsername",
-            "value": "viewer",
+            "key": "viewerEmail",
+            "value": "viewer@example.com",
             "type": "string"
         },
         {

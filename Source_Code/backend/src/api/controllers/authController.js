@@ -12,11 +12,11 @@ exports.signUp = async (req, res, next) => {
 
 // Log in
 exports.login = async (req, res, next) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     try {
         const result = await sequelizeAuthService.login(
             res,
-            username,
+            email,
             password
         );
         res.status(200).json(result);
