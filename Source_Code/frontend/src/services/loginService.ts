@@ -33,7 +33,9 @@ const loginWithFacebook = async (data: { accessToken?: string }) => {
 
 // Kiểm tra dữ liệu đăng nhập ở frontend.
 const loginDataSchema = z.object({
-    email: z.string().email({ message: "Email không hợp lệ" }),
+    username: z.string().min(1, {
+        message: "Bạn chưa nhập username",
+    }),
     password: z.string().min(1, {
         message: "Bạn chưa nhập mật khẩu",
     }),
@@ -58,10 +60,10 @@ const login = async (data: LoginData) => {
         if (axios.isAxiosError(error)) {
             const message = error.response?.data?.message;
 
-            if (message === "email") {
+            if (message === "username") {
                 return {
                     success: false as const,
-                    message: "Email không tồn tại",
+                    message: "Username không tồn tại",
                 };
             }
 

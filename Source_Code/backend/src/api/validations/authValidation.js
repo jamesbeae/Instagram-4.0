@@ -13,12 +13,11 @@ exports.signUpSchema = Joi.object({
     password: Joi.string()
         .pattern(new RegExp("^[a-zA-Z0-9]{8,30}$"))
         .required(),
-    confirmPassword: Joi.string().valid(Joi.ref("password")).required(),
 });
 
 // Login validation:
 exports.loginSchema = Joi.object({
-    email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } }).required(),
+    username: Joi.string().required(),
     password: Joi.string().required(),
 });
 

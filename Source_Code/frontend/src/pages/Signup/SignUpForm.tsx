@@ -20,7 +20,6 @@ const SignUpForm = () => {
     const [fullName, setFullName] = useState<string>("");
     const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
-    const [confirmPassword, setConfirmPassword] = useState<string>("");
     // validation states:
     const [errorMess, setErrorMess] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -38,14 +37,11 @@ const SignUpForm = () => {
     const getPasswordHandler = useCallback((value: string) => {
         setPassword(value);
     }, []);
-    const getConfirmPasswordHandler = useCallback((value: string) => {
-        setConfirmPassword(value);
-    }, []);
     // Disable button state:
     useEffect(() => {
-        setDisableSignUpButton(email && fullName && username && password && confirmPassword ? false : true);
+        setDisableSignUpButton(email && fullName && username && password ? false : true);
         return () => { };
-    }, [email, fullName, username, password, confirmPassword]);
+    }, [email, fullName, username, password]);
     // Handle Sign up when click sign up button
     const handleSignUp = useCallback(async () => {
         const signUpData = {
@@ -53,7 +49,6 @@ const SignUpForm = () => {
             fullName,
             username,
             password,
-            confirmPassword,
         };
         const validationResult = validateSignUpData(signUpData);
         if (!validationResult.success) {
@@ -81,7 +76,7 @@ const SignUpForm = () => {
         finally {
             setIsSubmitting(false);
         }
-    }, [email, fullName, username, password, confirmPassword, navigate]);
+    }, [email, fullName, username, password, navigate]);
     const handleLoginWithFacebook = async (response: any) => {
         if (!response.accessToken) {
             setErrorMess("Login with Facebook failed. Please try again later.");
@@ -113,7 +108,6 @@ const SignUpForm = () => {
             <Input type="text" name="fullName" id="fullName" placeholder="Full Name" getInputValueHandler={getFullNameHandler} className={inputClassName}/>
             <Input type="text" name="username" id="username" placeholder="Username" getInputValueHandler={getUsernameHandler} className={inputClassName}/>
             <Input type="password" name="password" id="password" placeholder="Password" getInputValueHandler={getPasswordHandler} className={inputClassName}/>
-            <Input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm Password" getInputValueHandler={getConfirmPasswordHandler} className={inputClassName}/>
             {/* Sign up form description */}
             <SignUpFormDesc />
             <Button onClick={handleSignUp} content={isSubmitting ? "Đang đăng ký..." : "Sign Up"} disable={disableSignUpButton || isSubmitting} className={buttonClassName}/>

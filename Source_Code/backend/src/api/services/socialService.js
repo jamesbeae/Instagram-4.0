@@ -36,35 +36,25 @@ const findPost = exports.findPost = async (postId, currentUserId) => {
     return post;
 };
 exports.record = async (userId, type, postId, targetUserId, transaction) => Interaction.create({ userId, type, postId, targetUserId }, { transaction });
-exports.notify = async (senderId, receiverId, type, postId, transaction) => {
+const notify = exports.notify = async (senderId, receiverId, type, postId) => {
     if (senderId === receiverId)
-        return null;
-    const sender = await User.findByPk(senderId, { transaction });
-    const content = sender.username + ({ LIKE: ' liked your post', COMMENT: ' commented on your post', FOLLOW: ' started following you' }[type] || ' interacted with you');
-    const n = await Notification.create({ senderId, receiverId, type, postId, content }, { transaction });
-    return { ...n.get({ plain: true }), _id: n.id };
-};
-exports.emitNotification = (receiverId, data) => {
-    if (!data)
         return;
-    try {
-        realtime?.to('user:' + receiverId).emit('receiveNotification', data);
-    }
-    catch (error) {
-        console.error('Realtime notification delivery failed', error);
-    }
+    const sender = await User.findByPk(senderId);
+    const content = sender.username + ({ LIKE: ' liked your post', COMMENT: ' commented on your post', FOLLOW: ' started following you' }[type] || ' interacted with you');
+    const n = await Notification.create({ senderId, receiverId, type, postId, content });
+    const data = { ...n.get({ plain: true }), _id: n.id };
+    realtime?.to('user:' + receiverId).emit('receiveNotification', data);
 };
 exports.like = async (userId, postId) => {
     const post = await findPost(postId, userId);
-    const [like, created, notification] = await sequelize.transaction(async (transaction) => {
+    const [like, created] = await sequelize.transaction(async (transaction) => {
         const result = await Like.findOrCreate({ where: { userId, postId }, transaction });
         if (result[1])
             await exports.record(userId, 'LIKE', postId, null, transaction);
-        const notification = result[1] ? await exports.notify(userId, post.userId, 'LIKE', postId, transaction) : null;
-        return [...result, notification];
+        return result;
     });
     if (created)
-        exports.emitNotification(post.userId, notification);
+        await notify(userId, post.userId, 'LIKE', postId);
     return { status: created ? 201 : 200, like: { ...like.get({ plain: true }), _id: like.id } };
 };
 exports.unlike = async (userId, postId) => {
@@ -79,14 +69,13 @@ exports.comment = async (userId, postId, content) => {
     const post = await findPost(postId, userId);
     if (typeof content !== 'string' || !content.trim() || content.length > 2200)
         throw error(400, 'Comment must contain 1–2200 characters');
-    const { comment: c, notification } = await sequelize.transaction(async (transaction) => {
+    const c = await sequelize.transaction(async (transaction) => {
         const c = await Comment.create({ userId, postId, content: content.trim() }, { transaction });
         await exports.record(userId, 'COMMENT', postId, null, transaction);
-        const notification = await exports.notify(userId, post.userId, 'COMMENT', postId, transaction);
-        const comment = await Comment.findByPk(c.id, { include: [{ model: User, as: 'user' }], transaction });
-        return { comment, notification };
+        return c;
     });
-    exports.emitNotification(post.userId, notification);
+    await c.reload({ include: [{ model: User, as: 'user' }] });
+    await notify(userId, post.userId, 'COMMENT', postId);
     return { status: 201, comment: commentJSON(c) };
 };
 exports.comments = async (postId, currentUserId) => { await findPost(postId, currentUserId); return { status: 200, comments: (await Comment.findAll({ where: { postId }, include: [{ model: User, as: 'user' }], order: [['createdAt', 'DESC']] })).map(commentJSON) }; };

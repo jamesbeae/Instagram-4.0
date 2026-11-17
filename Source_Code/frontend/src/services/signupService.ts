@@ -16,12 +16,6 @@ const signUpDataSchema = z.object({
         message:
             "Mật khẩu phải dài từ 8 đến 30 ký tự và chỉ chứa chữ hoặc số",
     }),
-    confirmPassword: z.string().min(1, {
-        message: "Vui lòng nhập lại mật khẩu",
-    }),
-}).refine((data) => data.password === data.confirmPassword, {
-    message: "Mật khẩu nhập lại không khớp",
-    path: ["confirmPassword"],
 });
 
 export type SignupData = z.infer<typeof signUpDataSchema>;

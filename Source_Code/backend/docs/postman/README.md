@@ -11,10 +11,10 @@ npm run db:seed
 
 The post seeder creates two local-only demo accounts and three posts:
 
-| Account | Email | Password | Purpose |
+| Account | Username | Password | Purpose |
 | --- | --- | --- | --- |
-| Owner | `owner@example.com` | `12345678` | Creates and deletes its own post |
-| Viewer | `viewer@example.com` | `12345678` | Verifies that a non-owner receives `403` |
+| Owner | `owner` | `12345678` | Creates and deletes its own post |
+| Viewer | `viewer` | `12345678` | Verifies that a non-owner receives `403` |
 
 These are public test credentials, not production secrets. The seeder can be
 run repeatedly. It refreshes only these reserved demo accounts and their posts.
