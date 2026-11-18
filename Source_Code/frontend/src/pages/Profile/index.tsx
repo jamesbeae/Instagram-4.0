@@ -1,3 +1,4 @@
+import Loading from "../../components/UI/Loading";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Profile as ProfileType } from "../../models/Profile";
@@ -45,9 +46,7 @@ const Profile = () => {
         return () => { window.removeEventListener('post-deleted', remove); window.removeEventListener('post-updated', update); };
     }, []);
     if (isLoading) {
-        return (<div className="text-white text-center mt-10">
-                Đang tải hồ sơ...
-            </div>);
+        return <Loading message="Đang tải hồ sơ..." className="self-start flex-1 mt-10 text-white" />;
     }
     if (errorMessage) {
         return (<div className="text-red-500 text-center mt-10">

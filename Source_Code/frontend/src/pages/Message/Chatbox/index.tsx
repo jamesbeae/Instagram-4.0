@@ -1,3 +1,4 @@
+import Loading from "../../../components/UI/Loading";
 import { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import ChatBoxHeader from './ChatBoxHeader';
@@ -56,6 +57,6 @@ export default function ChatBox() {
         }));
     };
     if (!user)
-        return <p role="status" className="text-white p-6">{error || 'Loading conversation…'}</p>;
+        return error ? <p role="alert" className="text-white p-6">{error}</p> : <Loading message="Loading conversation…" className="flex-1 self-start p-6 text-white" />;
     return <div className="flex-1 h-full flex flex-col"><ChatBoxHeader user={user}/>{error && <p role="alert" className="text-red-400 p-2">{error}</p>}<ChatBoxList messages={messages} sendingUser={user}/><ChatBoxInput sendMessage={sendMessage}/></div>;
 }

@@ -1,3 +1,4 @@
+import Loading from "../../../components/UI/Loading";
 import React, { useCallback, useEffect, useState } from "react";
 import { User } from "../../../models/User";
 import { getSuggestedUsers as getSuggestedUsersList } from "../../../services/userService";
@@ -72,7 +73,7 @@ const Suggested = () => {
             </div>
 
             <div className="flex flex-col py-2">
-                {loading ? <p role="status" className="text-textSecondGray text-sm text-center">Loading suggestions…</p>
+                {loading ? <Loading message="Loading suggestions…" className="text-textSecondGray" />
                     : error ? <div className="text-center"><p role="alert" className="text-red-400 text-sm">{error}</p><button type="button" onClick={() => void loadSuggestions()}>Try again</button></div>
                     : suggestedUsers && suggestedUsers.length > 0 ? (suggestedUsers.map((user) => {
             return (<UserTagBar key={`suggested-${user._id}`} _id={user._id} username={user.username} fullName={user.fullName} avatar={user.avatar} annotate="Suggested for you" ActionButton={SuggestedUsersAction} className="py-2" annotateClassName="text-xs"/>);

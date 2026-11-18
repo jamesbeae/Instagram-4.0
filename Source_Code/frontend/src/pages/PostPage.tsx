@@ -1,3 +1,4 @@
+import Loading from "../components/UI/Loading";
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Post } from '../models/Post';
@@ -8,4 +9,4 @@ export default function PostPage() { const { postId } = useParams(), http = useP
     setPost(p); }; const remove = (e: Event) => { if ((e as CustomEvent<string>).detail === postId) {
     setPost(undefined);
     setError('Post deleted');
-} }; window.addEventListener('post-updated', update); window.addEventListener('post-deleted', remove); return () => { window.removeEventListener('post-updated', update); window.removeEventListener('post-deleted', remove); }; }, [postId]); return post ? <div className="text-white flex p-6 overflow-auto"><div className="w-1/2"><VideoPhotoSwiper videoPhotoList={post.photoVideo}/></div><PostDescription key={post._id} postData={post}/></div> : <p className="text-white p-6">{error || 'Loading…'}</p>; }
+} }; window.addEventListener('post-updated', update); window.addEventListener('post-deleted', remove); return () => { window.removeEventListener('post-updated', update); window.removeEventListener('post-deleted', remove); }; }, [postId]); return post ? <div className="text-white flex p-6 overflow-auto"><div className="w-1/2"><VideoPhotoSwiper videoPhotoList={post.photoVideo}/></div><PostDescription key={post._id} postData={post}/></div> : error ? <p role="alert" className="text-white p-6">{error}</p> : <Loading className="flex-1 self-start p-6 text-white" />; }

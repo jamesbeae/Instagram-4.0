@@ -1,3 +1,4 @@
+import Loading from "../UI/Loading";
 import { ReactNode, useEffect, useState } from "react";
 import http from "../../lib/axios/http";
 import { useAppDispatch } from "../../hooks/useStore";
@@ -43,11 +44,7 @@ const AuthInitializer = ({ children }: AuthInitializerProps) => {
     }, [dispatch]);
 
     if (!isReady) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                Loading...
-            </div>
-        );
+        return <Loading message="Loading…" className="min-h-screen text-white bg-dark" />;
     }
 
     return children;
