@@ -2,11 +2,14 @@ import React, { useEffect } from "react";
 import { Post } from "../../models/Post";
 import VideoPhotoSwiper from "../UI/VideoPhotoSwiper";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Card from "../UI/Card";
+import Button from "../UI/Button/Button";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useAppDispatch, useAppSelector } from "../../hooks/useStore";
 import { postDetailModalActions } from "../../lib/redux/postDetailModalSlice";
 import PostDescription from "./PostDescription";
 import "../../pages/Home/StoryList/StoryList.css";
+import "./PostDetailModal.css";
 const PostDetailModal: React.FC<{
     postData?: Post;
 }> = ({ postData }) => {
@@ -27,24 +30,31 @@ const PostDetailModal: React.FC<{
     const closePostDetailModal = () => {
         dispatch(postDetailModalActions.closePostDetailModal());
     };
-    return (<div className={`fixed z-50 w-screen h-screen inset-0 flex justify-center items-center`}>
+    const isStory = postDataState?.kind === "STORY";
+    const Dialog = isStory ? "div" : Card;
+
+    return (<div className="fixed z-50 inset-0 flex justify-center items-center"
+            onKeyDown={event => {
+                if (event.key === "Escape" && !event.defaultPrevented) {
+                    event.preventDefault();
+                    closePostDetailModal();
+                }
+            }}>
             {/* This is the backdrop*/}
-            <div className="absolute inset-0 h-screen w-screen bg-dark opacity-70 z-10" onClick={closePostDetailModal}></div>
-
-            {/* This is the x close btn */}
-            <div className="absolute top-2 right-8 text-textGray cursor-pointer z-20" onClick={closePostDetailModal}>
-                <FontAwesomeIcon icon={faXmark} className="text-3xl"/>
-            </div>
-
-            {/* Modal */}
-            <div className={"post-detail-dialog max-h-[90vh] overflow-auto max-w-[95vw] m-auto flex flex-col md:flex-row relative z-20 bg-dark border border-lightDark" + (postDataState?.kind === "STORY" ? " story-detail-modal" : "")}>
-                {/* Post Photo Video Swiper */}
-                <div className="story-detail-media max-h-[50vh] md:max-h-full w-full md:w-[50vw] md:max-w-[647px]">
-                    {postDataState && (<VideoPhotoSwiper videoPhotoList={postDataState.photoVideo}/>)}
+            <div className={isStory ? "absolute inset-0 bg-dark opacity-70 z-10" : "post-detail-backdrop absolute inset-0 z-10"}
+                onClick={closePostDetailModal} />
+            {isStory && <Button className="absolute top-2 right-8 text-textGray z-20"
+                aria-label="Close story" onClick={closePostDetailModal}>
+                <FontAwesomeIcon icon={faXmark} className="text-3xl" />
+            </Button>}
+            <Dialog className={isStory ? "post-detail-dialog story-detail-modal relative z-20 bg-dark border border-lightDark" : "post-detail-dialog relative z-20"}
+                role="dialog" aria-label={isStory ? "Story details" : "Post details"} aria-modal="true">
+                <div className={isStory ? "story-detail-media" : "post-detail-media"}>
+                    {postDataState && <VideoPhotoSwiper videoPhotoList={postDataState.photoVideo} />}
                 </div>
-                {/* Post Description */}
-                {postDataState && <PostDescription key={postDataState._id} postData={postDataState}/>}
-            </div>
+                {postDataState && <PostDescription key={postDataState._id} postData={postDataState}
+                    onClose={isStory ? undefined : closePostDetailModal} />}
+            </Dialog>
         </div>);
 };
 export default PostDetailModal;

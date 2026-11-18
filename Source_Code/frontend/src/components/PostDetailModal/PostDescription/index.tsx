@@ -5,7 +5,9 @@ import UserTagBar from "../../UI/UserTagBar";
 import CommentsList from "./CommentsList";
 import PostActions from "./PostActions";
 import PostManagement from "../../PostManagement";
-import "../PostDetailModal.css";
+import Button from "../../UI/Button/Button";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 const ADD_COMMENT = "ADD_COMMENT";
 const SET_COMMENTS = "SET_COMMENTS";
 const initialCommentListState: {
@@ -23,7 +25,8 @@ export const CommentListContext = createContext<CommentListContextType>({
 });
 const PostDescription: React.FC<{
     postData: Post;
-}> = ({ postData }) => {
+    onClose?: () => void;
+}> = ({ postData, onClose }) => {
     const commentReducer = (state: typeof initialCommentListState, action: any) => {
         switch (action.type) {
             case ADD_COMMENT:
@@ -43,11 +46,14 @@ const PostDescription: React.FC<{
     const [commentListState, commentListDispatch] = useReducer(commentReducer, { ...initialCommentListState, commentsList: postData.comments || [] });
     return (<CommentListContext.Provider value={{ commentListState, commentListDispatch }}>
             <div className="post-detail-panel text-white w-full md:w-[405px] max-w-[500px] flex flex-col min-h-0">
-                {/* Post Header */}
-                <div className="py-[14px] pl-4 pr-1 border-l border-lightDark border-b rounded-sm">
-                    <UserTagBar _id={postData.userId._id} username={postData.userId.username} avatar={postData.userId.avatar} avatarClassName="w-[32px] h[32px]"/>
-                </div>
-                <PostManagement post={postData}/>
+                <header className="post-detail-header flex shrink-0 items-center gap-2 border-b border-lightDark px-4 py-3">
+                    <UserTagBar _id={postData.userId._id} username={postData.userId.username} avatar={postData.userId.avatar}
+                        className="post-detail-author min-w-0 flex-1" avatarClassName="w-9 h-9 shrink-0" />
+                    <PostManagement post={postData} />
+                    {onClose && <Button className="post-detail-icon-button" aria-label="Close post" autoFocus onClick={onClose}>
+                        <FontAwesomeIcon icon={faXmark} />
+                    </Button>}
+                </header>
                 <div className="relative flex-1 min-h-0">
                     <CommentsList postData={postData}/>
                 </div>
