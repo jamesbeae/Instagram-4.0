@@ -1,7 +1,7 @@
 import React from "react";
-import Avatar from "../../../../components/UI/Avatar/Avatar";
-import calculateTimeAgo from "../../../../utils/calculateTimeAgo";
-import useRedirect from "../../../../hooks/useRedirect";
+import Avatar from "../UI/Avatar/Avatar";
+import calculateTimeAgo from "../../utils/calculateTimeAgo";
+import useRedirect from "../../hooks/useRedirect";
 
 const PostHeader: React.FC<{
     userId: string;

@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { MemoryRouter } from 'react-router-dom';
 import PostDescription from './PostDetailModal/PostDescription';
-import FeedComment from '../pages/Home/PostsList/Post/PostComment';
+import FeedComment from './CommentComposer';
 import postsListSlice from '../lib/redux/postsListSlice';
 import { Post } from '../models/Post';
 

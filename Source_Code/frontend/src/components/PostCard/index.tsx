@@ -1,19 +1,20 @@
+import Card from "../UI/Card";
 import React from "react";
-import { Post as PostModel } from "../../../../models/Post";
+import { Post as PostModel } from "../../models/Post";
 import PostContent from "./PostContent";
 import PostHeader from "./PostHeader";
-import PostComment from "./PostComment";
-const Post: React.FC<{
+import CommentComposer from "../CommentComposer";
+const PostCard: React.FC<{
     postData: PostModel;
 }> = ({ postData }) => {
-    return (<div className="pb-5 mb-5 w-full max-w-[468px] border-b border-lightDark border-solid">
+    return (<Card as="article" className="feed-card feed-post mb-5">
             {/* Post Header */}
             <PostHeader userId={postData.userId._id} avatar={postData.userId.avatar} username={postData.userId.username || postData.userId.fullName} time={postData.createdAt}/>
             {/* Post Content */}
             <PostContent postData={postData}/>
 
             {/* Post Comment */}
-            <PostComment postId={postData._id}/>
-        </div>);
+            <CommentComposer postData={postData} postId={postData._id}/>
+        </Card>);
 };
-export default Post;
+export default PostCard;

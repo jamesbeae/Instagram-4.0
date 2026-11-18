@@ -16,3 +16,47 @@ em-emoji-picker {
 }
 
 @media(max-width:1100px){.app-sidebar{width:72px!important;padding-left:8px;padding-right:8px}.app-sidebar .navigation-label{display:none}.app-sidebar p{overflow:hidden}.app-sidebar>div:first-child{max-width:55px;overflow:hidden}}
+
+
+.feed-card {
+    width: 100%;
+    max-width: 496px;
+    min-width: 0;
+}
+
+.feed-post {
+    padding: clamp(10px, 1.2vw, 14px);
+}
+
+.feed-post .comment-composer {
+    margin-bottom: 0;
+    border-radius: 16px;
+    background-color: #1a1a1a;
+}
+
+.home-layout {
+    container-type: inline-size;
+    container-name: home;
+}
+
+.home-account-panel {
+    display: none;
+}
+
+@container home (min-width: 800px) {
+    .home-account-panel {
+        display: flex;
+        flex: 0 0 280px;
+        flex-direction: column;
+        align-self: flex-start;
+        margin: 24px 0 20px 24px;
+        padding: 16px 0;
+        overflow-wrap: anywhere;
+    }
+
+    .home-account-panel > :last-child {
+        margin-inline: 16px;
+        padding-top: 12px;
+        border-top: 1px solid #303030;
+    }
+}

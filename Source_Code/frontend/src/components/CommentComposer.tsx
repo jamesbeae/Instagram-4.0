@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import Button from './UI/Button/Button';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
 import usePrivateHttp from '../hooks/usePrivateHttp';
@@ -40,7 +41,7 @@ export default function CommentComposer({ postId, postData, onCreated, emoji = f
                 : 'Unable to post comment. Your draft is kept; please try again.');
         } finally { sending.current = false; setBusy(false); }
     }
-    return <div className="relative px-4 py-2 border-lightDark">
+    return <div className="comment-composer relative my-2 rounded-xl border border-lightSecondDark px-3 py-1 focus-within:border-textGray">
         <form className="flex gap-3 items-center" onSubmit={event => { event.preventDefault(); void send(); }}>
             {emoji && <button type="button" aria-label="Choose emoji" aria-expanded={picker} disabled={busy} onClick={() => setPicker(value => !value)} className="text-white text-xl">☺</button>}
             <textarea id={emoji ? 'comment' : undefined} aria-label="Add a comment" placeholder="Add a comment" rows={2} maxLength={2200}
@@ -48,7 +49,7 @@ export default function CommentComposer({ postId, postData, onCreated, emoji = f
                 onKeyDown={event => {
                     if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); }
                 }} className="bg-transparent text-white text-sm flex-1 min-w-0 min-h-[40px] max-h-[120px] resize-y focus:outline-none" />
-            <button type="submit" disabled={!text.trim() || busy} className="text-blue text-sm font-semibold disabled:opacity-50">{busy ? 'Posting…' : 'Post'}</button>
+            <Button type="submit" disabled={!text.trim() || busy} className="text-blue text-sm font-semibold disabled:opacity-50">{busy ? 'Posting…' : 'Post'}</Button>
         </form>
         {picker && <div className="absolute bottom-full left-0 z-20"><Picker data={data} maxFrequentRows={0} onEmojiSelect={(item: { native: string }) => setText(value => (value + item.native).slice(0, 2200))} /></div>}
         {error && <p role="alert" className="text-errorText text-xs mt-1">{error}</p>}
