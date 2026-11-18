@@ -44,7 +44,7 @@ const SideBar = () => {
                 <NavigationList />
             </Card>
             <SearchModal />
-            <NotificationsModal notifications={notifications}/>
+            <NotificationsModal notifications={notifications} />
             {creatingPost ? <CreatePost /> : null}
         </>);
 };

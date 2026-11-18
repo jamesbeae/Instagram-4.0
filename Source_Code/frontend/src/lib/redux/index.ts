@@ -25,7 +25,7 @@ const persistConfig = {
 const sideBarPersistConfig = {
     key: "sideBarSlice",
     storage,
-    blacklist: ["creatingPost, moreModal"],
+    blacklist: ["creatingPost", "openedModal", "moreModal"],
 };
 
 const rootReducer = combineReducers({

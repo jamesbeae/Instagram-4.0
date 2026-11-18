@@ -12,3 +12,10 @@
         --card-radius: 18px;
     }
 }
+
+@media (max-width: 1100px) {
+    .sidebar-nav-item {
+        justify-content: center;
+        padding-inline: 0;
+    }
+}

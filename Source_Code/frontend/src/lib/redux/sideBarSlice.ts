@@ -1,14 +1,10 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+
+export type SidebarPanelName = "search" | "notifications";
 
 type SideBarState = {
-    currentPage:
-        | "home"
-        | "explore"
-        | "reels"
-        | "message"
-        | "create"
-        | "profile";
-    openedModal: "search" | "notifications" | null;
+    currentPage: "home" | "explore" | "reels" | "message" | "create" | "profile";
+    openedModal: SidebarPanelName | null;
     isSmall?: boolean;
     creatingPost: boolean;
     moreModal: boolean;
@@ -23,39 +19,30 @@ const initialState: SideBarState = {
 
 const sideBarSlice = createSlice({
     name: "sideBarSlice",
-    initialState: initialState,
+    initialState,
     reducers: {
-        selectCurrentPage: (state, action) => {
-            if (action.payload === "message") {
-                state.isSmall = true;
-            } else state.isSmall = false;
-            state.currentPage = action.payload;
+        selectCurrentPage(state, { payload }: PayloadAction<SideBarState["currentPage"]>) {
+            state.isSmall = payload === "message";
+            state.currentPage = payload;
             state.openedModal = null;
+            state.moreModal = false;
         },
-
-        openModal: (state, action) => {
-            switch (action.payload) {
-                case "search":
-                    if (state.openedModal === "search")
-                        state.openedModal = null;
-                    else state.openedModal = "search";
-                    break;
-                case "notifications":
-                    if (state.openedModal === "notifications")
-                        state.openedModal = null;
-                    else state.openedModal = "notifications";
-                    break;
-                default:
-                    break;
+        openModal(state, { payload }: PayloadAction<SidebarPanelName>) {
+            state.openedModal = state.openedModal === payload ? null : payload;
+            state.moreModal = false;
+        },
+        closePanel(state, { payload }: PayloadAction<SidebarPanelName>) {
+            if (state.openedModal === payload) state.openedModal = null;
+        },
+        openCreatePost(state, { payload }: PayloadAction<boolean>) {
+            state.creatingPost = payload;
+            if (payload) {
+                state.openedModal = null;
+                state.moreModal = false;
             }
         },
-
-        openCreatePost: (state, action) => {
-            state.creatingPost = action.payload;
-        },
-
-        openMoreModal: (state, action) => {
-            state.moreModal = action.payload;
+        openMoreModal(state, { payload }: PayloadAction<boolean>) {
+            state.moreModal = payload;
         },
     },
 });

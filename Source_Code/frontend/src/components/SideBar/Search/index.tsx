@@ -1,8 +1,6 @@
-import Card from "../../UI/Card";
+import SidebarPanel from "../SidebarPanel";
 import Loading from "../../UI/Loading";
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Input from "../../UI/Input/Input";
 import SearchedResult from "./SearchedResult";
@@ -17,7 +15,6 @@ const SearchModal = () => {
     const openedModal = useAppSelector(state => state.sideBarSlice.openedModal);
     const dispatch = useAppDispatch();
     const http = usePrivateHttp();
-    const panel = useRef<HTMLDivElement>(null);
     const isOpen = openedModal === "search";
     const [search, setSearch] = useState("");
     const [scope, setScope] = useState<'users' | 'posts'>('users');
@@ -27,14 +24,6 @@ const SearchModal = () => {
     const [pages, setPages] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    useEffect(() => {
-        if (isOpen) panel.current?.querySelector("input")?.focus();
-    }, [isOpen]);
-
-    function closeSearch() {
-        dispatch(sideBarActions.openModal("search"));
-    }
-
     useEffect(() => {
         if (!isOpen || !search.trim()) { setUsers([]); setPosts([]); setPages(0); setLoading(false); setError(''); return; }
         const controller = new AbortController();
@@ -52,20 +41,7 @@ const SearchModal = () => {
     }, [isOpen, search, scope, page, http]);
     if (!isOpen) return null;
 
-    return <Card as="aside" className="sidebar-search" aria-labelledby="sidebar-search-title"
-        onKeyDown={event => {
-            if (event.key === "Escape" && !event.defaultPrevented) {
-                event.preventDefault();
-                closeSearch();
-            }
-        }}>
-        <div ref={panel} className="sidebar-search-controls">
-            <header className="sidebar-search-header">
-                <h2 id="sidebar-search-title">Search</h2>
-                <button type="button" className="sidebar-search-close" aria-label="Close search" onClick={closeSearch}>
-                    <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
-                </button>
-            </header>
+    return <SidebarPanel name="search" title="Search" controls={<>
             <Input className="sidebar-search-input" name="search" id="search" type="text"
                 defaultValue={search} placeholder="Search accounts or posts"
                 getInputValueHandler={(value: string) => { setSearch(value); setPage(1); }} />
@@ -73,19 +49,19 @@ const SearchModal = () => {
                 <button type="button" aria-pressed={scope === 'users'} onClick={() => { setScope('users'); setPage(1); }}>Accounts</button>
                 <button type="button" aria-pressed={scope === 'posts'} onClick={() => { setScope('posts'); setPage(1); }}>Posts</button>
             </div>
-        </div>
-        <div className="sidebar-search-results" role="region" aria-label="Search results">
+        </>}>
+        <div role="region" aria-label="Search results">
             {!search.trim() && <p className="px-6 text-textGray">Enter a name or words from a post.</p>}
             {loading && <Loading message="Searching…" align="start" className="px-6" />}
             {error && <p className="px-6 text-red-400" role="alert">{error}</p>}
             {!loading && !error && search.trim() && users.length === 0 && posts.length === 0 && <p className="px-6">No results found.</p>}
-            {scope === 'users' ? <SearchedResult results={users} /> : posts.map(post => <Link key={post._id} to={'/post/' + post._id} onClick={closeSearch} className="block px-6 py-3 border-b border-lightDark hover:bg-lightDark">
+            {scope === 'users' ? <SearchedResult results={users} /> : posts.map(post => <Link key={post._id} to={'/post/' + post._id} onClick={() => dispatch(sideBarActions.closePanel("search"))} className="block px-6 py-3 border-b border-lightDark hover:bg-lightDark">
                 <p className="font-semibold">{post.userId.username}</p><p className="break-words">{post.caption}</p>
             </Link>)}
             {!loading && pages > 1 && <div className="flex gap-4 justify-center py-4">
                 <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button><span>{page}/{pages}</span><button disabled={page >= pages} onClick={() => setPage(p => p + 1)}>Next</button>
             </div>}
         </div>
-    </Card>;
+    </SidebarPanel>;
 };
 export default SearchModal;
