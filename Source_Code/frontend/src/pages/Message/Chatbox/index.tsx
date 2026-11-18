@@ -58,5 +58,5 @@ export default function ChatBox() {
     };
     if (!user)
         return error ? <p role="alert" className="text-white p-6">{error}</p> : <Loading message="Loading conversation…" className="flex-1 self-start p-6 text-white" />;
-    return <div className="flex-1 h-full flex flex-col"><ChatBoxHeader user={user}/>{error && <p role="alert" className="text-red-400 p-2">{error}</p>}<ChatBoxList messages={messages} sendingUser={user}/><ChatBoxInput sendMessage={sendMessage}/></div>;
+    return <div className="flex-1 h-full flex flex-col"><ChatBoxHeader user={user}/>{error && <p role="alert" className="text-red-400 p-2">{error}</p>}<ChatBoxList messages={messages} sendingUser={user}/><ChatBoxInput key={user_id} sendMessage={sendMessage}/></div>;
 }

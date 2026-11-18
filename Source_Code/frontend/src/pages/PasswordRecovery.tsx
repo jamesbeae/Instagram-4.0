@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import http from '../lib/axios/http';
-export default function PasswordRecovery() { const reset = useLocation().pathname === '/reset-password', token = new URLSearchParams(useLocation().search).get('token'), [email, setEmail] = useState(''), [password, setPassword] = useState(''), [message, setMessage] = useState(''), [busy, setBusy] = useState(false); async function submit() { setBusy(true); try {
+import { useUnsavedChanges } from '../components/UnsavedChanges';
+export default function PasswordRecovery() { const reset = useLocation().pathname === '/reset-password', token = new URLSearchParams(useLocation().search).get('token'), [email, setEmail] = useState(''), [password, setPassword] = useState(''), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+const { markSaved } = useUnsavedChanges(reset ? password !== '' : email !== '');
+async function submit() { setBusy(true); try {
     const r = await http.post(reset ? '/auth/reset-password' : '/auth/forgot-password', reset ? { token, password } : { email });
+    markSaved();
+    if (reset) setPassword('');
+    else setEmail('');
     setMessage(r.data.message);
 }
 catch (e: any) {

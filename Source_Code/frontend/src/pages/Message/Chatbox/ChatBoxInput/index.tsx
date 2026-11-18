@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Button from "../../../../components/UI/Button/Button";
+import { useUnsavedChanges } from "../../../../components/UnsavedChanges";
 import Textarea from "../../../../components/UI/Input/Textarea";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
@@ -12,6 +13,7 @@ const ChatBoxInput: React.FC<{
     const [isEmojiVisible, setIsEmojiVisible] = useState(false);
     const emojiPickerRef = useRef<HTMLDivElement | null>(null);
     const [isSent, setIsSent] = useState(false);
+    const { markSaved } = useUnsavedChanges(message !== "");
     // Hàm kiểm tra click ngoài
     const handleClickOutside = (event: any) => {
         if (emojiPickerRef.current &&
@@ -34,8 +36,11 @@ const ChatBoxInput: React.FC<{
             return;
         setSending(true);
         try {
-            if (await sendMessage(message))
+            if (await sendMessage(message)) {
+                markSaved();
+                setMessage("");
                 setIsSent(pre => !pre);
+            }
         }
         finally {
             setSending(false);

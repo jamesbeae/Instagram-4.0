@@ -8,6 +8,7 @@ import { postsListActions } from '../lib/redux/postsListSlice';
 import { postDetailModalActions } from '../lib/redux/postDetailModalSlice';
 import Button from './UI/Button/Button';
 import Card from './UI/Card';
+import { useUnsavedChanges } from './UnsavedChanges';
 
 export default function PostManagement({ post }: { post: Post }) {
     const owner = useAppSelector(state => state.authSlice.userInfo?._id);
@@ -21,6 +22,7 @@ export default function PostManagement({ post }: { post: Post }) {
     const root = useRef<HTMLDivElement>(null);
     const trigger = useRef<HTMLButtonElement>(null);
     const optionsId = useId();
+    const { markSaved, requestExit } = useUnsavedChanges(owner === post.userId._id && editing && caption !== post.caption, closeEditor);
 
     useEffect(() => {
         if (!open) return;
@@ -48,6 +50,7 @@ export default function PostManagement({ post }: { post: Post }) {
             const response = await http.patch('/post/' + post._id, { content: caption });
             dispatch(postsListActions.updatePost(response.data.post));
             window.dispatchEvent(new CustomEvent('post-updated', { detail: response.data.post }));
+            markSaved();
             closeEditor();
         } catch {
             setError('Unable to edit post');
@@ -85,7 +88,7 @@ export default function PostManagement({ post }: { post: Post }) {
                 event.preventDefault();
                 event.stopPropagation();
                 setOpen(false);
-                if (editing && !busy) closeEditor();
+                if (editing && !busy) requestExit(closeEditor);
                 if (open) trigger.current?.focus();
             }}>
             <Button ref={trigger} className="post-detail-icon-button" aria-label="Post options"
@@ -94,7 +97,7 @@ export default function PostManagement({ post }: { post: Post }) {
                 onClick={() => {
                     if (busy) return;
                     if (editing) {
-                        closeEditor();
+                        requestExit(closeEditor);
                         return;
                     }
                     setError('');
@@ -126,7 +129,7 @@ export default function PostManagement({ post }: { post: Post }) {
                         className="w-full resize-y rounded-lg border border-lightSecondDark bg-dark p-2" />
                     {error && <p role="alert" className="text-red-400">{error}</p>}
                     <div className="flex justify-end gap-3">
-                        <Button disabled={busy} onClick={closeEditor}>Cancel</Button>
+                        <Button disabled={busy} onClick={() => requestExit(closeEditor)}>Cancel</Button>
                         <Button type="submit" disabled={busy} className="font-semibold text-blue">Save changes</Button>
                     </div>
                 </form>

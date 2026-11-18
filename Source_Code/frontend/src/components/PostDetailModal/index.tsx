@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useId } from "react";
+import { DraftScope, useConfirmDiscard } from "../UnsavedChanges";
 import { Post } from "../../models/Post";
 import VideoPhotoSwiper from "../UI/VideoPhotoSwiper";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,6 +15,8 @@ const PostDetailModal: React.FC<{
     postData?: Post;
 }> = ({ postData }) => {
     const dispatch = useAppDispatch();
+    const draftScope = useId();
+    const confirmDiscard = useConfirmDiscard();
     const [postDataState, setPostDataState] = React.useState<Post | null>(null);
     const updatedPost = useAppSelector(s => s.postsListSlice.find(p => p._id === (postData?._id || s.postDetailModalSlice.post?._id)));
     const postDetailSlice = useAppSelector((state) => state.postDetailModalSlice);
@@ -28,12 +31,12 @@ const PostDetailModal: React.FC<{
     useEffect(() => { const update = (e: Event) => { const p = (e as CustomEvent<Post>).detail; if (p._id === postDataState?._id)
         setPostDataState(p); }; window.addEventListener("post-updated", update); return () => window.removeEventListener("post-updated", update); }, [postDataState?._id]);
     const closePostDetailModal = () => {
-        dispatch(postDetailModalActions.closePostDetailModal());
+        confirmDiscard(() => dispatch(postDetailModalActions.closePostDetailModal()), draftScope);
     };
     const isStory = postDataState?.kind === "STORY";
     const Dialog = isStory ? "div" : Card;
 
-    return (<div className="fixed z-50 inset-0 flex justify-center items-center"
+    return (<DraftScope.Provider value={draftScope}><div className="fixed z-50 inset-0 flex justify-center items-center"
             onKeyDown={event => {
                 if (event.key === "Escape" && !event.defaultPrevented) {
                     event.preventDefault();
@@ -55,6 +58,6 @@ const PostDetailModal: React.FC<{
                 {postDataState && <PostDescription key={postDataState._id} postData={postDataState}
                     onClose={isStory ? undefined : closePostDetailModal} />}
             </Dialog>
-        </div>);
+        </div></DraftScope.Provider>);
 };
 export default PostDetailModal;

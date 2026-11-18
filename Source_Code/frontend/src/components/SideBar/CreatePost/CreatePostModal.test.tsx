@@ -2,9 +2,11 @@ import "@testing-library/jest-dom";
 import { configureStore } from "@reduxjs/toolkit";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 import postsListSlice from "../../../lib/redux/postsListSlice";
 import CreatePostModal from "./CreatePostModal";
+import UnsavedChangesProvider from "../../UnsavedChanges";
 
 const http = { get: vi.fn(), post: vi.fn() };
 vi.mock("../../../hooks/usePrivateHttp", () => ({ default: () => http }));
@@ -35,7 +37,10 @@ it("preserves the draft across steps and shares after the required options are s
         reducer: { authSlice: () => ({ userInfo: null }), postsListSlice: postsListSlice.reducer },
     });
     const onClose = vi.fn();
-    const { container } = render(<Provider store={store}><CreatePostModal onClose={onClose} /></Provider>);
+    const router = createMemoryRouter([{ element: <UnsavedChangesProvider />, children: [
+        { path: "/", element: <CreatePostModal onClose={onClose} /> },
+    ] }]);
+    const { container } = render(<Provider store={store}><RouterProvider router={router} /></Provider>);
 
     const next = () => screen.getByRole("button", { name: "Next" });
     const share = () => screen.getByRole("button", { name: "Share" });
@@ -47,6 +52,13 @@ it("preserves the draft across steps and shares after the required options are s
     fireEvent.change(fileInput(), { target: { files: [image] } });
     expect(await screen.findByRole("img", { name: "Photo 1" })).toBeInTheDocument();
     expect(next()).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("dialog", { name: "Create new post" }));
+    expect(screen.getByRole("alertdialog", { name: "Discard changes?" })).toBeVisible();
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(next()).toBeEnabled();
+    expect(screen.getByRole("img", { name: "Photo 1" })).toBeVisible();
 
     fireEvent.click(next());
     expect(share()).toBeDisabled();

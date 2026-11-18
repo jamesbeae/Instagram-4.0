@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import Button from './UI/Button/Button';
+import { useUnsavedChanges } from './UnsavedChanges';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
 import usePrivateHttp from '../hooks/usePrivateHttp';
@@ -15,6 +16,7 @@ export default function CommentComposer({ postId, postData, onCreated, emoji = f
     const feedPost = useAppSelector(state => state.postsListSlice.find(post => post._id === postId));
     const [text, setText] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState(''), [picker, setPicker] = useState(false);
     const sending = useRef(false);
+    const { markSaved } = useUnsavedChanges(text !== '', () => { setText(''); setPicker(false); });
     const publish = (post: Post) => {
         dispatch(postsListActions.updatePost(post));
         window.dispatchEvent(new CustomEvent('post-updated', { detail: post }));
@@ -27,6 +29,7 @@ export default function CommentComposer({ postId, postData, onCreated, emoji = f
             const response = await http.post('/comment/create-comment', { postId, content });
             const comment: Comment = response.data.comment;
             if (!comment?._id) throw new Error('Missing saved comment');
+            markSaved();
             setText(''); setPicker(false);
             onCreated?.(comment);
             const base = feedPost || postData;

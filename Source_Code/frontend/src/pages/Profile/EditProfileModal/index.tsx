@@ -8,6 +8,7 @@ import {
 import { useAppDispatch } from "../../../hooks/useStore";
 import { authActions } from "../../../lib/redux/authSlice";
 import Avatar from "../../../components/UI/Avatar/Avatar";
+import { useUnsavedChanges } from "../../../components/UnsavedChanges";
 
 type EditProfileModalProps = {
     user: User;
@@ -36,6 +37,15 @@ const EditProfileModal = ({
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [avatarReading, setAvatarReading] = useState(false);
+    const { markSaved, requestExit } = useUnsavedChanges(
+        fullName !== (user.fullName || "") || bio !== (user.bio || "") || avatarData !== undefined || avatarReading,
+        onClose,
+    );
+
+    function dismiss() {
+        if (!isSubmitting) requestExit(onClose);
+    }
 
     const handleAvatarChange = (
         event: ChangeEvent<HTMLInputElement>
@@ -65,6 +75,8 @@ const EditProfileModal = ({
         }
 
         const reader = new FileReader();
+        setAvatarReading(true);
+        reader.onloadend = () => setAvatarReading(false);
 
         reader.onload = () => {
             const result = reader.result;
@@ -121,6 +133,7 @@ const EditProfileModal = ({
                 authActions.profileUpdated(updatedUser)
             );
 
+            markSaved();
             onUpdated(updatedUser);
             onClose();
         } catch (error) {
@@ -134,8 +147,15 @@ const EditProfileModal = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-            <div className="w-full max-w-md rounded-lg bg-lightDark p-6 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+            onClick={event => { if (event.target === event.currentTarget) dismiss(); }}
+            onKeyDown={event => {
+                if (event.key !== "Escape") return;
+                event.preventDefault();
+                event.stopPropagation();
+                dismiss();
+            }}>
+            <div role="dialog" aria-modal="true" aria-label="Edit profile" className="w-full max-w-md rounded-lg bg-lightDark p-6 text-white">
                 <h2 className="mb-6 text-xl font-semibold">
                     Edit profile
                 </h2>
@@ -154,6 +174,7 @@ const EditProfileModal = ({
                             type="file"
                             accept="image/png,image/jpeg,image/webp"
                             className="hidden"
+                            disabled={isSubmitting || avatarReading}
                             onChange={handleAvatarChange}
                         />
                     </label>
@@ -165,6 +186,8 @@ const EditProfileModal = ({
 
                 <input
                     type="text"
+                    autoFocus
+                    aria-label="Full name"
                     value={fullName}
                     maxLength={120}
                     onChange={(event) =>
@@ -178,6 +201,7 @@ const EditProfileModal = ({
                 </label>
 
                 <textarea
+                    aria-label="Bio"
                     value={bio}
                     maxLength={500}
                     rows={5}
@@ -200,7 +224,7 @@ const EditProfileModal = ({
                 <div className="mt-6 flex justify-end gap-3">
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={dismiss}
                         disabled={isSubmitting}
                         className="rounded bg-textGray px-4 py-2"
                     >
@@ -210,7 +234,7 @@ const EditProfileModal = ({
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || avatarReading}
                         className="rounded bg-blue px-4 py-2 font-semibold disabled:opacity-70"
                     >
                         {isSubmitting
