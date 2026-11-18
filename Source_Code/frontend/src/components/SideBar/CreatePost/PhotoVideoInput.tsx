@@ -1,19 +1,44 @@
-import { useCallback, useRef, useState } from "react";
-import AddPostIcon from "../../UI/Icons/AddPostIcon";
+import { useRef, useState } from "react";
+import { faImage } from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "../../UI/Button/Button";
 
-const PhotoVideoInput: React.FC<{ getFilesListsHandler: Function }> = ({ getFilesListsHandler }) => {
+export const acceptedMediaTypes = "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm";
+
+export default function PhotoVideoInput({ onFiles, busy }: {
+    onFiles: (files: FileList) => void;
+    busy: boolean;
+}) {
     const inputRef = useRef<HTMLInputElement>(null);
-    const [isDragging, setIsDragging] = useState(false);
-    const clickInputHandler = useCallback(() => { inputRef.current?.click(); }, []);
-    return (<div className="relative min-h-[240px] sm:h-full w-full sm:w-3/5 shrink-0 flex flex-col gap-6 items-center justify-center" onDragEnter={() => setIsDragging(true)}>
-        <AddPostIcon />
-        <p className="text-xl text-white text-center">Drag photos and videos here</p>
-        <Button className="relative z-40 py-2 px-3 rounded-lg font-semibold bg-blue text-white cursor-pointer" onClick={clickInputHandler}>Select from your device</Button>
-        <input ref={inputRef} type="file" name="file" id="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple className={"absolute h-full w-full left-0 right-0 opacity-0 " + (isDragging ? "z-30" : "-z-10")} onChange={e => {
-            if (e.target.files) getFilesListsHandler(e.target.files);
-            setIsDragging(false);
-        }} />
-    </div>);
-};
-export default PhotoVideoInput;
+    const [dragging, setDragging] = useState(false);
+
+    return (
+        <div className={`create-post-dropzone${dragging ? " is-dragging" : ""}`}
+            onDragOver={event => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = busy ? "none" : "copy";
+                if (!busy) setDragging(true);
+            }}
+            onDragLeave={event => {
+                if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) {
+                    setDragging(false);
+                }
+            }}
+            onDrop={event => {
+                event.preventDefault();
+                setDragging(false);
+                if (!busy) onFiles(event.dataTransfer.files);
+            }}>
+            <FontAwesomeIcon icon={faImage} className="text-3xl text-textGray" aria-hidden="true" />
+            <p>Drag photos and videos here</p>
+            <Button className="create-post-select-files" disabled={busy} onClick={() => inputRef.current?.click()}>
+                Select from your device
+            </Button>
+            <input ref={inputRef} type="file" accept={acceptedMediaTypes} multiple hidden
+                onChange={event => {
+                    if (event.currentTarget.files) onFiles(event.currentTarget.files);
+                    event.currentTarget.value = "";
+                }} />
+        </div>
+    );
+}

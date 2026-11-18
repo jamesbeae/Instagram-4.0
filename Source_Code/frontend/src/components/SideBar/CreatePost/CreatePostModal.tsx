@@ -1,104 +1,187 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import Button from "../../UI/Button/Button";
+import Card from "../../UI/Card";
+import Loading from "../../UI/Loading";
 import Heading from "./Heading";
-import PhotoVideoInput from "./PhotoVideoInput";
+import PhotoVideoInput, { acceptedMediaTypes } from "./PhotoVideoInput";
 import PhotoVideoPreview from "./PhotoVideoPreview";
-import readFileAsDataURL from "../../../utils/readImageFile";
 import StatusInput from "./StatusInput";
+import readFileAsDataURL from "../../../utils/readImageFile";
 import usePrivateHttp from "../../../hooks/usePrivateHttp";
-import { createPost, validateCreatePostData, } from "../../../services/postService";
+import { createPost, validateCreatePostData } from "../../../services/postService";
 import { useAppDispatch } from "../../../hooks/useStore";
 import { postsListActions } from "../../../lib/redux/postsListSlice";
-import { sideBarActions } from "../../../lib/redux/sideBarSlice";
 import { PhotoVideo } from "../../../models/PhotoVideo";
-export type VideoPhotoPreview = {
-    url: string;
-    type: "VIDEO" | "PHOTO";
-    name: string;
-};
-const CreatePostModal = () => {
+import "./CreatePostModal.css";
+
+export default function CreatePostModal({ onClose }: { onClose: () => void }) {
     const privateHttp = usePrivateHttp();
-    const [filesList, setFilesList] = useState<File[]>([]);
-    const [photoVideoList, setphotoVideoList] = useState<PhotoVideo[]>([]);
-    const [caption, setCaption] = useState<string>("");
     const dispatch = useAppDispatch();
+    const dialogRef = useRef<HTMLDialogElement>(null);
+    const titleRef = useRef<HTMLHeadingElement>(null);
+    const bodyRef = useRef<HTMLDivElement>(null);
+    const nextMediaId = useRef(0);
+    const titleId = useId();
+    const [step, setStep] = useState<"media" | "details">("media");
+    const [media, setMedia] = useState<PhotoVideo[]>([]);
+    const [caption, setCaption] = useState("");
     const [kind, setKind] = useState<"POST" | "STORY">("POST");
     const [visibility, setVisibility] = useState<"public" | "followers" | "group">("public");
-    const [groups, setGroups] = useState<{
-        id: string;
-        name: string;
-    }[]>([]);
+    const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
     const [groupId, setGroupId] = useState("");
-    useEffect(() => { privateHttp.get("/groups").then(r => setGroups(r.data.groups)).catch(() => { }); }, [privateHttp]);
+    const [preparing, setPreparing] = useState(false);
     const [sharing, setSharing] = useState(false);
     const [error, setError] = useState("");
-    const getFilesListHandler = useCallback((files: FileList) => {
-        setFilesList((pre) => {
-            if (Array.from(files).some(f => f.size > 20 * 1024 * 1024)) {
-                setError("Each file must be at most 20 MB");
-                return pre;
-            }
-            if (pre.length + files.length > 10) {
-                setError("Choose up to 10 files");
-                return pre;
-            }
-            return [...pre, ...Array.from(files)];
-        });
+    const isDetails = step === "details";
+    const mediaBusy = preparing || sharing;
+    const canContinue = !mediaBusy && media.length > 0;
+    const canShare = isDetails && canContinue && caption.trim().length > 0 &&
+        (visibility !== "group" || groupId !== "");
+
+    useEffect(() => {
+        const dialog = dialogRef.current;
+        dialog?.showModal();
+        return () => dialog?.close();
     }, []);
+
+    useEffect(() => {
+        if (bodyRef.current) bodyRef.current.scrollTop = 0;
+        titleRef.current?.focus();
+    }, [step]);
+
     useEffect(() => {
         let active = true;
-        setphotoVideoList([]);
-        Promise.all(filesList.map(async (file) => ({ url: String(await readFileAsDataURL(file)), type: file.type.startsWith('image/') ? 'PHOTO' as const : 'VIDEO' as const })))
-            .then(items => { if (active)
-            setphotoVideoList(items); }).catch(() => { if (active)
-            setError('Unable to read selected files'); });
+        privateHttp.get("/groups")
+            .then(response => {
+                if (active) setGroups(response.data.groups);
+            })
+            .catch(() => {});
         return () => { active = false; };
-    }, [filesList]);
-    const deleteVideoPhotoHandler = useCallback((index: number) => {
-        setFilesList((pre) => {
-            const newState = [...pre];
-            newState.splice(index, 1);
-            return newState;
-        });
-    }, []);
-    const getCaptionHandler = useCallback((value: string) => {
-        setCaption(value);
-    }, []);
-    // click to post
-    const shareHandler = useCallback(async () => {
-        if (sharing)
+    }, [privateHttp]);
+
+    async function addMedia(files: FileList) {
+        if (mediaBusy || files.length === 0) return;
+        const selected = Array.from(files);
+        if (selected.some(file => file.size > 20 * 1024 * 1024)) {
+            setError("Each file must be at most 20 MB");
             return;
-        const validation = validateCreatePostData({ photoVideoList, caption, kind, visibility, ...(visibility === "group" ? { groupId } : {}) });
+        }
+        if (media.length + selected.length > 10) {
+            setError("Choose up to 10 files");
+            return;
+        }
+        const supportedTypes = acceptedMediaTypes.split(",");
+        if (selected.some(file => !supportedTypes.includes(file.type))) {
+            setError("Choose a JPEG, PNG, WebP, GIF, MP4 or WebM file");
+            return;
+        }
+
+        setPreparing(true);
+        setError("");
+        try {
+            const previews = await Promise.all(selected.map(async (file): Promise<PhotoVideo> => {
+                const url = await readFileAsDataURL(file);
+                if (typeof url !== "string") throw new Error("File preview is unavailable");
+                return { _id: String(nextMediaId.current++), url, type: file.type.startsWith("image/") ? "PHOTO" : "VIDEO" };
+            }));
+            setMedia(current => [...current, ...previews]);
+        } catch {
+            setError("Unable to read selected files");
+        } finally {
+            setPreparing(false);
+        }
+    }
+
+    function changeStep(nextStep: typeof step) {
+        setError("");
+        setStep(nextStep);
+    }
+
+    function removeMedia(index: number) {
+        setMedia(current => current.filter((_, currentIndex) => currentIndex !== index));
+        if (media.length === 1) changeStep("media");
+        else setError("");
+    }
+
+    async function share() {
+        if (!canShare) return;
+        const validation = validateCreatePostData({
+            photoVideoList: media,
+            caption,
+            kind,
+            visibility,
+            ...(visibility === "group" ? { groupId } : {}),
+        });
         if (!validation.success) {
             setError(validation.error.issues[0].message);
             return;
         }
+
         setSharing(true);
-        setError('');
+        setError("");
         try {
             const result = await createPost(privateHttp, validation.data);
-            if (kind === "POST")
+            if (kind === "POST") {
                 dispatch(postsListActions.addPost(result.data.post));
-            else
+            } else {
                 window.dispatchEvent(new Event("stories-updated"));
-            dispatch(sideBarActions.openCreatePost(false));
-        }
-        catch (e: any) {
-            setError(e.response?.data?.message || 'Unable to share post. Please try again.');
-        }
-        finally {
+            }
+            onClose();
+        } catch (error: any) {
+            setError(error.response?.data?.message || "Unable to share post. Please try again.");
+        } finally {
             setSharing(false);
         }
-    }, [photoVideoList, caption, sharing, privateHttp, dispatch, kind, visibility, groupId]);
-    return (<div className="w-[min(828px,95vw)] h-3/4 flex flex-col relative z-20 bg-lightDark rounded-lg">
-            <Heading shareHandler={shareHandler}/>
-            <div className="flex flex-wrap gap-3 px-4 py-2 text-white text-sm"><label>Type <select className="bg-dark" value={kind} onChange={e => setKind(e.target.value as "POST" | "STORY")}><option value="POST">Post / Reel</option><option value="STORY">Story · 24 hours</option></select></label><label>Audience <select className="bg-dark" value={visibility} onChange={e => setVisibility(e.target.value as "public" | "followers" | "group")}><option value="public">Public</option><option value="followers">Followers</option><option value="group">Relation list</option></select></label>{visibility === 'group' && <select aria-label="Relation list" className="bg-dark" value={groupId} onChange={e => setGroupId(e.target.value)}><option value="">Choose a list</option>{groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select>}</div>
-            {sharing && <p role="status" className="text-white px-4">Uploading…</p>}
-            {error && <p role="alert" className="text-red-400 px-4">{error}</p>}
-            <div className="min-h-0 flex-1 w-full flex flex-col sm:flex-row overflow-y-auto">
-                {filesList.length === 0 ? (<PhotoVideoInput getFilesListsHandler={getFilesListHandler}/>) : (<PhotoVideoPreview photoVideoList={photoVideoList} getFilesListsHandler={getFilesListHandler} deleteVideoPhotoHandler={deleteVideoPhotoHandler}/>)}
+    }
 
-                <StatusInput getCaptionHandler={getCaptionHandler}/>
-            </div>
-        </div>);
-};
-export default CreatePostModal;
+    function dismiss() {
+        if (!sharing) onClose();
+    }
+
+    return (
+        <dialog ref={dialogRef} className="create-post-dialog" aria-labelledby={titleId}
+            onCancel={event => { event.preventDefault(); dismiss(); }}
+            onClick={event => { if (event.target === event.currentTarget) dismiss(); }}>
+            <Card className="create-post-card">
+                <Heading id={titleId} titleRef={titleRef} onClose={dismiss} busy={sharing}
+                    onBack={isDetails ? () => changeStep("media") : undefined} />
+
+                <div ref={bodyRef} className="create-post-body">
+                    {media.length > 0
+                        ? <PhotoVideoPreview media={media} onAdd={addMedia} onRemove={removeMedia} busy={mediaBusy} />
+                        : <PhotoVideoInput onFiles={addMedia} busy={mediaBusy} />}
+                    <div className="create-post-details" hidden={!isDetails}>
+                        <StatusInput onCaptionChange={setCaption} />
+                        <div className="create-post-options">
+                            <label>Type
+                                <select value={kind} disabled={sharing} onChange={event => setKind(event.target.value as typeof kind)}>
+                                    <option value="POST">Post / Reel</option><option value="STORY">Story · 24 hours</option>
+                                </select>
+                            </label>
+                            <label>Audience
+                                <select value={visibility} disabled={sharing} onChange={event => setVisibility(event.target.value as typeof visibility)}>
+                                    <option value="public">Public</option><option value="followers">Followers</option><option value="group">Relation list</option>
+                                </select>
+                            </label>
+                            {visibility === "group" && <label className="col-span-full">Relation list
+                                <select value={groupId} disabled={sharing} onChange={event => setGroupId(event.target.value)}>
+                                    <option value="">Choose a list</option>
+                                    {groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
+                                </select>
+                            </label>}
+                        </div>
+                    </div>
+                </div>
+
+                <footer className="create-post-footer">
+                    {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+                    {preparing && <Loading message="Preparing preview…" />}
+                    {sharing && <Loading message="Uploading…" />}
+                    {isDetails
+                        ? <Button className="create-post-share" disabled={!canShare} onClick={share}>Share</Button>
+                        : <Button className="create-post-share" disabled={!canContinue} onClick={() => changeStep("details")}>Next</Button>}
+                </footer>
+            </Card>
+        </dialog>
+    );
+}
