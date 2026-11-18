@@ -1,27 +1,26 @@
-import React from "react";
+import type { ReactNode } from "react";
 import { useAppSelector } from "../../../hooks/useStore";
-const NavigationItem: React.FC<{
-    icon: JSX.Element;
-    title: string;
-    onClick?: Function;
-}> = ({ icon, title, onClick }) => {
-    const sideBarSlice = useAppSelector((state) => state.sideBarSlice);
-    const openedModal = sideBarSlice.openedModal;
-    const isSmall = sideBarSlice.isSmall;
-    const currentPage = sideBarSlice.currentPage;
-    return (<div role="button" aria-label={title} tabIndex={0} onKeyDown={e => { if (e.key === "Enter")
-        onClick?.(title); }} className={`border border-transparent ${currentPage === title.toLowerCase() ? "bg-lightDark" : null} ${openedModal === title.toLowerCase() && "!border-white"} group p-3 mt-0.5 flex items-center gap-4 hover:bg-lightSecondDark cursor-pointer rounded-[14px] `} onClick={() => {
-            onClick && onClick(title);
-        }}>
-            <div className="group-hover:scale-105 transition-all ease-in delay-50">
-                {icon}
-            </div>
+import type { SidebarPanelName } from "../../../lib/redux/sideBarSlice";
+import Button from "../../UI/Button/Button";
 
-            <p className={`navigation-label ${openedModal || isSmall
-            ? "scale-0 delay-200"
-            : "scale-100 delay-500"} text-base font-normal transition-all  ease-in`}>
-                {title}
-            </p>
-        </div>);
-};
-export default NavigationItem;
+export default function NavigationItem({ icon, title, onClick, panel }: {
+    icon: ReactNode;
+    title: string;
+    onClick: () => void;
+    panel?: SidebarPanelName;
+}) {
+    const { openedModal, isSmall, currentPage } = useAppSelector(state => state.sideBarSlice);
+    const isOpen = panel !== undefined && openedModal === panel;
+    const isCurrent = currentPage === title.toLowerCase();
+
+    return (
+        <Button id={panel ? `sidebar-panel-${panel}-trigger` : undefined}
+            aria-label={title} aria-expanded={panel ? isOpen : undefined}
+            aria-controls={isOpen ? `sidebar-panel-${panel}` : undefined}
+            className={`sidebar-nav-item group mt-0.5 flex w-full items-center gap-4 rounded-[14px] border border-transparent py-3 hover:bg-lightSecondDark ${openedModal || isSmall ? "justify-center" : "px-3"} ${isCurrent ? "bg-lightDark" : ""} ${isOpen ? "!border-white" : ""}`}
+            onClick={onClick}>
+            <span className="transition-transform group-hover:scale-105">{icon}</span>
+            {!(openedModal || isSmall) && <span className="navigation-label text-base font-normal">{title}</span>}
+        </Button>
+    );
+}
