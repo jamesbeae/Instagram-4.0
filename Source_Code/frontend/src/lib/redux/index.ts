@@ -10,6 +10,7 @@ import {
     PERSIST,
     PURGE,
     REGISTER,
+    type PersistedState,
 } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // defaults to localStorage for web
 import postsListSlice from "./postsListSlice";
@@ -26,6 +27,12 @@ const sideBarPersistConfig = {
     key: "sideBarSlice",
     storage,
     blacklist: ["creatingPost", "openedModal", "moreModal"],
+    migrate: async (state: PersistedState) => state && {
+        ...state,
+        creatingPost: false,
+        openedModal: null,
+        moreModal: false,
+    },
 };
 
 const rootReducer = combineReducers({

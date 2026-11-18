@@ -18,15 +18,15 @@ export default function SidebarPanel({ name, title, controls, children }: {
     const id = `sidebar-panel-${name}`;
 
     useEffect(() => {
-        header.current?.querySelector<HTMLElement>("input")?.focus();
+        header.current?.querySelector<HTMLElement>("input")?.focus({ preventScroll: true });
         if (!header.current?.contains(document.activeElement)) {
-            header.current?.querySelector("button")?.focus();
+            header.current?.querySelector("button")?.focus({ preventScroll: true });
         }
     }, []);
 
     function dismiss() {
         dispatch(sideBarActions.closePanel(name));
-        document.getElementById(`${id}-trigger`)?.focus();
+        document.getElementById(`${id}-trigger`)?.focus({ preventScroll: true });
     }
 
     return (
