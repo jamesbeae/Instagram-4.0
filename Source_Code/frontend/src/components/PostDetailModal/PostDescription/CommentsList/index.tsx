@@ -19,7 +19,7 @@ export default function CommentsList({ postData }: { postData: Post }) {
             .finally(() => { if (active) setLoading(false); });
         return () => { active = false; };
     }, [postData._id, http, commentListDispatch]);
-    return <section aria-label="Comments" className="absolute inset-0 p-4 border-l border-b border-lightDark overflow-y-auto">
+    return <section aria-label="Comments" className="post-detail-comments absolute inset-0 p-4 overflow-y-auto">
         <div className="flex items-start pb-4">
             <Avatar avatarUrl={postData.userId.avatar} username={postData.userId.username} className="w-8 h-8 mr-4 shrink-0" />
             <p className="text-white text-sm break-words min-w-0"><span className="font-semibold mr-1">{postData.userId.username}</span>{postData.caption}</p>

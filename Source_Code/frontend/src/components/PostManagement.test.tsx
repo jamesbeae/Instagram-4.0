@@ -40,6 +40,7 @@ describe('Post deletion flow', () => {
     it('does not call the API when the owner cancels confirmation', () => {
         vi.stubGlobal('confirm', vi.fn(() => false));
         mount();
+        fireEvent.click(screen.getByRole('button', { name: 'Post options' }));
         fireEvent.click(screen.getByRole('button', { name: 'Delete post' }));
         expect(http.delete).not.toHaveBeenCalled();
     });
@@ -48,6 +49,7 @@ describe('Post deletion flow', () => {
         vi.stubGlobal('confirm', vi.fn(() => true));
         http.delete.mockResolvedValue({});
         mount();
+        fireEvent.click(screen.getByRole('button', { name: 'Post options' }));
         fireEvent.click(screen.getByRole('button', { name: 'Delete post' }));
         await waitFor(() => expect(http.delete).toHaveBeenCalledWith('/post/post-id'));
         expect(screen.queryByRole('alert')).not.toBeInTheDocument();
@@ -57,7 +59,42 @@ describe('Post deletion flow', () => {
         vi.stubGlobal('confirm', vi.fn(() => true));
         http.delete.mockRejectedValue(new Error('offline'));
         mount();
+        fireEvent.click(screen.getByRole('button', { name: 'Post options' }));
         fireEvent.click(screen.getByRole('button', { name: 'Delete post' }));
         expect(await screen.findByRole('alert')).toHaveTextContent('Unable to delete post');
+    });
+});
+
+
+describe('Post options', () => {
+    it('opens the action list and returns focus to its button on Escape', () => {
+        mount();
+        const options = screen.getByRole('button', { name: 'Post options' });
+        expect(options).toHaveAttribute('aria-expanded', 'false');
+        expect(screen.queryByRole('button', { name: 'Edit post' })).not.toBeInTheDocument();
+
+        fireEvent.click(options);
+        const edit = screen.getByRole('button', { name: 'Edit post' });
+        edit.focus();
+        fireEvent.keyDown(edit, { key: 'Escape' });
+        expect(options).toHaveFocus();
+        expect(screen.queryByRole('button', { name: 'Edit post' })).not.toBeInTheDocument();
+    });
+
+    it('edits the current caption from the action list', async () => {
+        http.patch.mockResolvedValue({ data: { post: { ...post, caption: 'Updated caption' } } });
+        mount();
+        const options = screen.getByRole('button', { name: 'Post options' });
+        fireEvent.click(options);
+        fireEvent.click(screen.getByRole('button', { name: 'Edit post' }));
+
+        const caption = screen.getByRole('textbox', { name: 'Edit caption' });
+        expect(caption).toHaveValue(post.caption);
+        fireEvent.change(caption, { target: { value: 'Updated caption' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+        await waitFor(() => expect(options).toHaveFocus());
+        expect(http.patch).toHaveBeenCalledWith('/post/post-id', { content: 'Updated caption' });
+        expect(screen.queryByRole('textbox', { name: 'Edit caption' })).not.toBeInTheDocument();
     });
 });
