@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react';
 import Button from './UI/Button/Button';
 import { useUnsavedChanges } from './UnsavedChanges';
-import Picker from '@emoji-mart/react';
-import data from '@emoji-mart/data';
+import EmojiPicker from './UI/EmojiPicker';
 import usePrivateHttp from '../hooks/usePrivateHttp';
 import { useAppDispatch, useAppSelector } from '../hooks/useStore';
 import { postsListActions } from '../lib/redux/postsListSlice';
@@ -14,9 +13,9 @@ export default function CommentComposer({ postId, postData, onCreated, emoji = f
 }) {
     const http = usePrivateHttp(), dispatch = useAppDispatch();
     const feedPost = useAppSelector(state => state.postsListSlice.find(post => post._id === postId));
-    const [text, setText] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState(''), [picker, setPicker] = useState(false);
+    const [text, setText] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
     const sending = useRef(false);
-    const { markSaved } = useUnsavedChanges(text !== '', () => { setText(''); setPicker(false); });
+    const { markSaved } = useUnsavedChanges(text !== '', () => setText(''));
     const publish = (post: Post) => {
         dispatch(postsListActions.updatePost(post));
         window.dispatchEvent(new CustomEvent('post-updated', { detail: post }));
@@ -30,7 +29,7 @@ export default function CommentComposer({ postId, postData, onCreated, emoji = f
             const comment: Comment = response.data.comment;
             if (!comment?._id) throw new Error('Missing saved comment');
             markSaved();
-            setText(''); setPicker(false);
+            setText('');
             onCreated?.(comment);
             const base = feedPost || postData;
             if (base) publish({ ...base, comments: [...base.comments.filter(c => c._id !== comment._id), comment] });
@@ -46,7 +45,10 @@ export default function CommentComposer({ postId, postData, onCreated, emoji = f
     }
     return <div className="comment-composer relative my-2 rounded-xl border border-lightSecondDark px-3 py-1 focus-within:border-textGray">
         <form className="flex gap-3 items-center" onSubmit={event => { event.preventDefault(); void send(); }}>
-            {emoji && <button type="button" aria-label="Choose emoji" aria-expanded={picker} disabled={busy} onClick={() => setPicker(value => !value)} className="text-white text-xl">☺</button>}
+            {emoji && <EmojiPicker disabled={busy} onSelect={icon => {
+                setText(value => value.length + icon.length <= 2200 ? value + icon : value);
+                setError('');
+            }} />}
             <textarea id={emoji ? 'comment' : undefined} aria-label="Add a comment" placeholder="Add a comment" rows={2} maxLength={2200}
                 value={text} disabled={busy} onChange={event => { setText(event.target.value); setError(''); }}
                 onKeyDown={event => {
@@ -54,7 +56,6 @@ export default function CommentComposer({ postId, postData, onCreated, emoji = f
                 }} className="bg-transparent text-white text-sm flex-1 min-w-0 min-h-[40px] max-h-[120px] resize-y focus:outline-none" />
             <Button type="submit" disabled={!text.trim() || busy} className="text-blue text-sm font-semibold disabled:opacity-50">{busy ? 'Posting…' : 'Post'}</Button>
         </form>
-        {picker && <div className="absolute bottom-full left-0 z-20"><Picker data={data} maxFrequentRows={0} onEmojiSelect={(item: { native: string }) => setText(value => (value + item.native).slice(0, 2200))} /></div>}
         {error && <p role="alert" className="text-errorText text-xs mt-1">{error}</p>}
     </div>;
 }

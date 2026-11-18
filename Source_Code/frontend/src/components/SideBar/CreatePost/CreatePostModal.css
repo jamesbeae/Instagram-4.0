@@ -125,8 +125,6 @@
     outline: none;
 }
 
-.create-post-emoji { max-width: 100%; overflow-x: auto; }
-
 .create-post-options {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -10,6 +10,11 @@ import UnsavedChangesProvider from "../../UnsavedChanges";
 
 const http = { get: vi.fn(), post: vi.fn() };
 vi.mock("../../../hooks/usePrivateHttp", () => ({ default: () => http }));
+vi.mock("@emoji-mart/react", () => ({
+    default: ({ onEmojiSelect }: { onEmojiSelect: (emoji: { native: string }) => void }) =>
+        <button type="button" onClick={() => onEmojiSelect({ native: "🚀" })}>Rocket</button>,
+}));
+
 afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
@@ -71,6 +76,11 @@ it("preserves the draft across steps and shares after the required options are s
 
     const caption = screen.getByRole("textbox", { name: "Caption" });
     fireEvent.change(caption, { target: { value: "Sample caption" } });
+    fireEvent.click(screen.getByRole("button", { name: "Choose emoji" }));
+    expect(screen.getByRole("dialog", { name: "Emoji picker" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Rocket" }));
+    expect(screen.queryByRole("dialog", { name: "Emoji picker" })).not.toBeInTheDocument();
+    expect(caption).toHaveValue("Sample caption🚀");
     fireEvent.change(screen.getByRole("combobox", { name: "Audience" }), { target: { value: "group" } });
     expect(share()).toBeDisabled();
     await screen.findByRole("option", { name: "Friends" });
@@ -82,14 +92,14 @@ it("preserves the draft across steps and shares after the required options are s
     expect(screen.getByRole("img", { name: "Photo 1" })).toBeInTheDocument();
     fireEvent.click(next());
 
-    expect(screen.getByRole("textbox", { name: "Caption" })).toHaveValue("Sample caption");
+    expect(screen.getByRole("textbox", { name: "Caption" })).toHaveValue("Sample caption🚀");
     expect(screen.getByRole("combobox", { name: "Relation list" })).toHaveValue(groupId);
     expect(share()).toBeEnabled();
     fireEvent.click(share());
 
     await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
     expect(http.post).toHaveBeenCalledWith("/post/create-post", {
-        caption: "Sample caption",
+        caption: "Sample caption🚀",
         kind: "POST",
         visibility: "group",
         groupId,
