@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import usePrivateHttp from '../hooks/usePrivateHttp';
 import { Post } from '../models/Post';
-import PostCard from './Home/PostsList/Post';
+import PostCard from '../components/PostCard';
 export default function Discover() { const mode = useLocation().pathname.endsWith('reels') ? 'reels' : 'explore', http = usePrivateHttp(), [posts, setPosts] = useState<Post[]>([]), [page, setPage] = useState(1), [pages, setPages] = useState(1), [error, setError] = useState(''); useEffect(() => { setPage(1); setPosts([]); }, [mode]); useEffect(() => { let active = true; http.get('/post/' + mode, { params: { page, limit: 12 } }).then(r => { if (active) {
     setPosts(prev => page === 1 ? r.data.postsList : [...prev, ...r.data.postsList]);
     setPages(r.data.pagination.totalPages);
