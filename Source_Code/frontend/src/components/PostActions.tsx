@@ -23,15 +23,31 @@ export default function PostActions({ post, onComment }: {
         setBusy(true);
         setError('');
         try {
-            if (liked)
+            const wasLiked = liked;
+            if (wasLiked)
                 await http.delete('/like/delete-like-post', { data: { postId: post._id } });
             else
                 await http.post('/like/create-like-post', { postId: post._id });
-            const res = await http.get('/post/' + post._id);
-            dispatch(postsListActions.updatePost(res.data.post));
-            window.dispatchEvent(new CustomEvent("post-updated", { detail: res.data.post }));
-            setLiked(!liked);
-            setCount(n => n + (liked ? -1 : 1));
+            const nextLiked = !wasLiked;
+            const optimisticPost = {
+                ...post,
+                likes: wasLiked
+                    ? post.likes.filter(like => like.userId !== userId)
+                    : [...post.likes, { _id: `local-${Date.now()}`, userId: userId || '', postId: post._id }],
+            };
+            dispatch(postsListActions.updatePost(optimisticPost));
+            window.dispatchEvent(new CustomEvent("post-updated", { detail: optimisticPost }));
+            setLiked(nextLiked);
+            setCount(optimisticPost.likes.length);
+            try {
+                const res = await http.get('/post/' + post._id);
+                dispatch(postsListActions.updatePost(res.data.post));
+                window.dispatchEvent(new CustomEvent("post-updated", { detail: res.data.post }));
+            }
+            catch {
+                // The like request already succeeded; a failed refresh must not
+                // tell the user that the saved action failed.
+            }
         }
         catch {
             setError('Unable to update like. Please try again.');

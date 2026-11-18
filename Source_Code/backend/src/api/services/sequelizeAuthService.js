@@ -59,13 +59,13 @@ exports.register = async ({ username, password, email, fullName }) => {
         throw error;
     }
 };
-exports.login = async (res, username, password) => {
+exports.login = async (res, email, password) => {
     const user = await User.findOne({
-        where: { username },
+        where: { email },
         include: userInclude,
     });
     if (!user) {
-        throw httpError(StatusCodes.UNAUTHORIZED, "username");
+        throw httpError(StatusCodes.UNAUTHORIZED, "email");
     }
     if (!user.passwordHash ||
         !(await comparePassword(password, user.passwordHash))) {

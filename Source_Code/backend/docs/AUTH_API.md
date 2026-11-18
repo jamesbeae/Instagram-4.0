@@ -25,7 +25,8 @@ Request body:
   "email": "user@example.com",
   "fullName": "Demo User",
   "username": "demo_user",
-  "password": "Demo1234"
+  "password": "Demo1234",
+  "confirmPassword": "Demo1234"
 }
 ```
 
@@ -55,7 +56,7 @@ Request body:
 
 ```json
 {
-  "username": "demo_user",
+  "email": "user@example.com",
   "password": "Demo1234"
 }
 ```
@@ -75,7 +76,7 @@ Success `200`:
 }
 ```
 
-Wrong username or password returns `401` with `message` equal to `username` or `password`.
+Wrong email or password returns `401` with `message` equal to `email` or `password`.
 
 ## Current user
 

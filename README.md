@@ -17,7 +17,7 @@ Frontend: http://localhost:5173/ · Backend: http://localhost:8000/health.
 
 `Run-Local.ps1 -Status` báo provider/cổng DB từ phiên đã khởi chạy. Tạm chạy khi Docker chưa sẵn sàng: `Run-Local.ps1 -Database Portable`. Script không tự đổi sang portable khi Docker lỗi.
 
-Hai tài khoản **chỉ có trong DB demo đã seed**: `owner / 12345678`, `viewer / 12345678`. DB Docker hoàn toàn mới có role mặc định nhưng chưa có tài khoản demo; có thể đăng ký tài khoản mới. Không chạy lại seeder bài mẫu trên dữ liệu thật vì seeder cũ xóa/tạo lại dữ liệu demo.
+Hai tài khoản **chỉ có trong DB demo đã seed**: `owner@example.com / 12345678`, `viewer@example.com / 12345678`. DB Docker hoàn toàn mới có role mặc định nhưng chưa có tài khoản demo; có thể đăng ký tài khoản mới. Không chạy lại seeder bài mẫu trên dữ liệu thật vì seeder cũ xóa/tạo lại dữ liệu demo.
 
 Đóng gói cả ba dịch vụ: `docker compose --profile app up -d --build` sau khi dừng frontend/backend đang chạy trên máy. Backend container tự chạy migrations. Volume DB `instagram_postgres_data` được Docker quản lý, không nằm trong source; volume media `instagram_uploads`. Cổng chỉ bind 127.0.0.1 cho môi trường local. Đây là cấu hình local; triển khai công khai cần domain/HTTPS, secrets riêng, backup và cấu hình cookie/origin.
 
