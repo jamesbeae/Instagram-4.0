@@ -13,7 +13,7 @@ const NotificationsModal: React.FC<{ notifications: Notification[] }> = ({
         <div
             className={`${
                 openedModal === "notifications"
-                    ? "w-96 border-r-0.5"
+                    ? "w-[min(384px,calc(100vw-88px))] border-r-0.5"
                     : "w-0 border-0"
             } h-full py-2 flex flex-col bg-dark transition-all ease-in delay-300
             overflow-hidden rounded-3xl  border-lightDark`}

@@ -1,0 +1,71 @@
+.sidebar-more-trigger[aria-expanded="true"] {
+    background: #232325;
+}
+
+.sidebar-more-popup.ui-card {
+    --card-background: #151516;
+    --card-border: #303032;
+    --card-radius: 20px;
+    position: absolute;
+    z-index: 1;
+    inset-inline-start: 0;
+    bottom: calc(100% + 8px);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: min(260px, calc(100vw - 40px));
+    max-height: min(24rem, calc(100dvh - 100px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 7px;
+    box-shadow: 0 14px 36px rgb(0 0 0 / 45%);
+}
+
+.sidebar-more-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    text-align: start;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.sidebar-more-item svg {
+    width: 16px;
+    flex: none;
+    color: #adaeb3;
+}
+
+.sidebar-more-item:hover,
+.sidebar-more-item:focus-visible {
+    background: #252528;
+}
+
+.sidebar-more-divider {
+    margin-top: 3px;
+    padding-top: 6px;
+    border-top: 1px solid var(--card-border);
+}
+
+.sidebar-more-item-danger,
+.sidebar-more-item-danger svg {
+    color: #ff858e;
+}
+
+.sidebar-more-compact .sidebar-more-popup {
+    inset-inline-start: calc(100% + 12px);
+    bottom: 0;
+    width: min(260px, calc(100vw - 96px));
+}
+
+@media (max-width: 1100px) {
+    .sidebar-more-popup.ui-card {
+        inset-inline-start: calc(100% + 12px);
+        bottom: 0;
+        width: min(260px, calc(100vw - 96px));
+    }
+}

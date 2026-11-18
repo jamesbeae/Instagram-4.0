@@ -1,19 +1,19 @@
-import React, { MouseEventHandler } from "react";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Button from "../../UI/Button/Button";
 
-const MoreItem: React.FC<{
-    Icon?: React.FC;
+type MoreItemProps = {
+    icon: IconDefinition;
     title: string;
-    onClick?: MouseEventHandler<HTMLDivElement>;
-}> = ({ Icon, title, onClick }) => {
-    return (
-        <div
-            className="rounded-lg hover:bg-lightSecondDark cursor-pointer"
-            onClick={onClick}
-        >
-            <div>{Icon && <Icon />}</div>
-            <div className="text-sm text-white p-4 leading-[18px]">{title}</div>
-        </div>
-    );
+    onClick: () => void;
+    danger?: boolean;
 };
 
-export default MoreItem;
+export default function MoreItem({ icon, title, onClick, danger = false }: MoreItemProps) {
+    return (
+        <Button className={`sidebar-more-item${danger ? " sidebar-more-item-danger" : ""}`} onClick={onClick}>
+            <FontAwesomeIcon icon={icon} aria-hidden="true" />
+            {title}
+        </Button>
+    );
+}

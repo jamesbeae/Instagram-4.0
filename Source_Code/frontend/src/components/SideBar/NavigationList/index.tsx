@@ -1,4 +1,5 @@
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback, useEffect, useId, useRef } from "react";
+import Button from "../../UI/Button/Button";
 import NavigationItem from "./NavigationItem";
 import HomeIcon from "../../UI/Icons/HomeIcon";
 import SearchIcon from "../../UI/Icons/SearchIcon";
@@ -21,6 +22,10 @@ const NavigationList = () => {
     const sideBarSlice = useAppSelector((state) => state.sideBarSlice);
     const dispatch = useAppDispatch();
     const moreModalRef = useRef<HTMLDivElement>(null);
+    const moreButtonRef = useRef<HTMLButtonElement>(null);
+    const morePopupId = useId();
+    const isMoreOpen = sideBarSlice.moreModal;
+    const isCompact = sideBarSlice.isSmall || sideBarSlice.openedModal;
     const { gotoHomePage, gotoProfilePage, gotoMessagePage } = useRedirect();
     // Functions to handle navigation items that redirect to another pages clicked:
     const clickRedirect = useCallback((page: string) => {
@@ -63,23 +68,20 @@ const NavigationList = () => {
         console.log(title);
         dispatch(sideBarActions.openCreatePost(true));
     }, [dispatch]);
-    const openMoreModalHandler = () => {
-        dispatch(sideBarActions.openMoreModal(!sideBarSlice.moreModal));
-    };
-    //  Khi click vào ngoài thì đóng more modal:
-    // Hàm kiểm tra click ngoài
-    const handleClickOutside = (event: any) => {
-        if (moreModalRef.current &&
-            !moreModalRef.current.contains(event.target)) {
-            dispatch(sideBarActions.openMoreModal(false));
-        }
-    };
+    const closeMore = useCallback(() => {
+        dispatch(sideBarActions.openMoreModal(false));
+    }, [dispatch]);
+
     useEffect(() => {
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
+        if (!isMoreOpen) return;
+
+        function handleOutsidePointer(event: PointerEvent) {
+            if (event.target instanceof Node && !moreModalRef.current?.contains(event.target)) closeMore();
+        }
+
+        document.addEventListener("pointerdown", handleOutsidePointer);
+        return () => document.removeEventListener("pointerdown", handleOutsidePointer);
+    }, [closeMore, isMoreOpen]);
     return (<div className="flex flex-col justify-between h-full text-white">
             <div className="flex flex-col h-full">
                 <NavigationItem icon={<HomeIcon />} title="Home" onClick={clickRedirect}/>
@@ -91,10 +93,25 @@ const NavigationList = () => {
                 <NavigationItem icon={<CreateIcon />} title="Create" onClick={openCreateModalHandler}/>
                 {userInfo && (<NavigationItem icon={<Avatar avatarUrl={userInfo.avatar} username={userInfo.username} className="w-6 h-6 rounded-full"/>} title={"Profile"} onClick={clickRedirect}/>)}
 
-                <div ref={moreModalRef} className="relative flex-1 flex flex-col justify-end">
-                    <div className="relative">
-                        {sideBarSlice.moreModal && <MoreModal />}
-                        <NavigationItem icon={<SettingIcon />} title="More" onClick={openMoreModalHandler}/>
+                <div className="mt-auto">
+                    <div ref={moreModalRef} className={`relative ${isCompact ? "sidebar-more-compact" : ""}`}
+                        onBlur={event => {
+                            if (isMoreOpen && !event.currentTarget.contains(event.relatedTarget)) closeMore();
+                        }}
+                        onKeyDown={event => {
+                            if (event.key !== "Escape" || !isMoreOpen) return;
+                            event.stopPropagation();
+                            closeMore();
+                            moreButtonRef.current?.focus();
+                        }}>
+                        <Button ref={moreButtonRef} aria-label="More" aria-expanded={isMoreOpen}
+                            aria-controls={isMoreOpen ? morePopupId : undefined}
+                            className="sidebar-more-trigger group mt-0.5 flex w-full items-center gap-4 rounded-[14px] border border-transparent p-3 hover:bg-lightSecondDark"
+                            onClick={() => dispatch(sideBarActions.openMoreModal(!isMoreOpen))}>
+                            <span className="transition-transform group-hover:scale-105"><SettingIcon /></span>
+                            {!isCompact && <span className="navigation-label text-base font-normal">More</span>}
+                        </Button>
+                        {isMoreOpen && <MoreModal id={morePopupId} onClose={closeMore} />}
                     </div>
                 </div>
             </div>
