@@ -10,7 +10,7 @@ const NavigationItem: React.FC<{
     const isSmall = sideBarSlice.isSmall;
     const currentPage = sideBarSlice.currentPage;
     return (<div role="button" aria-label={title} tabIndex={0} onKeyDown={e => { if (e.key === "Enter")
-        onClick?.(title); }} className={`border border-transparent ${currentPage === title.toLowerCase() ? "bg-lightDark" : null} ${openedModal === title.toLowerCase() && "!border-white"} group p-3 mt-0.5 flex items-center gap-4 hover:bg-lightSecondDark cursor-pointer rounded-lg `} onClick={() => {
+        onClick?.(title); }} className={`border border-transparent ${currentPage === title.toLowerCase() ? "bg-lightDark" : null} ${openedModal === title.toLowerCase() && "!border-white"} group p-3 mt-0.5 flex items-center gap-4 hover:bg-lightSecondDark cursor-pointer rounded-[14px] `} onClick={() => {
             onClick && onClick(title);
         }}>
             <div className="group-hover:scale-105 transition-all ease-in delay-50">
