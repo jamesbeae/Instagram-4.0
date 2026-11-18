@@ -1,27 +1,19 @@
-import React, { useCallback } from "react";
-// import { VideoPhoto } from "./CreatePostModal";
 import AddMoreVideoPhotoInput from "./AddMoreVideoPhotoInput";
 import VideoPhotoSwiper from "../../UI/VideoPhotoSwiper";
 import { PhotoVideo } from "../../../models/PhotoVideo";
 
-const PhotoVideoPreview: React.FC<{
-    photoVideoList: PhotoVideo[];
-    getFilesListsHandler: Function;
-    deleteVideoPhotoHandler: Function;
-}> = ({ photoVideoList, getFilesListsHandler, deleteVideoPhotoHandler }) => {
-    const addMoreFile = useCallback((files: FileList) => {
-        getFilesListsHandler(files);
-    }, []);
-
+export default function PhotoVideoPreview({ media, onAdd, onRemove, busy }: {
+    media: PhotoVideo[];
+    onAdd: (files: FileList) => void;
+    onRemove: (index: number) => void;
+    busy: boolean;
+}) {
     return (
-        <div className="h-[280px] sm:h-full w-full sm:w-3/5 shrink-0 relative">
-            <VideoPhotoSwiper
-                videoPhotoList={photoVideoList}
-                deleteVideoPhoto={deleteVideoPhotoHandler}
-            />
-            <AddMoreVideoPhotoInput addMoreFile={addMoreFile} />
+        <div className="flex flex-col gap-2">
+            <div className="create-post-preview">
+                <VideoPhotoSwiper videoPhotoList={media} deleteVideoPhoto={busy ? undefined : onRemove} />
+            </div>
+            <AddMoreVideoPhotoInput onFiles={onAdd} busy={busy} />
         </div>
     );
-};
-
-export default PhotoVideoPreview;
+}

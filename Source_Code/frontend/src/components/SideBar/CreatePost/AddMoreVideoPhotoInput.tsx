@@ -1,41 +1,25 @@
-import { faPlusCircle } from "@fortawesome/free-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useRef } from "react";
+import { useRef } from "react";
+import Button from "../../UI/Button/Button";
+import { acceptedMediaTypes } from "./PhotoVideoInput";
 
-const AddMoreVideoPhotoInput: React.FC<{ addMoreFile: Function }> = ({
-    addMoreFile,
-}) => {
+export default function AddMoreVideoPhotoInput({ onFiles, busy }: {
+    onFiles: (files: FileList) => void;
+    busy: boolean;
+}) {
     const inputRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="absolute right-4 bottom-4 z-40">
-            <div
-                onClick={() => {
-                    inputRef.current?.click();
-                }}
-            >
-                <FontAwesomeIcon
-                    icon={faPlusCircle}
-                    className="w-8 h-auto cursor-pointer opacity-75 hover:opacity-100"
-                />
-            </div>
-            <input
-                ref={inputRef}
-                type="file"
-                name="file"
-                id="file"
-                accept="image/*|video/*"
-                multiple
-                className="absolute w-0"
-                onChange={(e) => {
-                    const files = e.target.files;
-                    if (files) {
-                        addMoreFile(files);
-                    }
-                }}
-            />
+        <div className="flex justify-end">
+            <Button className="create-post-add-media" disabled={busy} onClick={() => inputRef.current?.click()}>
+                <FontAwesomeIcon icon={faPlus} aria-hidden="true" /> Add more
+            </Button>
+            <input ref={inputRef} type="file" accept={acceptedMediaTypes} multiple hidden
+                onChange={event => {
+                    if (event.currentTarget.files) onFiles(event.currentTarget.files);
+                    event.currentTarget.value = "";
+                }} />
         </div>
     );
-};
-
-export default AddMoreVideoPhotoInput;
+}
