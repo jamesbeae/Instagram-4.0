@@ -48,7 +48,7 @@ const Information = () => {
         })}
             </div>
 
-            <div className="copy-right">© 2026 INSTAGRAM FROM Huydayne1608</div>
+            <div className="copy-right">© 2026 INSTAGRAM FROM HTT</div>
         </div>);
 };
 export default Information;
