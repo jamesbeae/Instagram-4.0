@@ -5,10 +5,9 @@ const Heading: React.FC<{ shareHandler: Function }> = ({ shareHandler }) => {
         <div className="h-10% px-6 py-4 flex justify-between border-b border-textGray">
             <p className="font-semibold text-white ">Create new post</p>
             <Button
-                content="Share"
                 className="text-blue"
-                onClick={shareHandler}
-            />
+                onClick={() => shareHandler()}
+            >Share</Button>
         </div>
     );
 };

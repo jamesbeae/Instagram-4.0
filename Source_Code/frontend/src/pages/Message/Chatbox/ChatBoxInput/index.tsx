@@ -64,8 +64,8 @@ const ChatBoxInput: React.FC<{
         }} addedEmojis={emojis} className="w-full leading-4 text-sm h-[44px] flex align-middle border-none bg-transparent focus:outline-none resize-none" clear={isSent}/>
                 </div>
 
-                {message ? (<Button onClick={() => handleSendMessage()} content={sending ? "Sending…" : "Send"} disable={sending} className="text-blue font-semibold"/>) : (<>
-                        <Button content="Send" className="text-blue font-semibold" disable={true}/>
+                {message ? (<Button onClick={() => handleSendMessage()} disabled={sending} className="text-blue font-semibold">{sending ? "Sending…" : "Send"}</Button>) : (<>
+                        <Button className="text-blue font-semibold" disabled={true}>Send</Button>
                     </>)}
             </form>
         </div>);
