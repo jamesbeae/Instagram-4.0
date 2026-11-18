@@ -83,7 +83,7 @@ const LoginForm = () => {
 
             <Input className={inputClassName} type="password" name="password" id="password" placeholder="Your password" getInputValueHandler={getPasswordHandler}/>
 
-            <Button className={buttonClassName} content="Log in" disable={disableLoginButton} onClick={handleLogin}/>
+            <Button className={buttonClassName} disabled={disableLoginButton} onClick={handleLogin}>Log in</Button>
 
             <div className="w-64 my-2 flex items-center
                 justify-between text-xs text-textGray before:content-[''] before:h-px before:w-24 before:bg-textGray

@@ -116,7 +116,7 @@ const SignUpForm = () => {
             <Input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm Password" getInputValueHandler={getConfirmPasswordHandler} className={inputClassName}/>
             {/* Sign up form description */}
             <SignUpFormDesc />
-            <Button onClick={handleSignUp} content={isSubmitting ? "Đang đăng ký..." : "Sign Up"} disable={disableSignUpButton || isSubmitting} className={buttonClassName}/>
+            <Button onClick={handleSignUp} disabled={disableSignUpButton || isSubmitting} className={buttonClassName}>{isSubmitting ? "Đang đăng ký..." : "Sign Up"}</Button>
             {errorMess && (<div className="mt-4 px-4 text-sm text-errorText text-center">
                     {errorMess}
                 </div>)}

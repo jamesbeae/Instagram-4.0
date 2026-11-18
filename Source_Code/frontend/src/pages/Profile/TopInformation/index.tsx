@@ -70,16 +70,16 @@ const TopInformation: React.FC<{
             <div className="flex-1 col-span-2">
                 <div className="flex gap-2 mb-6">
                     {isOwnProfile ? (<>
-                            <Button content="Edit profile" onClick={() => setEditing(true)} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded"/>
+                            <Button onClick={() => setEditing(true)} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded">Edit profile</Button>
 
-                            <Button content="View activity" onClick={async () => { const r = await privateHttp.get("/user/activity"); alert(r.data.activity.map((a: any) => a.type + " · " + new Date(a.createdAt).toLocaleString()).join("\n") || "No activity yet"); }} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded "/>
+                            <Button onClick={async () => { const r = await privateHttp.get("/user/activity"); alert(r.data.activity.map((a: any) => a.type + " · " + new Date(a.createdAt).toLocaleString()).join("\n") || "No activity yet"); }} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded ">View activity</Button>
 
-                            <Button content="..." className="w-8 h-8 bg-textGray hover:bg-gray-600 rounded"/>
+                            <Button className="w-8 h-8 bg-textGray hover:bg-gray-600 rounded">...</Button>
                         </>) : (<>
-                            <Button onClick={handleFollowUser} content={isFollowing ? "Following" : "Follow"} className="flex items-center gap-1 px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded"/>
+                            <Button onClick={handleFollowUser} className="flex items-center gap-1 px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded">{isFollowing ? "Following" : "Follow"}</Button>
 
-                            {isFollowing && (<Button onClick={handleFollowUser} content="Unfollow" className="px-4 py-1.5 text-sm bg-red-500 hover:bg-red-600 rounded"/>)}
-                            <Button content="Message" onClick={() => navigate("/message/" + profile._id, { state: { user: profile } })} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded"/>
+                            {isFollowing && (<Button onClick={handleFollowUser} className="px-4 py-1.5 text-sm bg-red-500 hover:bg-red-600 rounded">Unfollow</Button>)}
+                            <Button onClick={() => navigate("/message/" + profile._id, { state: { user: profile } })} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded">Message</Button>
                         </>)}
                 </div>
                 {/* Stats */}
