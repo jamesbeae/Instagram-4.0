@@ -13,7 +13,9 @@ vi.mock('../../../services/userService', () => ({
 vi.mock('../../../hooks/usePrivateHttp', () => ({ default: () => mockHttp }));
 vi.mock('../../../components/UI/UserTagBar', () => ({ default: () => null }));
 
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+    vi.resetAllMocks();
+});
 afterEach(cleanup);
 
 describe('suggested users loading states', () => {
