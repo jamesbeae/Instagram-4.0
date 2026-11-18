@@ -1,0 +1,130 @@
+.ui-select-field {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.ui-select-label {
+    color: #c1c1c8;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.ui-select-input {
+    position: relative;
+    display: block;
+    min-width: 0;
+}
+
+.ui-select-chevron {
+    position: absolute;
+    inset-inline-end: 12px;
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    color: #c1c1c8;
+    pointer-events: none;
+}
+
+.ui-select-control:disabled + .ui-select-chevron {
+    opacity: 0.6;
+}
+
+.ui-select-control {
+    --select-background: #1c1c20;
+    --select-border: #44444b;
+    --select-accent: #91c4ff;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    border: 1px solid var(--select-border);
+    border-radius: 12px;
+    appearance: none;
+    padding: 9px 12px;
+    padding-inline-end: 38px;
+    color: #f5f5f7;
+    background: var(--select-background);
+    color-scheme: dark;
+    font-size: 14px;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.ui-select-control:not(:disabled):hover {
+    border-color: #686872;
+    background: #222227;
+}
+
+.ui-select-control:focus-visible {
+    outline: 2px solid var(--select-accent);
+    outline-offset: 2px;
+}
+
+.ui-select-control:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+@supports selector(::picker(select)) {
+    .ui-select-control,
+    .ui-select-control::picker(select) {
+        appearance: base-select;
+    }
+
+    .ui-select-control::picker-icon {
+        display: none;
+    }
+
+    .ui-select-control:open {
+        border-color: #686872;
+    }
+
+    .ui-select-control:open + .ui-select-chevron {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    .ui-select-control::picker(select) {
+        inline-size: anchor-size(width);
+        max-block-size: min(18rem, 50dvh);
+        margin-block: 6px;
+        overflow: auto;
+        overscroll-behavior: contain;
+        border: 1px solid #44444b;
+        border-radius: 14px;
+        padding: 4px;
+        color: #f5f5f7;
+        background: #1c1c20;
+        box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+    }
+
+    .ui-select-control option {
+        min-height: 40px;
+        border-radius: 9px;
+        padding: 8px 10px;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        cursor: pointer;
+    }
+
+    .ui-select-control option:not(:disabled):is(:hover, :focus-visible) {
+        background: #2b2b30;
+    }
+
+    .ui-select-control option:checked,
+    .ui-select-control option:checked:not(:disabled):hover {
+        color: #f5f5f7;
+        background: #36363b;
+    }
+
+    .ui-select-control option::checkmark {
+        display: none;
+    }
+
+    .ui-select-control option:focus-visible {
+        outline: 2px solid var(--select-accent);
+        outline-offset: -2px;
+    }
+
+    .ui-select-control option:disabled {
+        opacity: 0.55;
+    }
+}
