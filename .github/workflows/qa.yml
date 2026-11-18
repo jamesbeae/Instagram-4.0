@@ -26,7 +26,7 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: Source_Code/frontend/package-lock.json
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
       - run: npm run build
       - run: npx vitest run
 
@@ -60,7 +60,7 @@ jobs:
             Source_Code/backend/package-lock.json
             Source_Code/frontend/package-lock.json
       # The API suite imports socket.io-client from the frontend directory.
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
         working-directory: Source_Code/frontend
       - run: npm ci
         working-directory: Source_Code/backend

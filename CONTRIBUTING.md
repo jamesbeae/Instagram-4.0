@@ -12,7 +12,7 @@ Dùng Node.js 22 như CI và Dockerfile. Xem [README](README.md#chạy-ứng-d�
 
 ## Kiểm thử trước khi yêu cầu review
 
-Cài dependency từ lockfile bằng `npm ci` trong cả hai thư mục. Test tích hợp backend dùng `socket.io-client` từ dependency frontend.
+Cài dependency từ lockfile bằng `npm ci --legacy-peer-deps` ở frontend và `npm ci` ở backend. Frontend dùng cờ này vì `react-facebook-login` khai báo peer dependency React 16 trong khi dự án dùng React 18. Test tích hợp backend cần `socket.io-client` từ dependency frontend.
 
 | Thư mục | Lệnh kiểm tra |
 | --- | --- |
