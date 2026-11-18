@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import Button from "../../UI/Button/Button";
 import Card from "../../UI/Card";
 import Loading from "../../UI/Loading";
+import SelectField from "../../UI/SelectField";
 import Heading from "./Heading";
 import { useUnsavedChanges } from "../../UnsavedChanges";
 import PhotoVideoInput, { acceptedMediaTypes } from "./PhotoVideoInput";
@@ -15,6 +16,17 @@ import { postsListActions } from "../../../lib/redux/postsListSlice";
 import { PhotoVideo } from "../../../models/PhotoVideo";
 import "./CreatePostModal.css";
 
+const typeOptions = [
+    { value: "POST", label: "Post / Reel" },
+    { value: "STORY", label: "Story · 24 hours" },
+] as const;
+
+const audienceOptions = [
+    { value: "public", label: "Public" },
+    { value: "followers", label: "Followers" },
+    { value: "group", label: "Relation list" },
+] as const;
+
 export default function CreatePostModal({ onClose }: { onClose: () => void }) {
     const privateHttp = usePrivateHttp();
     const dispatch = useAppDispatch();
@@ -26,8 +38,8 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
     const [step, setStep] = useState<"media" | "details">("media");
     const [media, setMedia] = useState<PhotoVideo[]>([]);
     const [caption, setCaption] = useState("");
-    const [kind, setKind] = useState<"POST" | "STORY">("POST");
-    const [visibility, setVisibility] = useState<"public" | "followers" | "group">("public");
+    const [kind, setKind] = useState<typeof typeOptions[number]["value"]>("POST");
+    const [visibility, setVisibility] = useState<typeof audienceOptions[number]["value"]>("public");
     const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
     const [groupId, setGroupId] = useState("");
     const [preparing, setPreparing] = useState(false);
@@ -159,22 +171,18 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
                     <div className="create-post-details" hidden={!isDetails}>
                         <StatusInput onCaptionChange={setCaption} />
                         <div className="create-post-options">
-                            <label>Type
-                                <select value={kind} disabled={sharing} onChange={event => setKind(event.target.value as typeof kind)}>
-                                    <option value="POST">Post / Reel</option><option value="STORY">Story · 24 hours</option>
-                                </select>
-                            </label>
-                            <label>Audience
-                                <select value={visibility} disabled={sharing} onChange={event => setVisibility(event.target.value as typeof visibility)}>
-                                    <option value="public">Public</option><option value="followers">Followers</option><option value="group">Relation list</option>
-                                </select>
-                            </label>
-                            {visibility === "group" && <label className="col-span-full">Relation list
-                                <select value={groupId} disabled={sharing} onChange={event => setGroupId(event.target.value)}>
-                                    <option value="">Choose a list</option>
-                                    {groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
-                                </select>
-                            </label>}
+                            <SelectField label="Type" name="kind" value={kind} options={typeOptions}
+                                onChange={setKind} disabled={sharing} />
+                            <SelectField label="Audience" name="visibility" value={visibility} options={audienceOptions}
+                                onChange={setVisibility} disabled={sharing} />
+                            {visibility === "group" && (
+                                <SelectField label="Relation list" name="groupId" className="col-span-full"
+                                    value={groupId} disabled={sharing} onChange={setGroupId}
+                                    options={[
+                                        { value: "", label: "Choose a list" },
+                                        ...groups.map(group => ({ value: group.id, label: group.name })),
+                                    ]} />
+                            )}
                         </div>
                     </div>
                 </div>
