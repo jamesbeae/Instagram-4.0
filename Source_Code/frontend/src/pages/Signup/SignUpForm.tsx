@@ -9,6 +9,7 @@ import { useAppDispatch } from "../../hooks/useStore";
 import { authActions } from "../../lib/redux/authSlice";
 import useRedirect from "../../hooks/useRedirect";
 import ReactFacebookLogin from "react-facebook-login";
+import { useUnsavedChanges } from "../../components/UnsavedChanges";
 const inputClassName = "w-64 p-2 border border-textGray rounded-sm focus:outline-none text-sm placeholder:text-sm";
 const buttonClassName = "w-64 py-2 px-3 rounded-lg font-semibold bg-blue text-white";
 const SignUpForm = () => {
@@ -21,6 +22,7 @@ const SignUpForm = () => {
     const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [confirmPassword, setConfirmPassword] = useState<string>("");
+    const { markSaved } = useUnsavedChanges(Boolean(email || fullName || username || password || confirmPassword));
     // validation states:
     const [errorMess, setErrorMess] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -65,6 +67,7 @@ const SignUpForm = () => {
         try {
             const result = await signUp(signUpData);
             if (result.success) {
+                markSaved();
                 navigate("/login");
                 return;
             }
@@ -81,7 +84,7 @@ const SignUpForm = () => {
         finally {
             setIsSubmitting(false);
         }
-    }, [email, fullName, username, password, confirmPassword, navigate]);
+    }, [email, fullName, username, password, confirmPassword, navigate, markSaved]);
     const handleLoginWithFacebook = async (response: any) => {
         if (!response.accessToken) {
             setErrorMess("Login with Facebook failed. Please try again later.");
@@ -89,6 +92,7 @@ const SignUpForm = () => {
         else {
             const result = await loginService.loginWithFacebook(response);
             if (result?.success) {
+                markSaved();
                 dispatch(authActions.loggedIn({
                     userInfo: result.data.userInfo,
                     accessToken: result.data.accessToken,

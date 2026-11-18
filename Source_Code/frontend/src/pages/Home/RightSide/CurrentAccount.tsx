@@ -4,6 +4,7 @@ import { logout } from "../../../services/logoutService";
 import usePrivateHttp from "../../../hooks/usePrivateHttp";
 import { authActions } from "../../../lib/redux/authSlice";
 import useRedirect from "../../../hooks/useRedirect";
+import { useConfirmDiscard } from "../../../components/UnsavedChanges";
 
 const CurrentAccountAction = () => {
     const authSlice = useAppSelector((state) => state.authSlice);
@@ -11,6 +12,7 @@ const CurrentAccountAction = () => {
     const dispatch = useAppDispatch();
 
     const { gotoLoginPage } = useRedirect();
+    const confirmDiscard = useConfirmDiscard();
     // Logout handler:
     const logoutHandler = async () => {
         const result = await logout(privateHttp);
@@ -27,7 +29,7 @@ const CurrentAccountAction = () => {
         <div className="flex items-center">
             {
                 authSlice.userInfo ? (
-                    <div className="text-blue text-xs cursor-pointer hover:opacity-50" onClick={logoutHandler}>
+                    <div className="text-blue text-xs cursor-pointer hover:opacity-50" onClick={() => confirmDiscard(() => void logoutHandler())}>
                         Logout
                         </div>) : (
                             <div className="text-blue text-xs cursor-pointer hover:opacity-50" onClick={gotoLoginPage}>

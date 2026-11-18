@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Input from "../../components/UI/Input/Input";
 import Button from "../../components/UI/Button/Button";
+import { useUnsavedChanges } from "../../components/UnsavedChanges";
 import loginService from "../../services/loginService";
 import { useAppDispatch } from "../../hooks/useStore";
 import { authActions } from "../../lib/redux/authSlice";
@@ -14,6 +15,7 @@ const LoginForm = () => {
     // Login form data:
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
+    const { markSaved } = useUnsavedChanges(email !== "" || password !== "");
     // Validation states:
     const [errorMess, setErrorMess] = useState<string>("");
     const [disableLoginButton, setDisableLoginButton] = useState<boolean>(true);
@@ -48,6 +50,7 @@ const LoginForm = () => {
             const result = await loginService.login(loginData);
             // Check the errors sent from server (wrong username or password)
             if (result?.success) {
+                markSaved();
                 dispatch(authActions.loggedIn({
                     userInfo: result.data.userInfo,
                     accessToken: result.data.accessToken,
@@ -58,7 +61,7 @@ const LoginForm = () => {
                 setErrorMess(result?.message ?? "Đăng nhập thất bại");
             }
         }
-    }, [email, password, dispatch, navigate]);
+    }, [email, password, dispatch, navigate, markSaved]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleLoginWithFacebook = async (response: any) => {
         if (!response.accessToken) {
@@ -67,6 +70,7 @@ const LoginForm = () => {
         else {
             const result = await loginService.loginWithFacebook(response);
             if (result?.success) {
+                markSaved();
                 dispatch(authActions.loggedIn({
                     userInfo: result.data.userInfo,
                     accessToken: result.data.accessToken,

@@ -1,5 +1,6 @@
 import "./App.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import UnsavedChangesProvider from "./components/UnsavedChanges";
+import { createBrowserRouter, RouterProvider, type RouteObject } from "react-router-dom";
 import SignUp from "./pages/Signup";
 import Login from "./pages/Login";
 import RootLayout from "./components/RootLayout";
@@ -15,9 +16,9 @@ import { useSocket } from "./hooks/useSocket";
 import { useAppSelector } from "./hooks/useStore";
 import AuthInitializer from "./components/AuthInitializer";
 import RequireAuth from "./components/RequireAuth";
-const router = createBrowserRouter([
-    { path: "/forgot-password", element: <PasswordRecovery /> },
-    { path: "/reset-password", element: <PasswordRecovery /> },
+const routes: RouteObject[] = [
+    { path: "/forgot-password", element: <PasswordRecovery key="forgot" /> },
+    { path: "/reset-password", element: <PasswordRecovery key="reset" /> },
     {
         path: "/sign-up",
         element: <SignUp />,
@@ -40,7 +41,7 @@ const router = createBrowserRouter([
                     { path: "post/:postId", element: <PostPage /> },
                     { path: "explore", element: <Discover /> },
                     { path: "reels", element: <Discover /> },
-                    ...["groups", "creator", "admin", "settings"].map(path => ({ path, element: <Workspace /> })),
+                    ...["groups", "creator", "admin", "settings"].map(path => ({ path, element: <Workspace key={path} /> })),
                     {
                         path: "profile/:_id",
                         element: <Profile />,
@@ -59,7 +60,8 @@ const router = createBrowserRouter([
             },
         ],
     },
-]);
+];
+const router = createBrowserRouter([{ element: <UnsavedChangesProvider />, children: routes }]);
 function App() {
     const userId = useAppSelector((state) => state.authSlice.userInfo?._id);
     useSocket(userId);

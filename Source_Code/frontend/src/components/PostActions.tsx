@@ -7,6 +7,7 @@ import LikedIcon from './UI/Icons/LikedIcon';
 import CommentIcon from './UI/Icons/CommentIcon';
 import SaveIcon from './UI/Icons/SaveIcon';
 import SharePostIcon from './UI/Icons/SharePostIcon';
+import ReportPostDialog from './ReportPostDialog';
 import { postsListActions } from '../lib/redux/postsListSlice';
 export default function PostActions({ post, onComment }: {
     post: Post;
@@ -16,6 +17,7 @@ export default function PostActions({ post, onComment }: {
     const dispatch = useAppDispatch();
     const userId = useAppSelector(s => s.authSlice.userInfo?._id);
     const [liked, setLiked] = useState(false), [count, setCount] = useState(post.likes.length), [saved, setSaved] = useState(!!post.isSaved), [busy, setBusy] = useState(false), [error, setError] = useState('');
+    const [reportOpen, setReportOpen] = useState(false);
     useEffect(() => { setLiked(post.likes.some(l => l.userId === userId)); setCount(post.likes.length); setSaved(!!post.isSaved); }, [post, userId]);
     async function like() {
         if (busy)
@@ -73,14 +75,6 @@ export default function PostActions({ post, onComment }: {
             setBusy(false);
         }
     }
-    async function report() { const reason = prompt('Why are you reporting this post?'); if (!reason)
-        return; try {
-        await http.post('/reports', { postId: post._id, reason });
-        setError('Report submitted');
-    }
-    catch {
-        setError('Unable to submit report');
-    } }
     async function share() { try {
         const url = location.origin + '/post/' + post._id;
         await navigator.clipboard.writeText(url);
@@ -95,6 +89,7 @@ export default function PostActions({ post, onComment }: {
   <button type="button" aria-label="View comments" onClick={onComment}><CommentIcon /></button>
   <button type="button" aria-label="Share post" onClick={share}><SharePostIcon /></button>
   <button type="button" aria-label={saved ? 'Unsave post' : 'Save post'} aria-pressed={saved} disabled={busy} onClick={save} className="ml-auto"><SaveIcon />{saved && <span className="text-xs">Saved</span>}</button>
-  <button type="button" aria-label="Report post" onClick={report} className="text-xs">Report</button>
- </div><p className="text-sm font-semibold">{count} {count === 1 ? 'like' : 'likes'}</p>{error && <p role="status" className="text-xs text-red-400">{error}</p>}</div>;
+  <button type="button" aria-label="Report post" onClick={() => setReportOpen(true)} className="text-xs">Report</button>
+ </div><p className="text-sm font-semibold">{count} {count === 1 ? 'like' : 'likes'}</p>{error && <p role="status" className="text-xs text-red-400">{error}</p>}{reportOpen && <ReportPostDialog postId={post._id} onClose={() => setReportOpen(false)}
+     onSubmitted={() => setError('Report submitted')} />}</div>;
 }

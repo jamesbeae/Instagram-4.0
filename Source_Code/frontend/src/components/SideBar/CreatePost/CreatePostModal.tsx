@@ -3,6 +3,7 @@ import Button from "../../UI/Button/Button";
 import Card from "../../UI/Card";
 import Loading from "../../UI/Loading";
 import Heading from "./Heading";
+import { useUnsavedChanges } from "../../UnsavedChanges";
 import PhotoVideoInput, { acceptedMediaTypes } from "./PhotoVideoInput";
 import PhotoVideoPreview from "./PhotoVideoPreview";
 import StatusInput from "./StatusInput";
@@ -32,6 +33,10 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
     const [preparing, setPreparing] = useState(false);
     const [sharing, setSharing] = useState(false);
     const [error, setError] = useState("");
+    const { requestExit, markSaved } = useUnsavedChanges(
+        preparing || media.length > 0 || caption !== "" || kind !== "POST" || visibility !== "public" || groupId !== "",
+        onClose,
+    );
     const isDetails = step === "details";
     const mediaBusy = preparing || sharing;
     const canContinue = !mediaBusy && media.length > 0;
@@ -126,6 +131,7 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
             } else {
                 window.dispatchEvent(new Event("stories-updated"));
             }
+            markSaved();
             onClose();
         } catch (error: any) {
             setError(error.response?.data?.message || "Unable to share post. Please try again.");
@@ -135,7 +141,7 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
     }
 
     function dismiss() {
-        if (!sharing) onClose();
+        if (!sharing) requestExit(onClose);
     }
 
     return (

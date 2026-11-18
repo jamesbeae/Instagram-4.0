@@ -1,0 +1,61 @@
+.discard-changes-dialog {
+    width: min(440px, calc(100% - 24px));
+    max-width: none;
+    padding: 0;
+    background: transparent;
+    color: #f5f5f5;
+    color-scheme: dark;
+}
+
+.discard-changes-dialog::backdrop {
+    background: rgb(0 0 0 / 58%);
+}
+
+.discard-changes-card.ui-card {
+    --card-radius: 24px;
+    --card-background: #151516;
+    --card-border: #3d3d42;
+    padding: clamp(16px, 5vw, 24px);
+    box-shadow: 0 18px 48px rgb(0 0 0 / 45%);
+}
+
+.discard-changes-card h2 {
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.discard-changes-card p {
+    margin-top: 8px;
+    color: #d0d0d5;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.discard-changes-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.discard-changes-actions button {
+    flex: 1 0 140px;
+    min-height: 44px;
+    border-radius: 12px;
+    padding: 8px 12px;
+    background: #303035;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.discard-changes-actions button:hover {
+    background: #414147;
+}
+
+.discard-changes-actions .discard-changes-danger {
+    background: #b7384b;
+}
+
+.discard-changes-actions .discard-changes-danger:hover {
+    background: #ca4156;
+}

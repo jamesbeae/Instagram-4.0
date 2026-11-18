@@ -14,6 +14,7 @@ import usePrivateHttp from "../../../hooks/usePrivateHttp";
 import { authActions } from "../../../lib/redux/authSlice";
 import useRedirect from "../../../hooks/useRedirect";
 import "./MoreModal.css";
+import { useConfirmDiscard } from "../../UnsavedChanges";
 
 export default function MoreModal({ id, onClose }: { id: string; onClose: () => void }) {
     const role = useAppSelector(state => state.authSlice.userInfo?.role?.name);
@@ -21,6 +22,7 @@ export default function MoreModal({ id, onClose }: { id: string; onClose: () => 
     const dispatch = useAppDispatch();
     const privateHttp = usePrivateHttp();
     const { gotoLoginPage } = useRedirect();
+    const confirmDiscard = useConfirmDiscard();
 
     function goTo(path: string) {
         onClose();
@@ -45,7 +47,7 @@ export default function MoreModal({ id, onClose }: { id: string; onClose: () => 
             <MoreItem title="Account settings" icon={faGear} onClick={() => goTo("/settings")} />
             {role === "admin" && <MoreItem title="Moderation" icon={faShieldHalved} onClick={() => goTo("/admin")} />}
             <div className="sidebar-more-divider">
-                <MoreItem title="Log out" icon={faArrowRightFromBracket} onClick={logoutHandler} danger />
+                <MoreItem title="Log out" icon={faArrowRightFromBracket} onClick={() => confirmDiscard(() => void logoutHandler())} danger />
             </div>
         </Card>
     );
