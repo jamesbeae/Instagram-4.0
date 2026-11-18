@@ -1,3 +1,4 @@
+import Loading from "../../../UI/Loading";
 import { useContext, useEffect, useState } from 'react';
 import Avatar from '../../../UI/Avatar/Avatar';
 import { Post } from '../../../../models/Post';
@@ -24,7 +25,7 @@ export default function CommentsList({ postData }: { postData: Post }) {
             <p className="text-white text-sm break-words min-w-0"><span className="font-semibold mr-1">{postData.userId.username}</span>{postData.caption}</p>
         </div>
         {commentListState.commentsList.map(comment => <Comment key={comment._id} commentData={comment} />)}
-        {loading && <p role="status" className="text-textGray text-sm">Loading comments…</p>}
+        {loading && <Loading message="Loading comments…" align="start" className="text-textSecondGray" />}
         {error && <p role="alert" className="text-errorText text-sm">{error}</p>}
         {!loading && !error && !commentListState.commentsList.length && <p className="text-textGray text-sm">No comments yet.</p>}
     </section>;
