@@ -1,3 +1,5 @@
+import Card from "../UI/Card";
+import "./SideBar.css";
 import SideBarLogo from "./SideBarLogo";
 import NavigationList from "./NavigationList";
 import { useAppSelector } from "../../hooks/useStore";
@@ -37,10 +39,10 @@ const SideBar = () => {
         };
     }, []);
     return (<>
-            <div className={`app-sidebar shrink-0 h-full ${openedModal || isSmall ? "w-72px" : "w-60"} flex flex-col px-3 pt-2 pb-5 border-r-0.5 border-lightDark transition-all delay-300 ease-in`}>
+            <Card className={`app-sidebar relative z-10 shrink-0 ${openedModal || isSmall ? "w-72px" : "w-60"} flex flex-col px-3 pt-2 pb-5 transition-[width] duration-200 ease-out`}>
                 <SideBarLogo />
                 <NavigationList />
-            </div>
+            </Card>
             <SearchModal />
             <NotificationsModal notifications={notifications}/>
             {creatingPost ? <CreatePost /> : null}
