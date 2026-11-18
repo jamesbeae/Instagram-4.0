@@ -17,7 +17,7 @@ beforeEach(() => { vi.resetAllMocks(); });
 afterEach(cleanup);
 it('searches posts and links the result to its detail page', async () => {
     http.get.mockResolvedValue({ data: { users: [], postsList: [{ _id: 'post-id', caption: 'A searchable post', userId: { username: 'owner' } }], pagination: { totalPages: 1 } } });
-    mount(); fireEvent.click(screen.getByRole('tab', { name: 'Posts' }));
+    mount(); fireEvent.click(screen.getByRole('button', { name: 'Posts' }));
     fireEvent.change(screen.getByPlaceholderText('Search accounts or posts'), { target: { value: 'searchable' } });
     expect(await screen.findByRole('link', { name: /A searchable post/ })).toHaveAttribute('href', '/post/post-id');
     expect(http.get.mock.calls[0][1].params.scope).toBe('posts');
@@ -32,7 +32,7 @@ it('ignores an old response after the query changes', async () => {
     let resolveOld: (result: unknown) => void = () => {};
     http.get.mockImplementationOnce(() => new Promise(resolve => { resolveOld = resolve; }));
     http.get.mockResolvedValue({ data: { users: [], postsList: [], pagination: { totalPages: 0 } } });
-    mount(); fireEvent.click(screen.getByRole('tab', { name: 'Posts' }));
+    mount(); fireEvent.click(screen.getByRole('button', { name: 'Posts' }));
     const input = screen.getByPlaceholderText('Search accounts or posts');
     fireEvent.change(input, { target: { value: 'old' } });
     await waitFor(() => expect(http.get).toHaveBeenCalledTimes(1));
@@ -41,4 +41,20 @@ it('ignores an old response after the query changes', async () => {
     resolveOld({ data: { users: [], postsList: [{ _id: 'stale', caption: 'Stale post', userId: { username: 'owner' } }], pagination: { totalPages: 1 } } });
     await screen.findByText('No results found.');
     expect(screen.queryByText('Stale post')).not.toBeInTheDocument();
+});
+
+it('moves focus to search and closes the panel with Escape', () => {
+    mount();
+    const input = screen.getByPlaceholderText('Search accounts or posts');
+    expect(input).toHaveFocus();
+    expect(screen.getByRole('complementary', { name: 'Search' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Accounts' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(screen.queryByRole('complementary', { name: 'Search' })).not.toBeInTheDocument();
+});
+
+it('closes the panel from its close button', () => {
+    mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Close search' }));
+    expect(screen.queryByPlaceholderText('Search accounts or posts')).not.toBeInTheDocument();
 });
