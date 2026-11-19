@@ -1,4 +1,4 @@
-const { Op } = require('sequelize');
+const { Op, QueryTypes } = require('sequelize');
 const { sequelize, User, Post, Like, Comment, Save, Message, Notification, Interaction, Follow } = require('../../database/models');
 const Joi = require('joi');
 let realtime;
@@ -105,13 +105,55 @@ exports.save = async (userId, postId, saving) => {
         });
     return { status: 200, isSaved: saving };
 };
+const areMutualContacts = exports.areMutualContacts = async (userId, peerId, transaction) => {
+    if (userId === peerId || Joi.string().uuid().required().validate(peerId).error) return false;
+    const links = await Follow.findAll({
+        where: { [Op.or]: [
+            { followerId: userId, followingId: peerId },
+            { followerId: peerId, followingId: userId },
+        ] },
+        ...(transaction && { transaction, lock: transaction.LOCK.SHARE }),
+    });
+    return links.length === 2;
+};
+exports.messageContactsChanged = (userId, peerId) => {
+    realtime?.to(['user:' + userId, 'user:' + peerId]).emit('messageContactsChanged');
+};
+exports.messageInbox = async userId => {
+    const contacts = await sequelize.query(`
+        SELECT u.id, u.username, u.full_name AS "fullName", u.bio, u.avatar,
+            EXISTS (
+                SELECT 1 FROM messages m
+                WHERE m.receiver_id = $userId AND m.sender_id = u.id AND m.read_at IS NULL
+            ) AS unread
+        FROM follows outbound
+        JOIN follows inbound ON inbound.follower_id = outbound.following_id
+            AND inbound.following_id = outbound.follower_id
+        JOIN users u ON u.id = outbound.following_id AND u.disabled = false
+        WHERE outbound.follower_id = $userId AND u.id <> $userId
+        ORDER BY u.username
+    `, { bind: { userId }, type: QueryTypes.SELECT });
+    return { contacts: contacts.map(safeUser), unread: contacts.filter(contact => contact.unread).map(contact => contact.id) };
+};
+exports.markMessagesRead = async (receiverId, messageId) => {
+    const message = await Message.findOne({ where: { id: id(messageId), receiverId } });
+    if (!message) throw error(404, 'Message not found');
+    const [updated] = await Message.update({ readAt: new Date() }, {
+        where: { receiverId, senderId: message.senderId, readAt: null, createdAt: { [Op.lte]: message.createdAt } },
+    });
+    if (updated) realtime?.to('user:' + receiverId).emit('messageInboxChanged');
+};
 exports.createMessage = async (senderId, receiverId, contents) => {
     id(receiverId);
     if (typeof contents !== 'string' || !contents.trim() || contents.length > 4000)
         throw error(400, 'Message must contain 1–4000 characters');
-    if (!await User.findOne({ where: { id: receiverId, disabled: false } }))
-        throw error(404, 'Recipient not found');
-    const message = await Message.create({ senderId, receiverId, contents: contents.trim() });
+    const message = await sequelize.transaction(async transaction => {
+        if (!await User.findOne({ where: { id: receiverId, disabled: false }, transaction }))
+            throw error(404, 'Recipient not found');
+        if (!await areMutualContacts(senderId, receiverId, transaction))
+            throw error(403, 'You can only message people who follow you back');
+        return Message.create({ senderId, receiverId, contents: contents.trim() }, { transaction });
+    });
     const data = exports.messageJSON(message);
     realtime?.to('user:' + receiverId).emit('receiveMessage', data);
     return data;

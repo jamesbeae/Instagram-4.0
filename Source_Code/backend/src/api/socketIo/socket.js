@@ -31,6 +31,28 @@ module.exports = server => {
         presence();
         const expiry = setTimeout(() => socket.disconnect(true), Math.max(0, socket.data.expiresAt - Date.now()));
         socket.on('addUser', () => socket.emit('onlineUsers', [...online.keys()]));
+        const pendingTyping = new Map();
+        socket.on('messageTyping', async payload => {
+            const { receiverId, typing } = payload || {};
+            if (typeof receiverId !== 'string' || receiverId.length !== 36 || typeof typing !== 'boolean') return;
+            const pending = pendingTyping.get(receiverId);
+            if (pending) {
+                pending.typing = typing;
+                return;
+            }
+            if (pendingTyping.size >= 8) return;
+            const event = { typing };
+            pendingTyping.set(receiverId, event);
+            try {
+                if (await social.areMutualContacts(userId, receiverId) && socket.connected) {
+                    io.to('user:' + receiverId).volatile.emit('messageTyping', { senderId: userId, typing: event.typing });
+                }
+            } catch (error) {
+                console.error('Unable to relay typing status:', error.message);
+            } finally {
+                pendingTyping.delete(receiverId);
+            }
+        });
         socket.on('sendMessage', async (payload = {}, ack) => {
             const respond = typeof ack === 'function' ? ack : result => socket.emit('messageError', result);
             try {

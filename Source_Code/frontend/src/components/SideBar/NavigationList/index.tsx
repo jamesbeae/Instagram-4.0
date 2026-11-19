@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMessageInbox } from "../../RootLayout/MessageInboxProvider";
 import MoreModal from "../MoreModal";
 import Button from "../../UI/Button/Button";
 import NavigationItem from "./NavigationItem";
@@ -18,6 +19,8 @@ import Avatar from "../../UI/Avatar/Avatar";
 
 export default function NavigationList() {
     const navigate = useNavigate();
+    const { inbox } = useMessageInbox();
+    const hasUnread = Boolean(inbox?.unread.length);
     const user = useAppSelector(state => state.authSlice.userInfo);
     const dispatch = useAppDispatch();
     const { moreModal, isSmall, openedModal } = useAppSelector(state => state.sideBarSlice);
@@ -52,7 +55,9 @@ export default function NavigationList() {
                 onClick={() => dispatch(sideBarActions.openModal("search"))} />
             <NavigationItem icon={<ExploreIcon />} title="Explore" onClick={() => goTo("explore", () => navigate("/explore"))} />
             <NavigationItem icon={<ReelsIcon />} title="Reels" onClick={() => goTo("reels", () => navigate("/reels"))} />
-            <NavigationItem icon={<MessageIcon />} title="Message" onClick={() => goTo("message", () => gotoMessagePage())} />
+            <NavigationItem title="Message" accessibleLabel={hasUnread ? "Message, unread conversations" : "Message"}
+                icon={<span className="sidebar-message-icon"><MessageIcon />{hasUnread && <span className="sidebar-message-badge" aria-hidden="true" />}</span>}
+                onClick={() => goTo("message", () => gotoMessagePage())} />
             <NavigationItem icon={<NotificationIcon />} title="Notifications" panel="notifications"
                 onClick={() => dispatch(sideBarActions.openModal("notifications"))} />
             <NavigationItem icon={<CreateIcon />} title="Create" onClick={() => dispatch(sideBarActions.openCreatePost(true))} />

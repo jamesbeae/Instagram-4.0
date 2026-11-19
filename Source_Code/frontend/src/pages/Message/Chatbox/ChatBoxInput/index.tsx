@@ -4,8 +4,9 @@ import { useUnsavedChanges } from "../../../../components/UnsavedChanges";
 import Textarea from "../../../../components/UI/Input/Textarea";
 import EmojiPicker from "../../../../components/UI/EmojiPicker";
 
-export default function ChatBoxInput({ sendMessage }: {
+export default function ChatBoxInput({ sendMessage, onDraftChange }: {
     sendMessage: (message: string) => Promise<boolean>;
+    onDraftChange: (draft: string) => void;
 }) {
     const [message, setMessage] = useState("");
     const [emojis, setEmojis] = useState<string[]>([]);
@@ -35,7 +36,10 @@ export default function ChatBoxInput({ sendMessage }: {
         }}>
             <EmojiPicker disabled={sending} onSelect={emoji => setEmojis(value => [...value, emoji])} />
             <label className="sr-only" htmlFor="message">Message</label>
-            <Textarea name="message" id="message" placeholder="Write a message…" getTextareaValueHandler={setMessage}
+            <Textarea name="message" id="message" placeholder="Write a message…" getTextareaValueHandler={(draft: string) => {
+                setMessage(draft);
+                onDraftChange(draft);
+            }}
                 handleEnterKey={handleSendMessage} addedEmojis={emojis} className="message-input " clear={clear} />
             <Button type="submit" className="message-send" disabled={!canSend}>{sending ? "Sending…" : "Send"}</Button>
         </form>

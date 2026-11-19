@@ -3,9 +3,10 @@ import { useAppSelector } from "../../../hooks/useStore";
 import type { SidebarPanelName } from "../../../lib/redux/sideBarSlice";
 import Button from "../../UI/Button/Button";
 
-export default function NavigationItem({ icon, title, onClick, panel }: {
+export default function NavigationItem({ icon, title, onClick, panel, accessibleLabel = title }: {
     icon: ReactNode;
     title: string;
+    accessibleLabel?: string;
     onClick: () => void;
     panel?: SidebarPanelName;
 }) {
@@ -15,7 +16,7 @@ export default function NavigationItem({ icon, title, onClick, panel }: {
 
     return (
         <Button id={panel ? `sidebar-panel-${panel}-trigger` : undefined}
-            aria-label={title} aria-expanded={panel ? isOpen : undefined}
+            aria-label={accessibleLabel} aria-expanded={panel ? isOpen : undefined}
             aria-controls={isOpen ? `sidebar-panel-${panel}` : undefined}
             className={`sidebar-nav-item group mt-0.5 flex w-full items-center gap-4 rounded-[14px] border border-transparent py-3 hover:bg-lightSecondDark ${openedModal || isSmall ? "justify-center" : "px-3"} ${isCurrent ? "bg-lightDark" : ""} ${isOpen ? "!border-white" : ""}`}
             onClick={onClick}>

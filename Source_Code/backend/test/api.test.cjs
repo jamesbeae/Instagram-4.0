@@ -119,6 +119,24 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
         socket2 = await connect(o);
         const emit = payload => new Promise((resolve, reject) => socket1.timeout(5000).emit('sendMessage', payload, (err, r) => err ? reject(err) : resolve(r)));
         assert.equal((await emit({ senderId: ownerId, receiverId: ownerId, contents: 'Forged sender' })).status, 403);
+        assert.equal((await request('GET', '/message/inbox')).status, 401);
+        assert.deepEqual((await request('GET', '/message/inbox', null, v)).data, { contacts: [], unread: [] });
+        assert.equal((await emit({ receiverId: ownerId, contents: 'One-way follow' })).status, 403);
+        assert.equal((await request('POST', '/user/create-follow', { userId: viewerId }, o)).status, 200);
+        assert.deepEqual((await request('GET', '/message/inbox', null, v)).data.contacts.map(user => user._id), [ownerId]);
+        const typingEvent = () => new Promise((resolve, reject) => {
+            const listener = event => { clearTimeout(timer); resolve(event); };
+            const timer = setTimeout(() => {
+                socket2.off('messageTyping', listener);
+                reject(new Error('Typing status not delivered'));
+            }, 3000);
+            socket2.once('messageTyping', listener);
+        });
+        for (const typing of [true, false]) {
+            const changed = typingEvent();
+            socket1.emit('messageTyping', { receiverId: ownerId, typing });
+            assert.deepEqual(await changed, { senderId: viewerId, typing });
+        }
         const receive = new Promise(resolve => socket2.once('receiveMessage', resolve));
         const sent = await emit({ receiverId: ownerId, contents: 'Realtime message' });
         assert.equal(sent.ok, true);
@@ -126,6 +144,14 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
         const history = await request('GET', '/message?receiver_id=' + viewerId, null, o);
         assert.equal(history.data.length, 1);
         assert.equal(history.data[0]._id, sent.message._id);
+        assert.deepEqual((await request('GET', '/message/inbox', null, o)).data.unread, [viewerId]);
+        assert.equal((await request('POST', '/message/read', { messageId: sent.message._id }, v)).status, 404);
+        assert.equal((await request('POST', '/message/read', { messageId: sent.message._id }, o)).status, 200);
+        assert.deepEqual((await request('GET', '/message/inbox', null, o)).data.unread, []);
+        assert.equal((await request('POST', '/user/delete-follow', { userId: viewerId }, o)).status, 200);
+        assert.deepEqual((await request('GET', '/message/inbox', null, v)).data.contacts, []);
+        assert.equal((await emit({ receiverId: ownerId, contents: 'After unfollow' })).status, 403);
+        assert.equal((await request('GET', '/message?receiver_id=' + viewerId, null, o)).data.length, 1);
         await t.test('search validates input and returns only matching permitted content', async () => {
             assert.equal((await request('GET', '/search?q=owner')).status, 200);
             assert.equal((await request('GET', '/search?q=owner', null, 'invalid')).status, 401);

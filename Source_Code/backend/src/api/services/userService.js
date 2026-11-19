@@ -28,18 +28,22 @@ exports.createFollow = async (userId, followingId) => {
         const notification = created ? await s.notify(userId, followingId, 'FOLLOW', null, transaction) : null;
         return { created, notification };
     });
-    if (created)
+    if (created) {
         s.emitNotification(followingId, notification);
+        s.messageContactsChanged(userId, followingId);
+    }
     return { status: 200, following: true };
 };
 exports.deleteFollow = async (userId, followingId) => {
     s.id(followingId);
     if (!await User.findOne({ where: { id: followingId, disabled: false } }))
         throw s.error(404, 'User not found');
-    await sequelize.transaction(async transaction => {
-        const removed = await Follow.destroy({ where: { followerId: userId, followingId }, transaction });
-        if (removed) await s.record(userId, 'UNFOLLOW', null, followingId, transaction);
+    const removed = await sequelize.transaction(async transaction => {
+        const count = await Follow.destroy({ where: { followerId: userId, followingId }, transaction });
+        if (count) await s.record(userId, 'UNFOLLOW', null, followingId, transaction);
+        return count;
     });
+    if (removed) s.messageContactsChanged(userId, followingId);
     return { status: 200, following: false };
 };
 

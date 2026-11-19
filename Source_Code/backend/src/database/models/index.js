@@ -31,7 +31,7 @@ const define = (name, tableName, fields) => sequelize.define(name, {
 const Like = define('Like', 'likes', { userId: uuid(), postId: uuid() });
 const Comment = define('Comment', 'comments', { userId: uuid(), postId: uuid(), content: { type: D.TEXT, allowNull: false } });
 const Save = define('Save', 'saves', { userId: uuid(), postId: uuid() });
-const Message = define('Message', 'messages', { senderId: uuid(), receiverId: uuid(), contents: { type: D.TEXT, allowNull: false } });
+const Message = define('Message', 'messages', { senderId: uuid(), receiverId: uuid(), contents: { type: D.TEXT, allowNull: false }, readAt: D.DATE });
 const Notification = define('Notification', 'notifications', { senderId: uuid(), receiverId: uuid(), postId: { type: D.UUID }, type: D.STRING(20), content: D.TEXT, read: { type: D.BOOLEAN, defaultValue: false } });
 const Interaction = define('Interaction', 'interactions', { userId: uuid(), postId: { type: D.UUID }, targetUserId: { type: D.UUID }, type: D.STRING(20) });
 Post.hasMany(Like, { foreignKey: 'postId', as: 'likes' });
