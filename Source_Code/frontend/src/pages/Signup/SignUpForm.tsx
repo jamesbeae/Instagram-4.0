@@ -1,95 +1,58 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import FacebookLogin, { type ReactFacebookLoginProps } from "react-facebook-login";
 import Input from "../../components/UI/Input/Input";
 import Button from "../../components/UI/Button/Button";
+import { useUnsavedChanges } from "../../components/UnsavedChanges";
 import { signUp, validateSignUpData } from "../../services/signupService";
-import SignUpFormDesc from "./SignUpFormDesc";
 import loginService from "../../services/loginService";
-import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/useStore";
 import { authActions } from "../../lib/redux/authSlice";
-import useRedirect from "../../hooks/useRedirect";
-import ReactFacebookLogin from "react-facebook-login";
-import { useUnsavedChanges } from "../../components/UnsavedChanges";
-const inputClassName = "w-64 p-2 border border-textGray rounded-sm focus:outline-none text-sm placeholder:text-sm";
-const buttonClassName = "w-64 py-2 px-3 rounded-lg font-semibold bg-blue text-white";
-const SignUpForm = () => {
-    const { gotoHomePage } = useRedirect();
+
+export default function SignUpForm() {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    // Sign up form data:
-    const [email, setEmail] = useState<string>("");
-    const [fullName, setFullName] = useState<string>("");
-    const [username, setUsername] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-    const [confirmPassword, setConfirmPassword] = useState<string>("");
+    const [email, setEmail] = useState("");
+    const [fullName, setFullName] = useState("");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [error, setError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const { markSaved } = useUnsavedChanges(Boolean(email || fullName || username || password || confirmPassword));
-    // validation states:
-    const [errorMess, setErrorMess] = useState<string>("");
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    const [disableSignUpButton, setDisableSignUpButton] = useState<boolean>(true);
-    // Get inputs value functions:
-    const getEmailHandler = useCallback((value: string) => {
-        setEmail(value);
-    }, []);
-    const getFullNameHandler = useCallback((value: string) => {
-        setFullName(value);
-    }, []);
-    const getUsernameHandler = useCallback((value: string) => {
-        setUsername(value);
-    }, []);
-    const getPasswordHandler = useCallback((value: string) => {
-        setPassword(value);
-    }, []);
-    const getConfirmPasswordHandler = useCallback((value: string) => {
-        setConfirmPassword(value);
-    }, []);
-    // Disable button state:
-    useEffect(() => {
-        setDisableSignUpButton(email && fullName && username && password && confirmPassword ? false : true);
-        return () => { };
-    }, [email, fullName, username, password, confirmPassword]);
-    // Handle Sign up when click sign up button
-    const handleSignUp = useCallback(async () => {
-        const signUpData = {
-            email,
-            fullName,
-            username,
-            password,
-            confirmPassword,
-        };
-        const validationResult = validateSignUpData(signUpData);
-        if (!validationResult.success) {
-            setErrorMess(validationResult.error.issues[0].message);
+    const canSubmit = Boolean(email && fullName && username && password && confirmPassword) && !isSubmitting;
+
+    async function handleSignUp(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        if (!canSubmit) return;
+
+        const validation = validateSignUpData({ email, fullName, username, password, confirmPassword });
+        if (!validation.success) {
+            setError(validation.error.issues[0].message);
             return;
         }
+
         setIsSubmitting(true);
-        setErrorMess("");
+        setError("");
         try {
-            const result = await signUp(signUpData);
+            const result = await signUp(validation.data);
             if (result.success) {
                 markSaved();
                 navigate("/login");
-                return;
+            } else if (result.message === "username") {
+                setError("Username đã tồn tại");
+            } else if (result.message === "email") {
+                setError("Email đã tồn tại");
+            } else {
+                setError(result.message);
             }
-            if (result.message === "username") {
-                setErrorMess("Username đã tồn tại");
-            }
-            else if (result.message === "email") {
-                setErrorMess("Email đã tồn tại");
-            }
-            else {
-                setErrorMess(result.message);
-            }
-        }
-        finally {
+        } finally {
             setIsSubmitting(false);
         }
-    }, [email, fullName, username, password, confirmPassword, navigate, markSaved]);
-    const handleLoginWithFacebook = async (response: any) => {
-        if (!response.accessToken) {
-            setErrorMess("Login with Facebook failed. Please try again later.");
-        }
-        else {
+    }
+
+    async function handleFacebookLogin(response: Parameters<ReactFacebookLoginProps["callback"]>[0]) {
+        if (response && "accessToken" in response && response.accessToken) {
             const result = await loginService.loginWithFacebook(response);
             if (result?.success) {
                 markSaved();
@@ -97,33 +60,37 @@ const SignUpForm = () => {
                     userInfo: result.data.userInfo,
                     accessToken: result.data.accessToken,
                 }));
-                gotoHomePage();
-            }
-            else {
-                setErrorMess("Login with Facebook failed. Please try again later.");
+                navigate("/");
+                return;
             }
         }
-    };
-    return (<form action="#" className="flex flex-col items-center gap-2">
-            {import.meta.env.VITE_ENABLE_FACEBOOK_LOGIN === 'true' && <ReactFacebookLogin appId={import.meta.env.VITE_FACEBOOK_APP_ID || ""} autoLoad={false} fields="name,email,picture" callback={(response) => {
-                handleLoginWithFacebook(response);
-            }} cssClass={buttonClassName}/>}
-            <div className="w-64 my-2 flex items-center
-                justify-between text-xs text-textGray before:content-[''] before:h-px before:w-24 before:bg-textGray
-                before:inline-block after:inline-block after:bg-textGray after:content-[''] after:h-px after:w-24">
-                OR
-            </div>
-            <Input type="email" name="email" id="email" placeholder="Email" getInputValueHandler={getEmailHandler} className={inputClassName}/>
-            <Input type="text" name="fullName" id="fullName" placeholder="Full Name" getInputValueHandler={getFullNameHandler} className={inputClassName}/>
-            <Input type="text" name="username" id="username" placeholder="Username" getInputValueHandler={getUsernameHandler} className={inputClassName}/>
-            <Input type="password" name="password" id="password" placeholder="Password" getInputValueHandler={getPasswordHandler} className={inputClassName}/>
-            <Input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm Password" getInputValueHandler={getConfirmPasswordHandler} className={inputClassName}/>
-            {/* Sign up form description */}
-            <SignUpFormDesc />
-            <Button onClick={handleSignUp} disabled={disableSignUpButton || isSubmitting} className={buttonClassName}>{isSubmitting ? "Đang đăng ký..." : "Sign Up"}</Button>
-            {errorMess && (<div className="mt-4 px-4 text-sm text-errorText text-center">
-                    {errorMess}
-                </div>)}
-        </form>);
-};
-export default SignUpForm;
+        setError("Login with Facebook failed. Please try again later.");
+    }
+
+    return (
+        <div className="auth-form">
+            <form className="auth-form" onSubmit={handleSignUp} noValidate>
+                <Input className="auth-input" type="email" name="email" id="email" autoComplete="email"
+                    placeholder="Email" aria-label="Email" disabled={isSubmitting} getInputValueHandler={setEmail} />
+                <Input className="auth-input" type="text" name="fullName" id="fullName" autoComplete="name"
+                    placeholder="Full Name" aria-label="Full name" disabled={isSubmitting} getInputValueHandler={setFullName} />
+                <Input className="auth-input" type="text" name="username" id="username" autoComplete="username"
+                    placeholder="Username" aria-label="Username" disabled={isSubmitting} getInputValueHandler={setUsername} />
+                <Input className="auth-input" type="password" name="password" id="password" autoComplete="new-password"
+                    placeholder="Password" aria-label="Password" disabled={isSubmitting} getInputValueHandler={setPassword} />
+                <Input className="auth-input" type="password" name="confirmPassword" id="confirmPassword" autoComplete="new-password"
+                    placeholder="Confirm Password" aria-label="Confirm password" disabled={isSubmitting} getInputValueHandler={setConfirmPassword} />
+                {error && <p role="alert" className="text-sm text-errorText">{error}</p>}
+                <Button className="auth-submit" type="submit" disabled={!canSubmit}>
+                    {isSubmitting ? "Đang đăng ký..." : "Sign up"}
+                </Button>
+            </form>
+            {import.meta.env.VITE_ENABLE_FACEBOOK_LOGIN === "true" && (
+                <div className="auth-social">
+                    <FacebookLogin appId={import.meta.env.VITE_FACEBOOK_APP_ID || ""} autoLoad={false}
+                        fields="name,email,picture" callback={handleFacebookLogin} cssClass="auth-submit" />
+                </div>
+            )}
+        </div>
+    );
+}

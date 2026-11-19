@@ -1,10 +1,11 @@
 import '@testing-library/jest-dom';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import LoginForm from './LoginForm';
+import userEvent from '@testing-library/user-event';
+import Login from '.';
 import loginService from '../../services/loginService';
 import authSlice from '../../lib/redux/authSlice';
 
@@ -19,15 +20,17 @@ describe('login flow', () => {
         render(<Provider store={configureStore({ reducer: { authSlice: authSlice.reducer } })}>
             <MemoryRouter initialEntries={['/login']}>
                 <Routes>
-                    <Route path="/login" element={<LoginForm />} />
+                    <Route path="/login" element={<Login />} />
                     <Route path="/admin" element={<p>Admin workspace</p>} />
                     <Route path="/" element={<p>Home feed</p>} />
                 </Routes>
             </MemoryRouter>
         </Provider>);
-        fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'admin@example.com' } });
-        fireEvent.change(screen.getByPlaceholderText('Your password'), { target: { value: 'secret' } });
-        fireEvent.click(screen.getByRole('button', { name: 'Log in' }));
+        const user = userEvent.setup();
+        expect(screen.getByRole('heading', { name: 'Log in' })).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/sign-up');
+        await user.type(screen.getByLabelText('Email'), 'admin@example.com');
+        await user.type(screen.getByLabelText('Password'), 'secret{Enter}');
         expect(await screen.findByText('Admin workspace')).toBeInTheDocument();
         expect(login).toHaveBeenCalledWith({ email: 'admin@example.com', password: 'secret' });
     });
