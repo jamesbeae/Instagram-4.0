@@ -1,5 +1,5 @@
 .ui-card {
-    border: 1px solid var(--card-border, #303030);
+    border: 1px solid var(--card-border, var(--theme-border, #303030));
     border-radius: var(--card-radius, 20px);
-    background-color: var(--card-background, #111);
+    background-color: var(--card-background, var(--theme-card, #111));
 }

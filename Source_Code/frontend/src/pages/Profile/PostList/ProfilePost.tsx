@@ -36,7 +36,7 @@ const ProfilePost: React.FC<{ post: Post }> = ({ post }) => {
             )}
 
             {/* Hover overlay with stats */}
-            <div className="absolute inset-0 bg-dark bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-2">
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-2">
                 <div className="flex items-center gap-6 text-white">
                     {post.likes !== undefined && (
                         <div className="flex items-center gap-2">

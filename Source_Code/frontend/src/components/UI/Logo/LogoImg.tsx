@@ -3,8 +3,8 @@ const LogoImg = () => {
         <svg
             aria-label="Instagram"
             className="x1lliihq x1n2onr6"
-            color="rgb(245, 245, 245)"
-            fill="rgb(245, 245, 245)"
+            color="currentColor"
+            fill="currentColor"
             height="24"
             role="img"
             viewBox="0 0 24 24"

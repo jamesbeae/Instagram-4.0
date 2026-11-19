@@ -3,3 +3,48 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    color-scheme: dark;
+    --theme-text: 255 255 255;
+    --theme-muted: 115 115 115;
+    --theme-secondary: 168 168 168;
+    --theme-accent: 0 149 246;
+    --theme-error: 237 73 86;
+    --theme-canvas: 0 0 0;
+    --theme-surface: 38 38 38;
+    --theme-raised: 51 51 51;
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+    --theme-text: 28 33 45;
+    --theme-muted: 89 99 116;
+    --theme-secondary: 70 80 98;
+    --theme-accent: 0 91 179;
+    --theme-error: 172 34 55;
+    --theme-canvas: 245 247 251;
+    --theme-surface: 220 226 235;
+    --theme-raised: 232 237 245;
+    --theme-card: #fff;
+    --theme-border: #d1d9e5;
+    --theme-field: #f0f3f8;
+    --theme-hover: #e7edf6;
+    --theme-selected: #dcebff;
+    --theme-selected-ink: rgb(var(--theme-accent));
+    --theme-focus: #075cae;
+    --theme-danger: #a72b41;
+    --theme-ink: rgb(var(--theme-text));
+    --theme-dim: rgb(var(--theme-muted));
+    --theme-copy: rgb(var(--theme-secondary));
+    --theme-elevated: rgb(var(--theme-raised));
+}
+
+body {
+    background: rgb(var(--theme-canvas));
+    color: rgb(var(--theme-text));
+}
+
+:root[data-theme="light"] .text-red-400 {
+    color: rgb(var(--theme-error));
+}

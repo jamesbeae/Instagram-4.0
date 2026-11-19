@@ -2,7 +2,7 @@
     display: flex;
     width: min(100%, 224px);
     padding: 2px;
-    border: 1px solid #424242;
+    border: 1px solid var(--theme-border, #424242);
     border-radius: 999px;
 }
 
@@ -12,22 +12,22 @@
     min-height: 34px;
     padding: 4px 10px;
     border-radius: 999px;
-    color: #b8b8b8;
+    color: var(--theme-copy, #b8b8b8);
     font-size: 14px;
 }
 
 .option-group--pill button:hover {
-    color: #fff;
+    color: var(--theme-ink, #fff);
 }
 
 .option-group--pill button[aria-pressed="true"] {
-    background-color: #343434;
-    color: #fff;
+    background-color: var(--theme-selected, #343434);
+    color: var(--theme-selected-ink, var(--theme-ink, #fff));
     font-weight: 600;
 }
 
 .option-group button:focus-visible {
-    outline: 2px solid #8ecbff;
+    outline: 2px solid var(--theme-focus, #8ecbff);
     outline-offset: 2px;
 }
 
@@ -44,4 +44,9 @@
 
 .option-group--underline button[aria-pressed="true"] {
     border-top-color: currentColor;
+}
+
+:root[data-theme="light"] .option-group--underline button[aria-pressed="true"] {
+    background-color: var(--theme-selected);
+    color: var(--theme-selected-ink);
 }

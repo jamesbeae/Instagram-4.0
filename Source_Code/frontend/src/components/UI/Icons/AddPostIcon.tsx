@@ -3,8 +3,8 @@ const AddPostIcon = () => {
         <svg
             aria-label="Icon to represent media such as images or videos"
             className="x1lliihq x1n2onr6 x5n08af"
-            fill="rgb(245, 245, 245)"
-            color="rgb(245, 245, 245)"
+            fill="currentColor"
+            color="currentColor"
             height="77"
             role="img"
             viewBox="0 0 97.6 77.3"

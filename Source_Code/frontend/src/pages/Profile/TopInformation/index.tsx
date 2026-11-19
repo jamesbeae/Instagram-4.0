@@ -57,7 +57,7 @@ const TopInformation: React.FC<{
             console.log(error);
         }
     };
-    return (<> {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)}/>}<div className="grid grid-cols-3 text-white px-4 py-6">
+    return (<> {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)}/>}<div className="grid grid-cols-3 text-foreground px-4 py-6">
             {/* <LeftAvatar avatarUrl={profile.avatar} />
         <RightContent profile={profile} /> */}
 

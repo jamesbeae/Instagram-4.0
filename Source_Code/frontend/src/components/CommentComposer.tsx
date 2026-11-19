@@ -53,7 +53,7 @@ export default function CommentComposer({ postId, postData, onCreated, emoji = f
                 value={text} disabled={busy} onChange={event => { setText(event.target.value); setError(''); }}
                 onKeyDown={event => {
                     if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); }
-                }} className="bg-transparent text-white text-sm flex-1 min-w-0 min-h-[40px] max-h-[120px] resize-y focus:outline-none" />
+                }} className="bg-transparent text-foreground text-sm flex-1 min-w-0 min-h-[40px] max-h-[120px] resize-y focus:outline-none" />
             <Button type="submit" disabled={!text.trim() || busy} className="text-blue text-sm font-semibold disabled:opacity-50">{busy ? 'Posting…' : 'Post'}</Button>
         </form>
         {error && <p role="alert" className="text-errorText text-xs mt-1">{error}</p>}

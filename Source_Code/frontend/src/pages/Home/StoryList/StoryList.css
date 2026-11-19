@@ -6,9 +6,9 @@
     flex-shrink: 0;
     overflow-x: auto;
     padding: 12px clamp(10px, 1.4vw, 16px);
-    color: #fff;
+    color: var(--theme-ink, #fff);
     scrollbar-width: thin;
-    scrollbar-color: #333 transparent;
+    scrollbar-color: var(--theme-border, #333) transparent;
 }
 .story-item {
     display: flex;
@@ -27,7 +27,7 @@
     border-radius: 50%;
     background: linear-gradient(35deg, #ffcc5b, #fa7e1e 25%, #d62976 65%, #962fbf);
 }
-.story-avatar { width: 64px; height: 64px; box-sizing: content-box; border: 3px solid #000; }
+.story-avatar { width: 64px; height: 64px; box-sizing: content-box; border: 3px solid var(--theme-card, #000); }
 .story-username { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
 .story-item:focus-visible { outline: 2px solid #0095f6; outline-offset: 4px; border-radius: 8px; }
 @media (min-width: 640px) {

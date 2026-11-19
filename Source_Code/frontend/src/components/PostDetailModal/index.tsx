@@ -44,7 +44,7 @@ const PostDetailModal: React.FC<{
                 }
             }}>
             {/* This is the backdrop*/}
-            <div className={isStory ? "absolute inset-0 bg-dark opacity-70 z-10" : "post-detail-backdrop absolute inset-0 z-10"}
+            <div className={isStory ? "absolute inset-0 bg-black/70 z-10" : "post-detail-backdrop absolute inset-0 z-10"}
                 onClick={closePostDetailModal} />
             {isStory && <Button className="absolute top-2 right-8 text-textGray z-20"
                 aria-label="Close story" onClick={closePostDetailModal}>

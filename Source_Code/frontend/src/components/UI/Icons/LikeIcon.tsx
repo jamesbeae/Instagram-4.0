@@ -8,8 +8,8 @@ const LikeIcon: React.FC<{ height?: number; width?: number }> = ({
         <svg
             aria-label="Like"
             className="_ab6-"
-            color="rgb(245, 245, 245)"
-            fill="rgb(245, 245, 245)"
+            color="currentColor"
+            fill="currentColor"
             height={height ? height.toString() : "24"}
             role="img"
             viewBox="0 0 24 24"

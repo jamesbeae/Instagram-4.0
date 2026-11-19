@@ -1,6 +1,6 @@
 .sidebar-panel.ui-card {
-    --card-background: #151516;
-    --card-border: #303032;
+    --card-background: var(--theme-card, #151516);
+    --card-border: var(--theme-border, #303032);
     --card-radius: 24px;
     display: flex;
     flex: 0 0 auto;
@@ -12,7 +12,7 @@
     margin-block: 16px;
     margin-inline-end: 12px;
     overflow: hidden;
-    color: #f5f5f5;
+    color: var(--theme-ink, #f5f5f5);
 }
 
 .sidebar-panel-controls {
@@ -41,16 +41,16 @@
     flex-shrink: 0;
     place-items: center;
     border-radius: 10px;
-    color: #d3d3d8;
+    color: var(--theme-copy, #d3d3d8);
     font-size: 18px;
 }
 
 .sidebar-panel-close:hover {
-    background: #2b2b2e;
+    background: var(--theme-hover, #2b2b2e);
 }
 
 .sidebar-panel :is(input, button):focus-visible {
-    outline: 2px solid #91c4ff;
+    outline: 2px solid var(--theme-focus, #91c4ff);
     outline-offset: 2px;
 }
 

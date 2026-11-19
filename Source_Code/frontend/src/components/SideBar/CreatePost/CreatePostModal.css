@@ -3,9 +3,9 @@
     max-width: none;
     max-height: none;
     padding: 0;
-    color: #f5f5f5;
+    color: var(--theme-ink, #f5f5f5);
     background: transparent;
-    color-scheme: dark;
+    color-scheme: inherit;
 }
 
 .create-post-dialog::backdrop {
@@ -15,8 +15,8 @@
 
 .create-post-card.ui-card {
     --card-radius: 24px;
-    --card-background: #151516;
-    --card-border: #303032;
+    --card-background: var(--theme-card, #151516);
+    --card-border: var(--theme-border, #303032);
     --composer-padding: clamp(14px, 3vw, 24px);
     display: flex;
     flex-direction: column;
@@ -40,13 +40,13 @@
     height: 34px;
     flex-shrink: 0;
     border-radius: 10px;
-    color: #bcbcc1;
+    color: var(--theme-copy, #bcbcc1);
     font-size: 18px;
 }
 
 .create-post-close:hover {
-    background: #262628;
-    color: #fff;
+    background: var(--theme-hover, #262628);
+    color: var(--theme-ink, #fff);
 }
 
 .create-post-body {
@@ -71,29 +71,29 @@
     gap: 10px;
     min-height: clamp(132px, 42dvh, 320px);
     padding: 14px;
-    border: 1px dashed #606065;
+    border: 1px dashed var(--theme-border, #606065);
     border-radius: 16px;
-    background: #1b1b1d;
+    background: var(--theme-field, #1b1b1d);
     text-align: center;
 }
 
 .create-post-dropzone.is-dragging {
-    border-color: #5eaaff;
-    background: #1b2838;
+    border-color: var(--theme-focus, #5eaaff);
+    background: var(--theme-selected, #1b2838);
 }
 
 .create-post-select-files,
 .create-post-add-media {
     padding: 6px 10px;
     border-radius: 10px;
-    color: #77b7ff;
+    color: var(--theme-focus, #77b7ff);
     font-size: 14px;
     font-weight: 600;
 }
 
 .create-post-select-files:hover,
 .create-post-add-media:hover {
-    background: #252528;
+    background: var(--theme-hover, #252528);
 }
 
 .create-post-preview {
@@ -111,13 +111,13 @@
     flex: 1;
     min-width: 0;
     padding: 10px 10px 4px;
-    border: 1px solid #48484d;
+    border: 1px solid var(--theme-border, #48484d);
     border-radius: 14px;
-    background: #1b1b1d;
+    background: var(--theme-field, #1b1b1d);
 }
 
 .create-post-caption:focus-within {
-    border-color: #77b7ff;
+    border-color: var(--theme-focus, #77b7ff);
 }
 
 .create-post-caption textarea {
@@ -155,7 +155,7 @@
 }
 
 .create-post-share:disabled {
-    background: #39393d;
-    color: #adadb2;
+    background: var(--theme-elevated, #39393d);
+    color: var(--theme-dim, #adadb2);
     opacity: 1;
 }

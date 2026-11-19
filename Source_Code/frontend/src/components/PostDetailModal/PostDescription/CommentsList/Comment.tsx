@@ -15,7 +15,7 @@ const Comment: React.FC<{ commentData: CommentModel }> = ({ commentData }) => {
                 avatarUrl={commentData.userId.avatar}
             />
             <div className="flex flex-col flex-1 min-w-0">
-                <div className="text-white text-sm flex-1">
+                <div className="text-foreground text-sm flex-1">
                     <span className=" font-semibold cursor-pointer mr-1">
                         {commentData.userId.username}
                     </span>

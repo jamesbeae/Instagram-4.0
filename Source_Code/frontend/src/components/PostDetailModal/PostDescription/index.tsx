@@ -45,7 +45,7 @@ const PostDescription: React.FC<{
     };
     const [commentListState, commentListDispatch] = useReducer(commentReducer, { ...initialCommentListState, commentsList: postData.comments || [] });
     return (<CommentListContext.Provider value={{ commentListState, commentListDispatch }}>
-            <div className="post-detail-panel text-white w-full md:w-[405px] max-w-[500px] flex flex-col min-h-0">
+            <div className="post-detail-panel text-foreground w-full md:w-[405px] max-w-[500px] flex flex-col min-h-0">
                 <header className="post-detail-header flex shrink-0 items-center gap-2 border-b border-lightDark px-4 py-3">
                     <UserTagBar _id={postData.userId._id} username={postData.userId.username} avatar={postData.userId.avatar}
                         className="post-detail-author min-w-0 flex-1" avatarClassName="w-9 h-9 shrink-0" />
