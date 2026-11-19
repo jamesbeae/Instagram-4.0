@@ -50,7 +50,7 @@ const PostDescription: React.FC<{
                     <UserTagBar _id={postData.userId._id} username={postData.userId.username} avatar={postData.userId.avatar}
                         className="post-detail-author min-w-0 flex-1" avatarClassName="w-9 h-9 shrink-0" />
                     <PostManagement post={postData} />
-                    {onClose && <Button className="post-detail-icon-button" aria-label="Close post" autoFocus onClick={onClose}>
+                    {onClose && <Button className="post-detail-icon-button" aria-label="Close post" onClick={onClose}>
                         <FontAwesomeIcon icon={faXmark} />
                     </Button>}
                 </header>
