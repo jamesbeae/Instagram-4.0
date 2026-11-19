@@ -44,7 +44,7 @@ const AuthInitializer = ({ children }: AuthInitializerProps) => {
     }, [dispatch]);
 
     if (!isReady) {
-        return <Loading message="Loading…" className="min-h-screen text-white bg-dark" />;
+        return <Loading message="Loading…" className="min-h-screen text-foreground bg-dark" />;
     }
 
     return children;

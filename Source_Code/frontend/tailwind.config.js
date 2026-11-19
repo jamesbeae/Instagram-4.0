@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+    darkMode: ["class", '[data-theme="dark"]'],
     content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
     theme: {
         extend: {
@@ -33,16 +34,17 @@ export default {
             sourceSans: ['"Source Sans 3"', "sans-serif"],
         },
         colors: {
-            textGray: "rgb(115, 115, 115)",
-            textSecondGray: "rgb(168, 168, 168)",
-            blue: "#0095f6",
+            textGray: "rgb(var(--theme-muted) / <alpha-value>)",
+            textSecondGray: "rgb(var(--theme-secondary) / <alpha-value>)",
+            blue: "rgb(var(--theme-accent) / <alpha-value>)",
             white: "#fff",
-            errorText: "rgb(237, 73, 86)",
-            dark: "#000",
+            foreground: "rgb(var(--theme-text) / <alpha-value>)",
+            errorText: "rgb(var(--theme-error) / <alpha-value>)",
+            dark: "rgb(var(--theme-canvas) / <alpha-value>)",
             "#262626": "#262626",
             "#efeae0": "#efeae0",
-            lightDark: "rgb(38, 38, 38)",
-            lightSecondDark: "rgb(51, 51, 51)",
+            lightDark: "rgb(var(--theme-surface) / <alpha-value>)",
+            lightSecondDark: "rgb(var(--theme-raised) / <alpha-value>)",
             transparent: "transparent",
         },
         screens: {

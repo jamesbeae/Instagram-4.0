@@ -46,7 +46,7 @@ export default function NavigationList() {
     }
 
     return (
-        <nav aria-label="Main navigation" className="flex min-h-0 flex-1 flex-col text-white">
+        <nav aria-label="Main navigation" className="flex min-h-0 flex-1 flex-col text-foreground">
             <NavigationItem icon={<HomeIcon />} title="Home" onClick={() => goTo("home", gotoHomePage)} />
             <NavigationItem icon={<SearchIcon />} title="Search" panel="search"
                 onClick={() => dispatch(sideBarActions.openModal("search"))} />

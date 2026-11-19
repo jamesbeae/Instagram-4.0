@@ -10,7 +10,7 @@ const ProfilePostGrid: React.FC<{ posts: Post[] }> = ({ posts }) => {
                     return <ProfilePost key={post._id} post={post} />;
                 })
             ) : (
-                <div className="text-center text-white font-bold text-4xl mt-4 col-span-full">
+                <div className="text-center text-foreground font-bold text-4xl mt-4 col-span-full">
                     No posts yet
                 </div>
             )}

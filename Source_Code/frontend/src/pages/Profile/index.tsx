@@ -46,7 +46,7 @@ const Profile = () => {
         return () => { window.removeEventListener('post-deleted', remove); window.removeEventListener('post-updated', update); };
     }, []);
     if (isLoading) {
-        return <Loading message="Đang tải hồ sơ..." className="self-start flex-1 mt-10 text-white" />;
+        return <Loading message="Đang tải hồ sơ..." className="self-start flex-1 mt-10 text-foreground" />;
     }
     if (errorMessage) {
         return (<div className="text-red-500 text-center mt-10">
@@ -54,7 +54,7 @@ const Profile = () => {
             </div>);
     }
     if (!profile) {
-        return (<div className="text-white text-center mt-10">
+        return (<div className="text-foreground text-center mt-10">
                 Không tìm thấy người dùng
             </div>);
     }

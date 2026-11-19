@@ -155,7 +155,7 @@ const EditProfileModal = ({
                 event.stopPropagation();
                 dismiss();
             }}>
-            <div role="dialog" aria-modal="true" aria-label="Edit profile" className="w-full max-w-md rounded-lg bg-lightDark p-6 text-white">
+            <div role="dialog" aria-modal="true" aria-label="Edit profile" className="w-full max-w-md rounded-lg bg-lightDark p-6 text-foreground">
                 <h2 className="mb-6 text-xl font-semibold">
                     Edit profile
                 </h2>
@@ -167,7 +167,7 @@ const EditProfileModal = ({
                         className="h-20 w-20"
                     />
 
-                    <label className="cursor-pointer rounded bg-blue px-4 py-2 text-sm font-semibold">
+                    <label className="cursor-pointer rounded bg-blue text-white px-4 py-2 text-sm font-semibold">
                         Change photo
 
                         <input
@@ -235,7 +235,7 @@ const EditProfileModal = ({
                         type="button"
                         onClick={handleSubmit}
                         disabled={isSubmitting || avatarReading}
-                        className="rounded bg-blue px-4 py-2 font-semibold disabled:opacity-70"
+                        className="rounded bg-blue text-white px-4 py-2 font-semibold disabled:opacity-70"
                     >
                         {isSubmitting
                             ? "Saving..."

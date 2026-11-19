@@ -9,7 +9,7 @@ export default function ProfilePostList({ posts, saved }: { posts: Post[]; saved
     const [activeTab, setActiveTab] = useState<typeof options[number]['id']>('posts');
     return (
         <div className="mt-16">
-            <div className="border-t border-gray-400 dark:border-textGray text-white text-xs">
+            <div className="border-t border-lightDark text-foreground text-xs">
                 <OptionGroup label="Profile posts" options={options} value={activeTab} onChange={setActiveTab} variant="underline" />
             </div>
             <ProfilePostGrid posts={activeTab === 'posts' ? posts : saved} />

@@ -67,7 +67,7 @@ const Suggested = () => {
                     Suggested for you
                 </div>
 
-                <div className="font-semibold text-white text-xs cursor-pointer hover:text-textGray select-none ">
+                <div className="font-semibold text-foreground text-xs cursor-pointer hover:text-textGray select-none ">
                     See all
                 </div>
             </div>

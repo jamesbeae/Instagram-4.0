@@ -5,8 +5,8 @@
 
 .post-detail-dialog.ui-card {
     --card-radius: 28px;
-    --card-background: #131314;
-    --card-border: #303032;
+    --card-background: var(--theme-card, #131314);
+    --card-border: var(--theme-border, #303032);
     display: flex;
     width: min(1320px, calc(100% - 48px));
     height: min(760px, calc(100dvh - 48px));
@@ -46,7 +46,7 @@
     flex: 0 0 clamp(330px, 37%, 480px);
     width: auto;
     min-width: 0;
-    background: #151516;
+    background: var(--theme-card, #151516);
     border-inline-start: 1px solid var(--card-border);
 }
 
@@ -66,12 +66,12 @@
     height: 38px;
     flex-shrink: 0;
     border-radius: 12px;
-    background: #232325;
+    background: var(--theme-elevated, #232325);
     font-size: 17px;
 }
 
 .post-detail-icon-button:hover {
-    background: #303033;
+    background: var(--theme-hover, #303033);
 }
 
 .post-detail-dialog.ui-card .post-detail-comments {
@@ -84,7 +84,7 @@
 
 .post-detail-dialog.ui-card .comment-composer {
     border-radius: 16px;
-    background: #1b1b1d;
+    background: var(--theme-field, #1b1b1d);
 }
 
 @media (max-width: 700px) {

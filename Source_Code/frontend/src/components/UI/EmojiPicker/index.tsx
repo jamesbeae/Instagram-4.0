@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import Button from "../Button/Button";
+import { useTheme } from "../../Theme/ThemeProvider";
 import EmojiIcon from "../Icons/EmojiIcon";
 import "./EmojiPicker.css";
 
@@ -13,6 +14,7 @@ export default function EmojiPicker({ onSelect, disabled = false }: {
     onSelect: (emoji: string) => void;
     disabled?: boolean;
 }) {
+    const { theme } = useTheme();
     const [open, setOpen] = useState(false);
     const trigger = useRef<HTMLButtonElement>(null);
     const panel = useRef<HTMLDialogElement>(null);
@@ -82,7 +84,7 @@ export default function EmojiPicker({ onSelect, disabled = false }: {
                         event.preventDefault();
                         setOpen(false);
                     }}>
-                    <Picker data={data} theme="dark" dynamicWidth autoFocus maxFrequentRows={0}
+                    <Picker data={data} theme={theme} dynamicWidth autoFocus maxFrequentRows={0}
                         emojiSize={20} emojiButtonSize={32} previewPosition="none" skinTonePosition="search"
                         onEmojiSelect={(item: { native: string }) => {
                             onSelect(item.native);

@@ -17,7 +17,8 @@ export default function NavigationItem({ icon, title, onClick, panel }: {
         <Button id={panel ? `sidebar-panel-${panel}-trigger` : undefined}
             aria-label={title} aria-expanded={panel ? isOpen : undefined}
             aria-controls={isOpen ? `sidebar-panel-${panel}` : undefined}
-            className={`sidebar-nav-item group mt-0.5 flex w-full items-center gap-4 rounded-[14px] border border-transparent py-3 hover:bg-lightSecondDark ${openedModal || isSmall ? "justify-center" : "px-3"} ${isCurrent ? "bg-lightDark" : ""} ${isOpen ? "!border-white" : ""}`}
+            aria-current={isCurrent ? "page" : undefined}
+            className={`sidebar-nav-item group mt-0.5 flex w-full items-center gap-4 rounded-[14px] border py-3 hover:bg-lightSecondDark ${openedModal || isSmall ? "justify-center" : "px-3"} ${isCurrent ? "bg-lightDark" : ""} ${isOpen ? "border-foreground" : "border-transparent"}`}
             onClick={onClick}>
             <span className="transition-transform group-hover:scale-105">{icon}</span>
             {!(openedModal || isSmall) && <span className="navigation-label text-base font-normal">{title}</span>}

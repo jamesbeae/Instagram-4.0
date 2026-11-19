@@ -44,7 +44,7 @@ export default function ReportPostDialog({ postId, onClose, onSubmitted }: {
     }
 
     return (
-        <dialog ref={dialog} aria-labelledby={titleId} className="w-11/12 max-w-md bg-transparent p-0 text-white backdrop:bg-black/75"
+        <dialog ref={dialog} aria-labelledby={titleId} className="w-11/12 max-w-md bg-transparent p-0 text-foreground backdrop:bg-black/75"
             onCancel={event => { event.preventDefault(); close(); }}
             onClick={event => { if (event.target === event.currentTarget) close(); }}>
             <Card className="p-5">
@@ -61,7 +61,7 @@ export default function ReportPostDialog({ postId, onClose, onSubmitted }: {
                     </div>
                     <div className="flex justify-end gap-3">
                             <Button disabled={sending} className="rounded-xl bg-lightSecondDark px-4 py-2" onClick={close}>Cancel</Button>
-                            <Button type="submit" className="rounded-xl bg-blue px-4 py-2 font-semibold" disabled={sending || reason.trim().length < 5}>
+                            <Button type="submit" className="rounded-xl bg-blue text-white px-4 py-2 font-semibold" disabled={sending || reason.trim().length < 5}>
                                 {sending ? "Sending…" : "Submit report"}
                             </Button>
                     </div>

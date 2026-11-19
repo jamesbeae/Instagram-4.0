@@ -34,7 +34,7 @@ const UserTagBar: React.FC<{
             />
             <div className="flex-1">
                 <div
-                    className="text-white font-semibold cursor-pointer text-sm"
+                    className="text-foreground font-semibold cursor-pointer text-sm"
                     onClick={() => {
                         gotoProfilePage(_id);
                     }}

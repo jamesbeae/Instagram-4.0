@@ -22,7 +22,7 @@ export default function CommentsList({ postData }: { postData: Post }) {
     return <section aria-label="Comments" className="post-detail-comments absolute inset-0 p-4 overflow-y-auto">
         <div className="flex items-start pb-4">
             <Avatar avatarUrl={postData.userId.avatar} username={postData.userId.username} className="w-8 h-8 mr-4 shrink-0" />
-            <p className="text-white text-sm break-words min-w-0"><span className="font-semibold mr-1">{postData.userId.username}</span>{postData.caption}</p>
+            <p className="text-foreground text-sm break-words min-w-0"><span className="font-semibold mr-1">{postData.userId.username}</span>{postData.caption}</p>
         </div>
         {commentListState.commentsList.map(comment => <Comment key={comment._id} commentData={comment} />)}
         {loading && <Loading message="Loading comments…" align="start" className="text-textSecondGray" />}

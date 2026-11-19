@@ -27,7 +27,7 @@ const VideoPhotoSwiper: React.FC<{
                         </video>}
                     {deleteVideoPhoto && (
                         <Button aria-label="Remove media" onClick={() => deleteVideoPhoto(index)}
-                            className="absolute top-2 right-2 grid h-8 w-8 place-items-center rounded-full bg-dark text-white">
+                            className="absolute top-2 right-2 grid h-8 w-8 place-items-center rounded-full bg-black text-white">
                             <FontAwesomeIcon icon={faCircleXmark} />
                         </Button>
                     )}

@@ -5,7 +5,7 @@
 }
 
 .ui-select-label {
-    color: #c1c1c8;
+    color: var(--theme-copy, #c1c1c8);
     font-size: 14px;
     font-weight: 500;
 }
@@ -21,7 +21,7 @@
     inset-inline-end: 12px;
     inset-block-start: 50%;
     transform: translateY(-50%);
-    color: #c1c1c8;
+    color: var(--theme-copy, #c1c1c8);
     pointer-events: none;
 }
 
@@ -30,9 +30,9 @@
 }
 
 .ui-select-control {
-    --select-background: #1c1c20;
-    --select-border: #44444b;
-    --select-accent: #91c4ff;
+    --select-background: var(--theme-field, #1c1c20);
+    --select-border: var(--theme-border, #44444b);
+    --select-accent: var(--theme-focus, #91c4ff);
     width: 100%;
     min-width: 0;
     min-height: 44px;
@@ -41,17 +41,17 @@
     appearance: none;
     padding: 9px 12px;
     padding-inline-end: 38px;
-    color: #f5f5f7;
+    color: var(--theme-ink, #f5f5f7);
     background: var(--select-background);
-    color-scheme: dark;
+    color-scheme: inherit;
     font-size: 14px;
     line-height: 1.4;
     cursor: pointer;
 }
 
 .ui-select-control:not(:disabled):hover {
-    border-color: #686872;
-    background: #222227;
+    border-color: var(--theme-focus, #686872);
+    background: var(--theme-hover, #222227);
 }
 
 .ui-select-control:focus-visible {
@@ -75,7 +75,7 @@
     }
 
     .ui-select-control:open {
-        border-color: #686872;
+        border-color: var(--theme-focus, #686872);
     }
 
     .ui-select-control:open + .ui-select-chevron {
@@ -88,11 +88,11 @@
         margin-block: 6px;
         overflow: auto;
         overscroll-behavior: contain;
-        border: 1px solid #44444b;
+        border: 1px solid var(--theme-border, #44444b);
         border-radius: 14px;
         padding: 4px;
-        color: #f5f5f7;
-        background: #1c1c20;
+        color: var(--theme-ink, #f5f5f7);
+        background: var(--theme-field, #1c1c20);
         box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
     }
 
@@ -106,13 +106,13 @@
     }
 
     .ui-select-control option:not(:disabled):is(:hover, :focus-visible) {
-        background: #2b2b30;
+        background: var(--theme-hover, #2b2b30);
     }
 
     .ui-select-control option:checked,
     .ui-select-control option:checked:not(:disabled):hover {
-        color: #f5f5f7;
-        background: #36363b;
+        color: var(--theme-selected-ink, var(--theme-ink, #f5f5f7));
+        background: var(--theme-selected, #36363b);
     }
 
     .ui-select-control option::checkmark {

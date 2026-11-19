@@ -3,8 +3,8 @@ const SearchIcon = () => {
         <svg
             aria-label="Tìm kiếm"
             className="_ab6-"
-            color="rgb(245, 245, 245)"
-            fill="rgb(245, 245, 245)"
+            color="currentColor"
+            fill="currentColor"
             height="24"
             role="img"
             viewBox="0 0 24 24"

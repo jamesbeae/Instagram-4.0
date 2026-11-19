@@ -1,10 +1,10 @@
 .sidebar-more-trigger[aria-expanded="true"] {
-    background: #232325;
+    background: var(--theme-selected, #232325);
 }
 
 .sidebar-more-popup.ui-card {
-    --card-background: #151516;
-    --card-border: #303032;
+    --card-background: var(--theme-card, #151516);
+    --card-border: var(--theme-border, #303032);
     --card-radius: 20px;
     position: absolute;
     z-index: 1;
@@ -37,12 +37,12 @@
 .sidebar-more-item svg {
     width: 16px;
     flex: none;
-    color: #adaeb3;
+    color: var(--theme-copy, #adaeb3);
 }
 
 .sidebar-more-item:hover,
 .sidebar-more-item:focus-visible {
-    background: #252528;
+    background: var(--theme-hover, #252528);
 }
 
 .sidebar-more-divider {
@@ -53,7 +53,7 @@
 
 .sidebar-more-item-danger,
 .sidebar-more-item-danger svg {
-    color: #ff858e;
+    color: var(--theme-danger, #ff858e);
 }
 
 .sidebar-more-compact .sidebar-more-popup {
