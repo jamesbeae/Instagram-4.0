@@ -1,47 +1,13 @@
-import React from "react";
-import Avatar from "../../../../components/UI/Avatar/Avatar";
-import { Message } from "../../../../models/Message";
+import type { Message } from "../../../../models/Message";
 
-const MessageBubble: React.FC<{
-    isOwn: boolean;
-    message: Message;
-    showAvatar: boolean;
-    userAvatar: string | null;
-}> = ({ isOwn, message, showAvatar, userAvatar }) => {
+export default function MessageBubble({ isOwn, message }: { isOwn: boolean; message: Message }) {
+    const sentAt = message.createdAt ? new Date(message.createdAt) : null;
     return (
-        <div
-            className={`flex gap-2 mb-4 ${
-                isOwn ? "justify-end" : "justify-start"
-            }`}
-        >
-            {!isOwn && showAvatar && (
-                <Avatar className="w-6 h-6 mt-auto" avatarUrl={userAvatar} />
+        <div className="message-bubble-row" data-own={isOwn}>
+            <p className="message-bubble">{message.contents}</p>
+            {sentAt && Number.isFinite(sentAt.getTime()) && (
+                <time dateTime={sentAt.toISOString()}>{sentAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time>
             )}
-            <div className={`max-w-xs ${isOwn ? "order-1" : ""}`}>
-                <div
-                    className={`px-4 py-2 rounded-2xl ${
-                        isOwn
-                            ? "bg-blue text-white ml-auto"
-                            : "bg-lightSecondDark dark:bg-gray-800 text-black dark:text-white"
-                    }`}
-                >
-                    <p className="text-sm">{message.contents}</p>
-                </div>
-                <div
-                    className={`text-xs text-gray-500 mt-1 ${
-                        isOwn ? "text-right" : "text-left"
-                    }`}
-                >
-                    {message.createdAt
-                        ? new Date(message.createdAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                          })
-                        : ""}
-                </div>
-            </div>
         </div>
     );
-};
-
-export default MessageBubble;
+}
