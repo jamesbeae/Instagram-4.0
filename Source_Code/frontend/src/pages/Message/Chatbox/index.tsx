@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useMessageInbox } from "../../../components/RootLayout/MessageInboxProvider";
+import useConversationTyping from "./useConversationTyping";
 import { useLocation, useOutletContext, useParams } from "react-router-dom";
 import Loading from "../../../components/UI/Loading";
 import usePrivateHttp from "../../../hooks/usePrivateHttp";
@@ -21,6 +23,31 @@ export default function ChatBox() {
     const [sendError, setSendError] = useState("");
     const currentUserId = useAppSelector(state => state.authSlice.userInfo?._id);
     const http = usePrivateHttp();
+    const { inbox, failed, markRead } = useMessageInbox();
+    const canMessage = inbox?.contacts.some(contact => contact._id === user_id) ?? false;
+    const { isTyping, stopTyping, updateTyping } = useConversationTyping(canMessage ? user_id : undefined);
+    const latestIncoming = messages.reduce<string | undefined>((latest, message) =>
+        message.receiver_id === currentUserId && message.sender_id === user_id ? message._id : latest, undefined);
+    const markedMessage = useRef<string>();
+
+    useEffect(() => {
+        function markVisibleMessage() {
+            if (loading || !latestIncoming || latestIncoming === markedMessage.current ||
+                document.hidden || !document.hasFocus()) return;
+            markedMessage.current = latestIncoming;
+            void markRead(latestIncoming).catch(() => {
+                if (markedMessage.current === latestIncoming) markedMessage.current = undefined;
+            });
+        }
+
+        markVisibleMessage();
+        window.addEventListener("focus", markVisibleMessage);
+        document.addEventListener("visibilitychange", markVisibleMessage);
+        return () => {
+            window.removeEventListener("focus", markVisibleMessage);
+            document.removeEventListener("visibilitychange", markVisibleMessage);
+        };
+    }, [latestIncoming, loading, markRead]);
 
     useEffect(() => {
         if (!user_id) return;
@@ -66,7 +93,8 @@ export default function ChatBox() {
     }, [user_id, currentUserId]);
 
     async function sendMessage(contents: string) {
-        if (!contents.trim() || !user_id) return false;
+        if (!contents.trim() || !user_id || !canMessage) return false;
+        stopTyping();
         if (!socket.connected) {
             setSendError("Connection unavailable. Please try again.");
             return false;
@@ -96,7 +124,18 @@ export default function ChatBox() {
             {loadError && <p className="message-chat-status" role="alert">Unable to load conversation.</p>}
             {!loading && !loadError && <ChatBoxList messages={messages} />}
             {sendError && <p className="message-send-error" role="alert">{sendError}</p>}
-            {user && <ChatBoxInput sendMessage={sendMessage} />}
+            {canMessage && (
+                <>
+                    <div className="message-typing" role="status" hidden={!isTyping}>
+                        {isTyping && `${user?.username || user?.fullName || "They"} is typing…`}
+                    </div>
+                    <ChatBoxInput sendMessage={sendMessage} onDraftChange={updateTyping} />
+                </>
+            )}
+            {!inbox && failed && <p className="message-typing" role="alert">Unable to check who you can message.</p>}
+            {user && inbox && !canMessage && (
+                <p className="message-typing">You can send messages when you follow each other.</p>
+            )}
         </section>
     );
 }

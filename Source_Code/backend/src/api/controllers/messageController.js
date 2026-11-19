@@ -1,3 +1,22 @@
+const social = require('../services/socialService');
+
+exports.getInbox = async (req, res, next) => {
+    try {
+        res.json(await social.messageInbox(req.currentUser.id));
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.markRead = async (req, res, next) => {
+    try {
+        await social.markMessagesRead(req.currentUser.id, req.body?.messageId);
+        res.json({ ok: true });
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.getMessages = async (req, res, next) => {
     try {
         const Joi = require('joi');

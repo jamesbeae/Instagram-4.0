@@ -3,9 +3,10 @@ import Avatar from "../../../components/UI/Avatar/Avatar";
 import Loading from "../../../components/UI/Loading";
 import type { User } from "../../../models/User";
 
-export default function ChatUserList({ users, online, loadError }: {
+export default function ChatUserList({ users, online, unread, loadError }: {
     users: User[] | null;
     online: string[];
+    unread: string[];
     loadError: boolean;
 }) {
     return (
@@ -14,7 +15,7 @@ export default function ChatUserList({ users, online, loadError }: {
             <div className="message-contacts">
                 {loadError && <p role="alert" className="message-list-status">Unable to load contacts.</p>}
                 {!users && !loadError && <Loading align="start" message="Loading contacts…" className="message-list-status" />}
-                {users?.length === 0 && <p className="message-list-status">No contacts yet.</p>}
+                {users?.length === 0 && <p className="message-list-status">You can message people when you follow each other.</p>}
                 {users?.map(user => {
                     const name = user.username || user.fullName;
                     const isOnline = online.includes(user._id);
@@ -27,6 +28,7 @@ export default function ChatUserList({ users, online, loadError }: {
                                 <span className="message-contact-name">{name}</span>
                                 {isOnline && <span className="message-presence">Online</span>}
                             </span>
+                            {unread.includes(user._id) && <span className="message-unread"><span className="sr-only">Unread messages</span></span>}
                         </NavLink>
                     );
                 })}
