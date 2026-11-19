@@ -6,7 +6,7 @@
 - `src/follow_recommender.py`: đồ thị follow có hướng trong SQLite, gợi ý qua hai bước và baseline phổ biến, đánh giá cạnh giữ lại.
 - `tests/test_expansion.py`: kiểm tra gộp feed, giữ thời điểm like sớm nhất, chiều follow, loại chính mình/người đã follow và không dùng cạnh test để tính điểm.
 
-Mở terminal trong thư mục `article-recommender`. Dùng Python 3.12 và cài `requirements.txt` như README chính nếu máy chưa có `.venv`.
+Mở terminal trong thư mục `Source_Code/recommendation`. Dùng Python 3.12 và cài `requirements.txt` như README chính nếu máy chưa có `.venv`.
 
 ## Xem mô hình bài viết đã chạy
 

@@ -25,7 +25,7 @@ Chưa triển khai trong bộ mã này: API HTTP, giao diện React, nội dung 
 ## 2. Cấu trúc thư mục
 
 ```text
-article-recommender/
+Source_Code/recommendation/
 ├── README.md
 ├── requirements.txt
 ├── .gitignore
@@ -62,10 +62,10 @@ article-recommender/
 
 Mã đã được kiểm tra bằng Python 3.12, NumPy 1.26.4 và threadpoolctl 3.5.0. Nên dùng Python 3.12 bản 64 bit để chạy theo cùng môi trường. Không cần GPU cho cấu hình nhỏ này.
 
-Mở PowerShell trong thư mục `article-recommender`. Nếu terminal đang ở thư mục đồ án, chạy:
+Mở PowerShell trong thư mục `Source_Code/recommendation`. Nếu terminal đang ở thư mục gốc repo Instagram-4.0, chạy:
 
 ```powershell
-cd article-recommender
+cd Source_Code/recommendation
 ```
 
 Trên máy mới, tạo môi trường riêng và cài thư viện:
@@ -84,7 +84,7 @@ Kiểm tra:
 .\.venv\Scripts\python.exe -X utf8 src/recommender.py --help
 ```
 
-Các đường dẫn dữ liệu được tính từ vị trí mã nguồn, nhưng lệnh trong README giả định terminal đang ở `article-recommender`.
+Các đường dẫn dữ liệu được tính từ vị trí mã nguồn, nhưng lệnh trong README giả định terminal đang ở `Source_Code/recommendation`.
 
 ## 4. Xem kết quả đã train trên máy hiện tại
 
@@ -478,7 +478,7 @@ Chạy kiểm thử:
 .\.venv\Scripts\python.exe -X utf8 -m unittest discover -s tests -v
 ```
 
-Đã có 5 kiểm thử: cập nhật ALS khớp hệ tuyến tính đầy đủ; objective khớp phép tính đầy đủ và giảm sau cập nhật; không tách các thời điểm bằng nhau qua ranh giới; ranking loại bài đã thấy và tính metric đúng; lọc core lặp đúng.
+Đã có 10 kiểm thử, gồm: cập nhật ALS khớp hệ tuyến tính đầy đủ; objective khớp phép tính đầy đủ và giảm sau cập nhật; không tách các thời điểm bằng nhau qua ranh giới; ranking loại bài đã thấy và tính metric đúng; lọc core lặp đúng; gộp feed và khử trùng; train/lưu/nạp/đánh giá ALS; dựng và đánh giá đồ thị follow bằng fixture.
 
 | Lỗi / hiện tượng | Cách xử lý |
 |---|---|
