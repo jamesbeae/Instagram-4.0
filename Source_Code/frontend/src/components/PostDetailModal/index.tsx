@@ -1,4 +1,4 @@
-import React, { useEffect, useId } from "react";
+import React, { useEffect, useId, useLayoutEffect, useRef } from "react";
 import { DraftScope, useConfirmDiscard } from "../UnsavedChanges";
 import { Post } from "../../models/Post";
 import VideoPhotoSwiper from "../UI/VideoPhotoSwiper";
@@ -16,10 +16,24 @@ const PostDetailModal: React.FC<{
 }> = ({ postData }) => {
     const dispatch = useAppDispatch();
     const draftScope = useId();
+    const overlayRef = useRef<HTMLDivElement>(null);
+    useLayoutEffect(() => {
+        const opener = document.activeElement;
+        const overlay = overlayRef.current;
+        overlay?.querySelector<HTMLElement>('[role="dialog"]')?.focus({ preventScroll: true });
+        return () => {
+            queueMicrotask(() => {
+                if (opener instanceof HTMLElement && opener.isConnected && !overlay?.isConnected &&
+                    document.activeElement === document.body) {
+                    opener.focus({ preventScroll: true });
+                }
+            });
+        };
+    }, []);
     const confirmDiscard = useConfirmDiscard();
-    const [postDataState, setPostDataState] = React.useState<Post | null>(null);
-    const updatedPost = useAppSelector(s => s.postsListSlice.find(p => p._id === (postData?._id || s.postDetailModalSlice.post?._id)));
     const postDetailSlice = useAppSelector((state) => state.postDetailModalSlice);
+    const updatedPost = useAppSelector(s => s.postsListSlice.find(p => p._id === (postData?._id || s.postDetailModalSlice.post?._id)));
+    const [postDataState, setPostDataState] = React.useState<Post | null>(updatedPost || postData || postDetailSlice.post);
     useEffect(() => {
         if (postData) {
             setPostDataState(updatedPost || postData);
@@ -36,7 +50,7 @@ const PostDetailModal: React.FC<{
     const isStory = postDataState?.kind === "STORY";
     const Dialog = isStory ? "div" : Card;
 
-    return (<DraftScope.Provider value={draftScope}><div className="fixed z-50 inset-0 flex justify-center items-center"
+    return (<DraftScope.Provider value={draftScope}><div ref={overlayRef} className="fixed z-50 inset-0 flex justify-center items-center"
             onKeyDown={event => {
                 if (event.key === "Escape" && !event.defaultPrevented) {
                     event.preventDefault();
@@ -51,7 +65,7 @@ const PostDetailModal: React.FC<{
                 <FontAwesomeIcon icon={faXmark} className="text-3xl" />
             </Button>}
             <Dialog className={isStory ? "post-detail-dialog story-detail-modal relative z-20 bg-dark border border-lightDark" : "post-detail-dialog relative z-20"}
-                role="dialog" aria-label={isStory ? "Story details" : "Post details"} aria-modal="true">
+                role="dialog" tabIndex={-1} aria-label={isStory ? "Story details" : "Post details"} aria-modal="true">
                 <div className={isStory ? "story-detail-media" : "post-detail-media"}>
                     {postDataState && <VideoPhotoSwiper videoPhotoList={postDataState.photoVideo} />}
                 </div>
