@@ -1,21 +1,12 @@
-import React from "react";
-import { Post } from "../../../models/Post";
-import ProfilePost from "./ProfilePost";
+import type { Post } from '../../../models/Post';
+import ProfilePost from './ProfilePost';
 
-const ProfilePostGrid: React.FC<{ posts: Post[] }> = ({ posts }) => {
+export default function ProfilePostGrid({ posts, emptyMessage }: { posts: Post[]; emptyMessage: string }) {
     return (
-        <div className="grid grid-cols-3 gap-4">
-            {posts.length > 0 ? (
-                posts.map((post) => {
-                    return <ProfilePost key={post._id} post={post} />;
-                })
-            ) : (
-                <div className="text-center text-foreground font-bold text-4xl mt-4 col-span-full">
-                    No posts yet
-                </div>
+        <div className="profile-post-grid">
+            {posts.length ? posts.map(post => <ProfilePost key={post._id} post={post} />) : (
+                <p className="profile-empty">{emptyMessage}</p>
             )}
         </div>
     );
-};
-
-export default ProfilePostGrid;
+}
