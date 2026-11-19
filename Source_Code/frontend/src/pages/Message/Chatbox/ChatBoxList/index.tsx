@@ -1,32 +1,24 @@
-import { FC, useEffect, useRef } from "react";
-import { Message } from "../../../../models/Message";
+import { useEffect, useRef } from "react";
 import { useAppSelector } from "../../../../hooks/useStore";
-import { User } from "../../../../models/User";
+import type { Message } from "../../../../models/Message";
 import MessageBubble from "./MessageBubble";
-const ChatBoxList: FC<{
-    messages: Message[];
-    sendingUser: User;
-}> = ({ messages, sendingUser, }) => {
-    const chatContainerRef = useRef<HTMLDivElement>(null);
+
+export default function ChatBoxList({ messages }: { messages: Message[] }) {
+    const chatContainer = useRef<HTMLDivElement>(null);
+    const currentUserId = useAppSelector(state => state.authSlice.userInfo?._id);
     useEffect(() => {
-        if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop =
-                chatContainerRef.current.scrollHeight;
-        }
+        const container = chatContainer.current;
+        if (container) container.scrollTop = container.scrollHeight;
     }, [messages]);
-    const currentUser = useAppSelector((state) => state.authSlice.userInfo);
-    console.log("ChatBoxList messages:", messages);
-    return (<div ref={chatContainerRef} className="flex-1 p-4 overflow-y-scroll">
-            <div className="space-y-1">
-                {messages.map((message, index) => {
-            console.log("Message:", message);
-            const showAvatar = message.sender_id === currentUser?._id &&
-                (index === 0 ||
-                    messages[index - 1].receiver_id !==
-                        message.sender_id);
-            return (<MessageBubble isOwn={message.sender_id === currentUser?._id} key={message._id} message={message} userAvatar={sendingUser?.avatar} showAvatar={showAvatar}/>);
-        })}
+
+    return (
+        <div ref={chatContainer} className="message-history" role="log" aria-label="Message history">
+            <div className="message-thread">
+                {messages.length === 0 && <p className="message-thread-empty">No messages yet. Say hello!</p>}
+                {messages.map(message => (
+                    <MessageBubble key={message._id} isOwn={message.sender_id === currentUserId} message={message} />
+                ))}
             </div>
-        </div>);
-};
-export default ChatBoxList;
+        </div>
+    );
+}

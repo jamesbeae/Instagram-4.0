@@ -1,0 +1,270 @@
+.message-page {
+    container: messages / inline-size;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    height: 100dvh;
+    padding: clamp(6px, 1.4vw, 18px) clamp(8px, 1.5vw, 22px) clamp(6px, 1.4vw, 18px) 0;
+}
+
+.message-card.ui-card {
+    --card-radius: 24px;
+    --card-background: var(--theme-card, #141417);
+    --message-border: var(--theme-border, #303036);
+    --message-field: var(--theme-field, #202025);
+    --message-muted: var(--theme-dim, #a6a8b0);
+    --message-blue: #145fb5;
+    --message-blue-hover: #11529c;
+    --message-online: #6bdbac;
+    display: grid;
+    grid-template-columns: clamp(180px, 26%, 310px) minmax(0, 1fr);
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+:root[data-theme="light"] .message-card {
+    --message-blue: rgb(var(--theme-accent));
+    --message-blue-hover: #004d97;
+    --message-online: #157249;
+}
+
+.message-inbox,
+.message-conversation,
+.message-chat {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.message-inbox {
+    border-inline-end: 1px solid var(--message-border);
+    padding: 18px 10px 10px;
+}
+
+.message-inbox h1 {
+    margin: 0 8px 14px;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.message-contacts {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 3px;
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.message-contact {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 7px 9px;
+    border-radius: 12px;
+}
+
+.message-contact:hover,
+.message-back:hover {
+    background-color: var(--theme-hover, #29292f);
+}
+
+.message-contact[aria-current="page"] {
+    background-color: var(--theme-selected, #253344);
+    color: var(--theme-selected-ink, #aed4ff);
+}
+
+.message-contact-label,
+.message-header-label { min-width: 0; }
+
+.message-contact-name,
+.message-header h2 {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 650;
+}
+
+.message-presence,
+.message-bubble-row time,
+.message-list-status {
+    color: var(--message-muted);
+    font-size: .8125rem;
+}
+
+.message-presence,
+.message-bubble-row time { display: block; }
+
+.message-contact[aria-current="page"] .message-presence { color: inherit; }
+.message-list-status { padding: 9px; }
+
+.message-avatar {
+    position: relative;
+    flex: none;
+}
+
+.message-avatar[data-online="true"]::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 auto;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--message-online);
+    box-shadow: 0 0 0 2px var(--card-background);
+}
+
+.message-chat { flex: 1; }
+
+.message-header {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 10px;
+    min-height: 64px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--message-border);
+}
+
+.message-back {
+    display: none;
+    flex: none;
+    place-items: center;
+    width: 36px;
+    height: 44px;
+    border-radius: 10px;
+}
+
+.message-back svg { transform: rotate(90deg); }
+
+.message-history {
+    flex: 1;
+    min-height: 0;
+    padding: 14px 16px;
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.message-thread {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 9px;
+    min-height: 100%;
+}
+
+.message-bubble-row {
+    align-self: flex-start;
+    max-width: min(85%, 42ch);
+}
+
+.message-bubble-row[data-own="true"] { align-self: flex-end; }
+
+.message-bubble {
+    border-radius: 15px 15px 15px 5px;
+    background-color: var(--message-field);
+    padding: 8px 12px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.message-bubble-row[data-own="true"] .message-bubble {
+    border-radius: 15px 15px 5px 15px;
+    background-color: var(--message-blue);
+    color: #fff;
+}
+
+.message-bubble-row time { margin-top: 2px; }
+.message-bubble-row[data-own="true"] time { text-align: end; }
+
+.message-empty,
+.message-chat-status {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    color: var(--message-muted);
+    text-align: center;
+}
+
+.message-empty { flex-direction: column; gap: 5px; }
+.message-empty h2 { color: rgb(var(--theme-text, 255 255 255)); font-weight: 650; }
+
+.message-empty-icon {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 4px;
+    border-radius: 14px;
+    background-color: var(--message-field);
+}
+
+.message-thread-empty {
+    margin: auto;
+    color: var(--message-muted);
+    text-align: center;
+}
+
+.message-send-error { padding: 0 12px 4px; color: rgb(var(--theme-error, 237 73 86)); }
+
+.message-compose {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    margin: 0 14px 14px;
+    padding: 5px;
+    border: 1px solid var(--message-border);
+    border-radius: 16px;
+    background-color: var(--message-field);
+}
+
+.message-input {
+    flex: 1;
+    min-width: 0;
+    min-height: 32px;
+    padding: 6px 2px;
+    border-radius: 4px;
+    background-color: transparent;
+    line-height: 20px;
+}
+
+.message-input::placeholder { color: var(--message-muted); }
+
+.message-compose .message-send {
+    min-height: 36px;
+    border-radius: 10px;
+    padding-inline: 12px;
+    background-color: var(--message-blue);
+    color: #fff;
+    font-size: .875rem;
+    font-weight: 650;
+}
+
+.message-compose .message-send:enabled:hover { background-color: var(--message-blue-hover); }
+.message-compose .message-send:disabled { cursor: not-allowed; }
+
+.message-card :is(a, textarea, button):focus-visible {
+    outline: 2px solid var(--theme-focus, #91c4ff);
+    outline-offset: 2px;
+}
+
+@container messages (max-width: 560px) {
+    .message-card.ui-card { grid-template-columns: minmax(0, 1fr); --card-radius: 18px; }
+    .message-card[data-conversation-open="true"] .message-inbox,
+    .message-card[data-conversation-open="false"] .message-conversation { display: none; }
+    .message-inbox { border: 0; }
+    .message-back { display: grid; }
+    .message-header { padding-inline: 8px; }
+    .message-history { padding-inline: 10px; }
+    .message-compose { margin: 0 6px 6px; }
+    .message-compose .message-send { padding-inline: 8px; }
+}

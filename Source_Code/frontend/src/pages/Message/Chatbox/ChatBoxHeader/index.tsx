@@ -1,24 +1,24 @@
-import React from "react";
-import { User } from "../../../../models/User";
+import { Link } from "react-router-dom";
 import Avatar from "../../../../components/UI/Avatar/Avatar";
+import ChevronIcon from "../../../../components/UI/Icons/ChevronIcon";
+import type { User } from "../../../../models/User";
 
-const ChatBoxHeader: React.FC<{ user: User }> = ({ user }) => {
-    console.log;
+export default function ChatBoxHeader({ user, online }: { user?: User; online: boolean }) {
+    const name = user?.username || user?.fullName;
     return (
-        <div className="p-4 border-b border-lightSecondDark text-white">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <Avatar className="w-10 h-10" avatarUrl={user.avatar} />
-
-                    <div>
-                        <h3 className="font-semibold text-sm">
-                            {user.username || user.fullName}
-                        </h3>
-                    </div>
-                </div>
+        <header className="message-header">
+            <Link className="message-back" to="/message" aria-label="Back to messages">
+                <ChevronIcon />
+            </Link>
+            {user && (
+                <span className="message-avatar" data-online={online} aria-hidden="true">
+                    <Avatar avatarUrl={user.avatar} username={name} className="h-10 w-10" />
+                </span>
+            )}
+            <div className="message-header-label">
+                <h2>{name || "Conversation"}</h2>
+                {online && <p className="message-presence">Online</p>}
             </div>
-        </div>
+        </header>
     );
-};
-
-export default ChatBoxHeader;
+}
