@@ -10,6 +10,7 @@ import Message from "./pages/Message";
 import PasswordRecovery from "./pages/PasswordRecovery";
 import Discover from "./pages/Discover";
 import Workspace from "./pages/Workspace";
+import Settings from "./pages/Settings";
 import PostPage from "./pages/PostPage";
 import ChatBox from "./pages/Message/Chatbox";
 import { useSocket } from "./hooks/useSocket";
@@ -41,7 +42,8 @@ const routes: RouteObject[] = [
                     { path: "post/:postId", element: <PostPage /> },
                     { path: "explore", element: <Discover /> },
                     { path: "reels", element: <Discover /> },
-                    ...["groups", "creator", "admin", "settings"].map(path => ({ path, element: <Workspace key={path} /> })),
+                    { path: "settings", element: <Settings /> },
+                    ...["groups", "creator", "admin"].map(path => ({ path, element: <Workspace key={path} /> })),
                     {
                         path: "profile/:_id",
                         element: <Profile />,
