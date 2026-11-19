@@ -44,6 +44,9 @@ module.exports = server => {
             const event = { typing };
             pendingTyping.set(receiverId, event);
             try {
+                const user = await User.findByPk(userId);
+                if (!user || user.disabled || user.tokenVersion !== socket.data.tokenVersion)
+                    return;
                 if (await social.areMutualContacts(userId, receiverId) && socket.connected) {
                     io.to('user:' + receiverId).volatile.emit('messageTyping', { senderId: userId, typing: event.typing });
                 }

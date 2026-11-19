@@ -137,6 +137,34 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             socket1.emit('messageTyping', { receiverId: ownerId, typing });
             assert.deepEqual(await changed, { senderId: viewerId, typing });
         }
+        await t.test('typing rejects revoked and disabled socket sessions', async () => {
+            const dbClient = new Client({ connectionString: source.href });
+            await dbClient.connect();
+            const { rows: [original] } = await dbClient.query('SELECT token_version, disabled FROM users WHERE id=$1', [viewerId]);
+            try {
+                for (const [version, disabled] of [
+                    [original.token_version + 1, false],
+                    [original.token_version, true],
+                ]) {
+                    await dbClient.query('UPDATE users SET token_version=$1, disabled=$2 WHERE id=$3', [version, disabled, viewerId]);
+                    const received = [];
+                    const listener = event => received.push(event);
+                    socket2.on('messageTyping', listener);
+                    try {
+                        socket1.emit('messageTyping', { receiverId: ownerId, typing: true });
+                        assert.equal((await emit({ receiverId: ownerId, contents: 'Revoked sender' })).status, 401);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        assert.deepEqual(received, [], 'An invalidated session must not relay typing');
+                    } finally {
+                        socket2.off('messageTyping', listener);
+                    }
+                }
+            } finally {
+                await dbClient.query('UPDATE users SET token_version=$1, disabled=$2 WHERE id=$3', [original.token_version, original.disabled, viewerId]);
+                await dbClient.end();
+            }
+        });
+
         const receive = new Promise(resolve => socket2.once('receiveMessage', resolve));
         const sent = await emit({ receiverId: ownerId, contents: 'Realtime message' });
         assert.equal(sent.ok, true);
