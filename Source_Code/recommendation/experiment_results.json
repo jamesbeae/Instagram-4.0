@@ -1,0 +1,316 @@
+{
+  "experiment_date": "2026-10-11",
+  "data": {
+    "source": "https://zenodo.org/records/14669616",
+    "feed": "Science",
+    "timestamp_format": "YYYYMMDDHHMM (source calendar minute; not Unix seconds)",
+    "validation_start": 202401292101,
+    "test_start": 202402220501,
+    "unique_matched_likes": 730255,
+    "missing_post_rows": 381,
+    "invalid_author_or_date_rows": 217,
+    "train_before_filtering": 584204,
+    "train_rows": 26688,
+    "validation_rows": 73025,
+    "test_rows": 73026,
+    "train_users": 1783,
+    "train_posts": 6644,
+    "selection": {
+      "command": "prepare",
+      "feed": "Science",
+      "name": "science-small",
+      "max_users": 2000,
+      "min_user_likes": 3,
+      "min_post_likes": 2,
+      "seed": 42,
+      "func": "prepare"
+    }
+  },
+  "runs": {
+    "als-16": {
+      "training": {
+        "algorithm": "implicit ALS, exact normal equations, binary likes, c=1+alpha*r",
+        "data": "science-small",
+        "users": 1783,
+        "posts": 6644,
+        "likes": 26688,
+        "factors": 16,
+        "alpha": 20,
+        "regularization": 0.1,
+        "iterations": 10,
+        "seed": 42,
+        "seconds": 3.2125922000268474,
+        "history": [
+          {
+            "iteration": 1,
+            "objective": 344594.32387618977
+          },
+          {
+            "iteration": 2,
+            "objective": 274630.7978985409
+          },
+          {
+            "iteration": 3,
+            "objective": 263022.4570721215
+          },
+          {
+            "iteration": 4,
+            "objective": 257379.100443268
+          },
+          {
+            "iteration": 5,
+            "objective": 253952.2896762985
+          },
+          {
+            "iteration": 6,
+            "objective": 251751.138370834
+          },
+          {
+            "iteration": 7,
+            "objective": 250274.04058979772
+          },
+          {
+            "iteration": 8,
+            "objective": 249237.6612907852
+          },
+          {
+            "iteration": 9,
+            "objective": 248480.42634146358
+          },
+          {
+            "iteration": 10,
+            "objective": 247907.08345635532
+          }
+        ],
+        "numpy_version": "1.26.4",
+        "train_csv_sha256": "fc16edef40fbaf0e790541477446fe9005b9168d865beb0354985f17f5e858e3"
+      },
+      "validation": {
+        "split": "validation",
+        "k": 10,
+        "seed": 42,
+        "protocol": "frozen train snapshot; full train catalog; train likes excluded; macro warm metrics",
+        "split_rows": 73025,
+        "cold_user_rows": 69431,
+        "cold_post_rows_known_user": 3442,
+        "already_seen_rows": 0,
+        "warm_target_rows": 152,
+        "warm_target_coverage": 0.0020814789455665867,
+        "users_in_split": 25476,
+        "eligible_users": 81,
+        "evaluated_users": 81,
+        "max_eval_users": 0,
+        "metrics": {
+          "als": {
+            "Recall@10": 0.000649772579597141,
+            "NDCG@10": 0.001873607297259696
+          },
+          "popularity": {
+            "Recall@10": 0.05555555555555555,
+            "NDCG@10": 0.0569524344785859
+          }
+        }
+      }
+    },
+    "als-32": {
+      "training": {
+        "algorithm": "implicit ALS, exact normal equations, binary likes, c=1+alpha*r",
+        "data": "science-small",
+        "users": 1783,
+        "posts": 6644,
+        "likes": 26688,
+        "factors": 32,
+        "alpha": 20,
+        "regularization": 0.1,
+        "iterations": 10,
+        "seed": 42,
+        "seconds": 4.548825499950908,
+        "history": [
+          {
+            "iteration": 1,
+            "objective": 257439.6741546506
+          },
+          {
+            "iteration": 2,
+            "objective": 208353.60285013192
+          },
+          {
+            "iteration": 3,
+            "objective": 198333.50384118722
+          },
+          {
+            "iteration": 4,
+            "objective": 193600.06264592824
+          },
+          {
+            "iteration": 5,
+            "objective": 190861.55400196454
+          },
+          {
+            "iteration": 6,
+            "objective": 189094.88627480384
+          },
+          {
+            "iteration": 7,
+            "objective": 187868.72111558684
+          },
+          {
+            "iteration": 8,
+            "objective": 186970.8925756031
+          },
+          {
+            "iteration": 9,
+            "objective": 186285.79486711902
+          },
+          {
+            "iteration": 10,
+            "objective": 185745.65277440703
+          }
+        ],
+        "numpy_version": "1.26.4",
+        "train_csv_sha256": "fc16edef40fbaf0e790541477446fe9005b9168d865beb0354985f17f5e858e3"
+      },
+      "validation": {
+        "split": "validation",
+        "k": 10,
+        "seed": 42,
+        "protocol": "frozen train snapshot; full train catalog; train likes excluded; macro warm metrics",
+        "split_rows": 73025,
+        "cold_user_rows": 69431,
+        "cold_post_rows_known_user": 3442,
+        "already_seen_rows": 0,
+        "warm_target_rows": 152,
+        "warm_target_coverage": 0.0020814789455665867,
+        "users_in_split": 25476,
+        "eligible_users": 81,
+        "evaluated_users": 81,
+        "max_eval_users": 0,
+        "metrics": {
+          "als": {
+            "Recall@10": 0.025666016894087068,
+            "NDCG@10": 0.017458793457638566
+          },
+          "popularity": {
+            "Recall@10": 0.05555555555555555,
+            "NDCG@10": 0.0569524344785859
+          }
+        }
+      }
+    },
+    "als-16-a1-r1": {
+      "training": {
+        "algorithm": "implicit ALS, exact normal equations, binary likes, c=1+alpha*r",
+        "data": "science-small",
+        "users": 1783,
+        "posts": 6644,
+        "likes": 26688,
+        "factors": 16,
+        "alpha": 1.0,
+        "regularization": 1.0,
+        "iterations": 10,
+        "seed": 42,
+        "seconds": 3.217131800018251,
+        "history": [
+          {
+            "iteration": 1,
+            "objective": 47718.417582253365
+          },
+          {
+            "iteration": 2,
+            "objective": 41639.23146960003
+          },
+          {
+            "iteration": 3,
+            "objective": 40814.31155111216
+          },
+          {
+            "iteration": 4,
+            "objective": 40521.68157558779
+          },
+          {
+            "iteration": 5,
+            "objective": 40369.98842229716
+          },
+          {
+            "iteration": 6,
+            "objective": 40275.13103966721
+          },
+          {
+            "iteration": 7,
+            "objective": 40209.041096570996
+          },
+          {
+            "iteration": 8,
+            "objective": 40160.037881466546
+          },
+          {
+            "iteration": 9,
+            "objective": 40122.441943018624
+          },
+          {
+            "iteration": 10,
+            "objective": 40093.06504420291
+          }
+        ],
+        "numpy_version": "1.26.4",
+        "train_csv_sha256": "fc16edef40fbaf0e790541477446fe9005b9168d865beb0354985f17f5e858e3"
+      },
+      "validation": {
+        "split": "validation",
+        "k": 10,
+        "seed": 42,
+        "protocol": "frozen train snapshot; full train catalog; train likes excluded; macro warm metrics",
+        "split_rows": 73025,
+        "cold_user_rows": 69431,
+        "cold_post_rows_known_user": 3442,
+        "already_seen_rows": 0,
+        "warm_target_rows": 152,
+        "warm_target_coverage": 0.0020814789455665867,
+        "users_in_split": 25476,
+        "eligible_users": 81,
+        "evaluated_users": 81,
+        "max_eval_users": 0,
+        "metrics": {
+          "als": {
+            "Recall@10": 0.030864197530864196,
+            "NDCG@10": 0.02232307457229019
+          },
+          "popularity": {
+            "Recall@10": 0.05555555555555555,
+            "NDCG@10": 0.0569524344785859
+          }
+        }
+      },
+      "test": {
+        "split": "test",
+        "k": 10,
+        "seed": 42,
+        "protocol": "frozen train snapshot; full train catalog; train likes excluded; macro warm metrics",
+        "split_rows": 73026,
+        "cold_user_rows": 69832,
+        "cold_post_rows_known_user": 3015,
+        "already_seen_rows": 0,
+        "warm_target_rows": 179,
+        "warm_target_coverage": 0.002451181770876126,
+        "users_in_split": 23375,
+        "eligible_users": 72,
+        "evaluated_users": 72,
+        "max_eval_users": 0,
+        "metrics": {
+          "als": {
+            "Recall@10": 0.018518518518518517,
+            "NDCG@10": 0.0059768305441349565
+          },
+          "popularity": {
+            "Recall@10": 0.027777777777777776,
+            "NDCG@10": 0.015707357688492466
+          }
+        }
+      }
+    }
+  },
+  "selection": {
+    "best_als_by_validation_ndcg": "als-16-a1-r1",
+    "baseline_beats_selected_als": true
+  }
+}

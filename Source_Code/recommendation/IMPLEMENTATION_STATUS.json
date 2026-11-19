@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-19",
+  "article": {
+    "source": "src/recommender.py",
+    "feeds_processed": 11,
+    "dataset": "all-feeds-v1",
+    "run": "all-feeds-als16-v1",
+    "train_users": 9427,
+    "train_posts": 32721,
+    "train_likes": 209050,
+    "train_complete": true,
+    "validation_complete": true,
+    "test_complete": true,
+    "recommend_complete": true,
+    "all_users_trained": false,
+    "full_19_5gb_post_archive_processed": false,
+    "results": "all_feeds_results.json"
+  },
+  "follow": {
+    "source": "src/follow_recommender.py",
+    "implementation_complete": true,
+    "synthetic_end_to_end_test_passed": true,
+    "real_graph_build_complete": false,
+    "real_evaluation_complete": false,
+    "reason": "Python and PowerShell downloads of followers.csv.gz stalled without data; connections were stopped. No background job remains.",
+    "next_command": ".venv/Scripts/python.exe -X utf8 src/follow_recommender.py build --run follow-full-v1"
+  },
+  "tests_passed": 10,
+  "http_api_implemented": false
+}

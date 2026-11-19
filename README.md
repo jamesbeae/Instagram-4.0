@@ -68,3 +68,7 @@ Frontend build hiện còn cảnh báo bundle khoảng 1 MB; cần tách tải c
 ## Đối chiếu thiết kế mới — 28/10/2026
 
 Đã bổ sung tìm kiếm tài khoản/nội dung có phân quyền và lịch sử UNLIKE/UNSAVE/UNFOLLOW. API tìm kiếm cho khách chỉ trả nội dung công khai; giao diện tìm kiếm hiện yêu cầu đăng nhập. Xem [bảng đối chiếu 24 use case, schema và công việc còn thiếu](Source_Code/backend/docs/DESIGN_ALIGNMENT_2026-10-28.md). Đây là đợt cập nhật đầu tiên; chưa chuyển schema public sang mxh/bigint.
+
+## Pipeline gợi ý Bluesky mở rộng
+
+Bộ thí nghiệm offline riêng tại [Source_Code/recommendation](Source_Code/recommendation/START_HERE.md) hỗ trợ ALS trên 11 feed và gợi ý follow bằng đồ thị hai bước. Có kiểm thử, báo cáo full-catalog ranking trên nhóm warm và coverage. Không thay đổi live ranker đang dùng trong backend. Dữ liệu nén, môi trường Python và mô hình được Git bỏ qua; xem hướng dẫn để tái lập trên máy clone mới. Gợi ý follow đã kiểm thử trên đồ thị nhỏ; chưa hoàn tất đánh giá đồ thị Bluesky thật do tải dữ liệu bị treo.

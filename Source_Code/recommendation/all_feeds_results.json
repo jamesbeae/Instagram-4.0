@@ -1,0 +1,152 @@
+{
+  "data": {
+    "source": "https://zenodo.org/records/14669616",
+    "feed": "all",
+    "timestamp_format": "YYYYMMDDHHMM (source calendar minute; not Unix seconds)",
+    "validation_start": 202403061550,
+    "test_start": 202403121730,
+    "feeds": [
+      "#Disability",
+      "#UkrainianView",
+      "AcademicSky",
+      "Blacksky",
+      "BookSky",
+      "Game Dev",
+      "GreenSky",
+      "News",
+      "Political Science",
+      "Science",
+      "What's History"
+    ],
+    "feed_count": 11,
+    "duplicate_like_rows": 1749136,
+    "unique_matched_likes": 3102957,
+    "missing_post_rows": 41270,
+    "invalid_author_or_date_rows": 1955,
+    "train_before_filtering": 2482334,
+    "train_rows": 209050,
+    "validation_rows": 310315,
+    "test_rows": 310308,
+    "train_users": 9427,
+    "train_posts": 32721,
+    "selection": {
+      "command": "prepare",
+      "feed": "all",
+      "name": "all-feeds-v1",
+      "max_users": 10000,
+      "min_user_likes": 3,
+      "min_post_likes": 2,
+      "seed": 42,
+      "func": "prepare"
+    }
+  },
+  "train_report": {
+    "algorithm": "implicit ALS, exact normal equations, binary likes, c=1+alpha*r",
+    "data": "all-feeds-v1",
+    "users": 9427,
+    "posts": 32721,
+    "likes": 209050,
+    "factors": 16,
+    "alpha": 1.0,
+    "regularization": 1.0,
+    "iterations": 10,
+    "seed": 42,
+    "seconds": 12.627568499999938,
+    "history": [
+      {
+        "iteration": 1,
+        "objective": 401369.1458637176
+      },
+      {
+        "iteration": 2,
+        "objective": 369913.18692659243
+      },
+      {
+        "iteration": 3,
+        "objective": 365158.0816555204
+      },
+      {
+        "iteration": 4,
+        "objective": 363488.48580226686
+      },
+      {
+        "iteration": 5,
+        "objective": 362649.3764619718
+      },
+      {
+        "iteration": 6,
+        "objective": 362134.89083181944
+      },
+      {
+        "iteration": 7,
+        "objective": 361777.0615708992
+      },
+      {
+        "iteration": 8,
+        "objective": 361511.75966144603
+      },
+      {
+        "iteration": 9,
+        "objective": 361309.2251839014
+      },
+      {
+        "iteration": 10,
+        "objective": 361152.4082564785
+      }
+    ],
+    "numpy_version": "1.26.4",
+    "train_csv_sha256": "89e33e9c9249726abde632f912a91b765a30da1d103025fa82730c26ea1709ee"
+  },
+  "validation_metrics": {
+    "split": "validation",
+    "k": 10,
+    "seed": 42,
+    "protocol": "frozen train snapshot; full train catalog; train likes excluded; macro warm metrics",
+    "split_rows": 310315,
+    "cold_user_rows": 281375,
+    "cold_post_rows_known_user": 27708,
+    "already_seen_rows": 0,
+    "warm_target_rows": 1232,
+    "warm_target_coverage": 0.003970159354204599,
+    "users_in_split": 54716,
+    "eligible_users": 739,
+    "evaluated_users": 739,
+    "max_eval_users": 0,
+    "metrics": {
+      "als": {
+        "Recall@10": 0.025497776918615888,
+        "NDCG@10": 0.018800116242531813
+      },
+      "popularity": {
+        "Recall@10": 0.023951285520974287,
+        "NDCG@10": 0.0220214896671939
+      }
+    }
+  },
+  "test_metrics": {
+    "split": "test",
+    "k": 10,
+    "seed": 42,
+    "protocol": "frozen train snapshot; full train catalog; train likes excluded; macro warm metrics",
+    "split_rows": 310308,
+    "cold_user_rows": 281529,
+    "cold_post_rows_known_user": 27779,
+    "already_seen_rows": 0,
+    "warm_target_rows": 1000,
+    "warm_target_coverage": 0.003222604637972595,
+    "users_in_split": 61883,
+    "eligible_users": 553,
+    "evaluated_users": 553,
+    "max_eval_users": 0,
+    "metrics": {
+      "als": {
+        "Recall@10": 0.07138424990249263,
+        "NDCG@10": 0.051889669820396854
+      },
+      "popularity": {
+        "Recall@10": 0.05319469559975889,
+        "NDCG@10": 0.05205107973163651
+      }
+    }
+  }
+}
