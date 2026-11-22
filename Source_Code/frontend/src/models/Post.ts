@@ -7,6 +7,7 @@ export type Post = {
     isSaved?: boolean;
     kind?: "POST" | "STORY";
     visibility?: "public" | "followers" | "group";
+    groupId?: string | null;
     caption: string;
     createdAt?: Date;
     updatedAt?: Date;

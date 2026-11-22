@@ -12,7 +12,7 @@ exports.getUserProfile = async (profileId, currentUserId) => {
         Post.findAll({ where: { userId: profileId, kind: 'POST', ...require('./accessService').visibleWhere(currentUserId) }, include: s.includes, order: [['createdAt', 'DESC']] }),
         profileId === currentUserId ? Save.findAll({ where: { userId: profileId }, include: [{ model: Post, as: 'post', include: s.includes }], order: [['createdAt', 'DESC']] }) : []
     ]);
-    const users = async (ids) => ids.length ? (await User.findAll({ where: { id: { [Op.in]: ids } } })).map(s.safeUser) : [];
+    const users = async (ids) => ids.length ? (await User.findAll({ where: { id: { [Op.in]: ids }, disabled: false } })).map(s.safeUser) : [];
     return { status: 200, profile: { ...s.safeUser(user), ...(profileId === currentUserId ? { email: user.email } : {}), followers: await users(followers.map(f => f.followerId)), followings: await users(following.map(f => f.followingId)), posts: posts.map(p => s.postJSON(p, currentUserId)), saved: (await Promise.all(saved.filter(x => x.post).map(async (x) => (await require('./accessService').canView(x.post, currentUserId)) ? s.postJSON(x.post, currentUserId) : null))).filter(Boolean) } };
 };
 exports.createFollow = async (userId, followingId) => {
@@ -50,7 +50,16 @@ exports.deleteFollow = async (userId, followingId) => {
 exports.updateProfile = async (userId, { avatarData, ...update }) => {
     const user = await User.findByPk(userId);
     if (!user) throw s.error(404, 'User not found');
+    if (update.username !== undefined && await User.findOne({ where: { [Op.and]: [sequelize.where(sequelize.fn('lower', sequelize.col('username')), update.username.toLowerCase()), { id: { [Op.ne]: userId } }] } })) throw s.error(409, 'username');
+    if (update.email !== undefined) {
+        update.email = update.email.trim().toLowerCase();
+        if (await User.findOne({ where: { [Op.and]: [sequelize.where(sequelize.fn('lower', sequelize.col('email')), update.email), { id: { [Op.ne]: userId } }] } })) throw s.error(409, 'email');
+    }
     if (avatarData !== undefined) update.avatar = avatarData === null ? null : await require('./mediaService').prepareAvatar(avatarData);
-    await user.update(update);
+    try { await user.update(update); }
+    catch (error) {
+        if (error.name === 'SequelizeUniqueConstraintError') throw s.error(409, error.errors?.[0]?.path || 'username');
+        throw error;
+    }
     return { status: 200, userInfo: { ...s.safeUser(user), email: user.email } };
 };

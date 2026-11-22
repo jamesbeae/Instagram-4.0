@@ -8,5 +8,6 @@ export type Comment = {
     postId: Post;
     content: string;
     likes: Like[];
+    parentCommentId?: string | null;
     createdAt: Date;
 };

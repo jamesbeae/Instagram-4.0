@@ -8,11 +8,17 @@ import Button from "../../../components/UI/Button/Button";
 import { useAppSelector } from "../../../hooks/useStore";
 import { createFollow, deleteFollow } from "../../../services/userService";
 import usePrivateHttp from "../../../hooks/usePrivateHttp";
+import LoginPromptModal from "../../../components/LoginPromptModal";
+import ReportPostDialog from "../../../components/ReportPostDialog";
 const TopInformation: React.FC<{
     profile: Profile;
     onProfileUpdated: (user: User) => void;
-}> = ({ profile, onProfileUpdated }) => {
+    onManageRelationships: () => void;
+}> = ({ profile, onProfileUpdated, onManageRelationships }) => {
     const [editing, setEditing] = React.useState(false);
+    const [loginPrompt, setLoginPrompt] = React.useState(false);
+    const [reportOpen, setReportOpen] = React.useState(false);
+    const [reportNotice, setReportNotice] = React.useState('');
     const navigate = useNavigate();
     const privateHttp = usePrivateHttp();
     const currentUser = useAppSelector((state) => state.authSlice.userInfo);
@@ -57,11 +63,15 @@ const TopInformation: React.FC<{
             console.log(error);
         }
     };
+<<<<<<< HEAD
 <<<<<<< Updated upstream
     return (<> {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)}/>}<div className="grid grid-cols-3 text-foreground px-4 py-6">
 =======
     return (<> {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)}/>}<div className="profile-cover" role="img" aria-label="Profile cover"/><div className="profile-header grid grid-cols-3 text-white px-4 py-6">
 >>>>>>> Stashed changes
+=======
+    return (<> {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)}/>} {reportOpen && <ReportPostDialog targetUserId={profile._id} onClose={() => setReportOpen(false)} onSubmitted={() => setReportNotice('Đã gửi báo cáo tài khoản')}/>}<div className="grid grid-cols-3 text-foreground px-4 py-6">
+>>>>>>> origin/feature/reels-messages-notifications-ui-fixed
             {/* <LeftAvatar avatarUrl={profile.avatar} />
         <RightContent profile={profile} /> */}
 
@@ -73,19 +83,21 @@ const TopInformation: React.FC<{
             {/* Profile Stats and Info */}
             <div className="flex-1 col-span-2">
                 <div className="flex gap-2 mb-6">
-                    {isOwnProfile ? (<>
+                    {!currentUser ? <><Button onClick={() => setLoginPrompt(true)} className="px-4 py-1.5 text-sm bg-textGray rounded">Follow</Button><Button onClick={() => setLoginPrompt(true)} className="px-4 py-1.5 text-sm bg-textGray rounded">Message</Button><Button onClick={() => setLoginPrompt(true)} className="px-4 py-1.5 text-sm bg-textGray rounded">Report</Button>{loginPrompt && <LoginPromptModal onClose={() => setLoginPrompt(false)} />}</> : isOwnProfile ? (<>
                             <Button onClick={() => setEditing(true)} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded">Edit profile</Button>
 
                             <Button onClick={async () => { const r = await privateHttp.get("/user/activity"); alert(r.data.activity.map((a: any) => a.type + " · " + new Date(a.createdAt).toLocaleString()).join("\n") || "No activity yet"); }} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded ">View activity</Button>
 
-                            <Button className="w-8 h-8 bg-textGray hover:bg-gray-600 rounded">...</Button>
+                            <Button onClick={onManageRelationships} className="rounded bg-textGray px-4 py-1.5 text-sm hover:bg-gray-600">Manage Groups</Button>
                         </>) : (<>
                             <Button onClick={handleFollowUser} className="flex items-center gap-1 px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded">{isFollowing ? "Following" : "Follow"}</Button>
 
                             {isFollowing && (<Button onClick={handleFollowUser} className="px-4 py-1.5 text-sm bg-red-500 hover:bg-red-600 rounded">Unfollow</Button>)}
                             <Button onClick={() => navigate("/message/" + profile._id, { state: { user: profile } })} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded">Message</Button>
+                            <Button onClick={() => { setReportNotice(''); setReportOpen(true); }} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded">Report</Button>
                         </>)}
                 </div>
+                {reportNotice && <p role="status" className="mb-3 text-sm text-blue">{reportNotice}</p>}
                 {/* Stats */}
                 <div className="flex gap-8 mb-4">
                     <div className="text-center">

@@ -24,6 +24,9 @@ const EditProfileModal = ({
     const privateHttp = usePrivateHttp();
     const dispatch = useAppDispatch();
 
+    const [username, setUsername] = useState(user.username || "");
+    const [email, setEmail] = useState(user.email || "");
+
     const [fullName, setFullName] = useState(
         user.fullName || ""
     );
@@ -39,7 +42,7 @@ const EditProfileModal = ({
     const [errorMessage, setErrorMessage] = useState("");
     const [avatarReading, setAvatarReading] = useState(false);
     const { markSaved, requestExit } = useUnsavedChanges(
-        fullName !== (user.fullName || "") || bio !== (user.bio || "") || avatarData !== undefined || avatarReading,
+        username !== (user.username || "") || email !== (user.email || "") || fullName !== (user.fullName || "") || bio !== (user.bio || "") || avatarData !== undefined || avatarReading,
         onClose,
     );
 
@@ -92,8 +95,19 @@ const EditProfileModal = ({
     };
 
     const handleSubmit = async () => {
+        const normalizedUsername = username.trim();
+        const normalizedEmail = email.trim().toLowerCase();
         const normalizedFullName = fullName.trim();
         const normalizedBio = bio.trim();
+
+        if (!/^[a-zA-Z0-9._]{3,30}$/.test(normalizedUsername)) {
+            setErrorMessage("Username phải từ 3 đến 30 ký tự, chỉ gồm chữ, số, dấu chấm hoặc gạch dưới");
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+            setErrorMessage("Email không hợp lệ");
+            return;
+        }
 
         if (normalizedFullName.length < 3) {
             setErrorMessage(
@@ -110,6 +124,8 @@ const EditProfileModal = ({
         }
 
         const data: UpdateProfileData = {
+            username: normalizedUsername,
+            email: normalizedEmail,
             fullName: normalizedFullName,
             bio: normalizedBio,
         };
@@ -138,9 +154,9 @@ const EditProfileModal = ({
             onClose();
         } catch (error) {
             console.error(error);
-            setErrorMessage(
-                "Không thể cập nhật hồ sơ"
-            );
+            const status = (error as any)?.response?.status;
+            const field = (error as any)?.response?.data?.message;
+            setErrorMessage(status === 409 && field === 'email' ? "Email này đã được sử dụng" : status === 409 ? "Username này đã được sử dụng" : "Không thể cập nhật hồ sơ");
         } finally {
             setIsSubmitting(false);
         }
@@ -179,6 +195,14 @@ const EditProfileModal = ({
                         />
                     </label>
                 </div>
+
+                <label className="mb-2 block text-sm">Username</label>
+                <input type="text" aria-label="Username" autoComplete="username" value={username} maxLength={30}
+                    onChange={event => setUsername(event.target.value)} className="mb-4 w-full rounded border border-textGray bg-dark p-2 outline-none" />
+
+                <label className="mb-2 block text-sm">Email</label>
+                <input type="email" aria-label="Email" autoComplete="email" value={email} maxLength={254}
+                    onChange={event => setEmail(event.target.value)} className="mb-4 w-full rounded border border-textGray bg-dark p-2 outline-none" />
 
                 <label className="mb-2 block text-sm">
                     Full name

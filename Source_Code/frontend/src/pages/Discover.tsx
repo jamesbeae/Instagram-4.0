@@ -1,15 +1,22 @@
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+=======
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
+>>>>>>> origin/feature/reels-messages-notifications-ui-fixed
 import Button from '../components/UI/Button/Button';
 import Loading from '../components/UI/Loading';
-import PostCard from '../components/PostCard';
 import usePrivateHttp from '../hooks/usePrivateHttp';
+import publicHttp from '../lib/axios/http';
+import { useAppSelector } from '../hooks/useStore';
 import type { Post } from '../models/Post';
 import ExploreGrid from './ExploreGrid';
+import ReelsFeed from './ReelsFeed';
 
 type Mode = 'explore' | 'reels';
-type FeedPage = { postsList: Post[]; pagination: { totalPages: number } };
+type FeedPage = { postsList: Post[]; users?: { _id: string; username: string; fullName?: string; avatar?: string }[]; pagination: { totalPages: number } };
 type PageRequest = { page: number };
 
 export default function Discover() {
@@ -18,59 +25,68 @@ export default function Discover() {
 }
 
 function DiscoverFeed({ mode }: { mode: Mode }) {
-    const http = usePrivateHttp();
+    const privateHttp = usePrivateHttp();
+    const userInfo = useAppSelector(state => state.authSlice.userInfo);
+    const http = userInfo ? privateHttp : publicHttp;
+    const [searchParams] = useSearchParams();
+    const query = mode === 'explore' ? (searchParams.get('q') || '').trim() : '';
+    const scope = searchParams.get('scope') === 'posts' ? 'posts' : 'users';
     const isExplore = mode === 'explore';
     const [request, setRequest] = useState<PageRequest>({ page: 1 });
     const [posts, setPosts] = useState<Post[]>([]);
+    const [users, setUsers] = useState<NonNullable<FeedPage['users']>>([]);
     const [pages, setPages] = useState(1);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const controller = new AbortController();
-        void http.get<FeedPage>(`/post/${mode}`, {
-            params: { page: request.page, limit: isExplore ? 10 : 12 },
+        setLoading(true);
+        setError('');
+        const endpoint = query ? '/search' : `/post/${mode}`;
+        void http.get<FeedPage>(endpoint, {
+            params: query ? { q: query, scope, page: request.page, limit: 10 } : { page: request.page, limit: isExplore ? 10 : 12 },
             signal: controller.signal,
         }).then(({ data }) => {
             if (controller.signal.aborted) return;
+            setUsers(data.users || []);
             setPosts(previous => {
                 if (request.page === 1) return data.postsList;
                 const seen = new Set(previous.map(post => post._id));
                 return [...previous, ...data.postsList.filter(post => !seen.has(post._id))];
             });
             setPages(data.pagination.totalPages);
-        }).catch(() => {
-            if (!controller.signal.aborted) setError(true);
+        }).catch((reason: any) => {
+            if (!controller.signal.aborted) setError(reason?.response?.data?.message || 'Unable to load content. Please try again.');
         }).finally(() => {
             if (!controller.signal.aborted) setLoading(false);
         });
         return () => controller.abort();
-    }, [http, isExplore, mode, request]);
+    }, [http, isExplore, mode, request, query, scope]);
 
-    function loadPage(page: number) {
+    const loadPage = useCallback((page: number) => {
         setLoading(true);
-        setError(false);
+        setError('');
         setRequest({ page });
-    }
+    }, []);
+
+    const loadNextPage = useCallback(() => {
+        loadPage(error ? request.page : request.page + 1);
+    }, [error, loadPage, request.page]);
+
+    if (mode === 'reels') return <ReelsFeed posts={posts} loading={loading} error={error} hasMore={request.page < pages} onLoadMore={loadNextPage} />;
 
     return (
-        <main className={`discover-page flex-1 min-w-0 overflow-auto ${isExplore ? 'explore-page' : 'p-4'}`}>
-            <div className={isExplore ? 'explore-content' : undefined}>
-                <h1 className="text-xl mb-4 capitalize">{mode}</h1>
-                {isExplore ? <ExploreGrid posts={posts} /> : (
-                    <div className="flex flex-col items-center">
-                        {posts.map(post => <PostCard key={post._id} postData={post} />)}
-                    </div>
-                )}
-                {!loading && !error && !posts.length && (
-                    <p>{isExplore ? 'No posts yet.' : 'No videos yet. Create a post with a video to publish a Reel.'}</p>
-                )}
-                <div className={isExplore ? 'explore-pagination' : undefined}>
+        <main className="discover-page explore-page min-w-0 flex-1 overflow-auto">
+            <div className="explore-content">
+                <h1 className="mb-4 text-xl">{query ? `Search ${scope}: ${query}` : 'Explore'}</h1>
+                {query && scope === 'users' ? <div className="flex flex-col gap-3">{users.map(user => <Link key={user._id} to={`/profile/${user._id}`} className="border border-lightDark rounded p-3">{user.fullName || user.username} <span className="text-textGray">@{user.username}</span></Link>)}</div> : <ExploreGrid posts={posts} />}
+                {!loading && !error && !(query && scope === 'users' ? users.length : posts.length) && <p>{query ? `No ${scope} found.` : 'No posts yet.'}</p>}
+                <div className="explore-pagination">
                     {loading && <Loading message="Loading posts…" className="py-4" />}
-                    {error && <p role="alert">Unable to load content.</p>}
+                    {error && <p role="alert">{error}</p>}
                     {!loading && (error || request.page < pages) && (
-                        <Button className={isExplore ? 'explore-load-more' : 'p-3'}
-                            onClick={() => loadPage(error ? request.page : request.page + 1)}>
+                        <Button className="explore-load-more" onClick={loadNextPage}>
                             {error ? 'Try again' : 'Load more'}
                         </Button>
                     )}
