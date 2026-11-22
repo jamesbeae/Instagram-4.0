@@ -45,7 +45,7 @@ const CurrentAccountAction = () => {
 const CurrentAccount = () => {
     const currentUser = useAppSelector((state) => state.authSlice);
     return (
-        <div className="">
+        <div className="home-current-account">
             <UserTagBar
                 _id={currentUser.userInfo?._id}
                 username={currentUser.userInfo?.username}

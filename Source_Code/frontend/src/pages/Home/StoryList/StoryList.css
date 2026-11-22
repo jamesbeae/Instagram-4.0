@@ -5,10 +5,17 @@
     gap: 12px;
     flex-shrink: 0;
     overflow-x: auto;
+<<<<<<< Updated upstream
     padding: 12px clamp(10px, 1.4vw, 16px);
     color: var(--theme-ink, #fff);
     scrollbar-width: thin;
     scrollbar-color: var(--theme-border, #333) transparent;
+=======
+    padding: 20px 4px 24px;
+    color: var(--ink);
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+>>>>>>> Stashed changes
 }
 .story-item {
     display: flex;
@@ -25,11 +32,18 @@
     flex-shrink: 0;
     padding: 3px;
     border-radius: 50%;
-    background: linear-gradient(35deg, #ffcc5b, #fa7e1e 25%, #d62976 65%, #962fbf);
+    background: linear-gradient(35deg, var(--brand-soft), var(--brand) 68%, #8ea2c0);
 }
+<<<<<<< Updated upstream
 .story-avatar { width: 64px; height: 64px; box-sizing: content-box; border: 3px solid var(--theme-card, #000); }
+=======
+.story-avatar { width: 64px; height: 64px; box-sizing: content-box; border: 3px solid #fff; }
+>>>>>>> Stashed changes
 .story-username { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
-.story-item:focus-visible { outline: 2px solid #0095f6; outline-offset: 4px; border-radius: 8px; }
+.story-item:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; border-radius: 8px; }
+.story-create .story-ring { background: var(--brand-soft); }
+.story-create-avatar { position: relative; display: block; }
+.story-create-avatar > span { position: absolute; right: 0; bottom: 2px; display: grid; width: 23px; height: 23px; place-items: center; border: 2px solid #fff; border-radius: 50%; background: var(--brand); color: #fff; font-size: 19px; line-height: 1; }
 @media (min-width: 640px) {
     .story-strip { gap: 16px; }
     .story-item { flex-basis: 96px; }

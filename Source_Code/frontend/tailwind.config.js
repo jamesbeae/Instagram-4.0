@@ -34,6 +34,7 @@ export default {
             sourceSans: ['"Source Sans 3"', "sans-serif"],
         },
         colors: {
+<<<<<<< Updated upstream
             textGray: "rgb(var(--theme-muted) / <alpha-value>)",
             textSecondGray: "rgb(var(--theme-secondary) / <alpha-value>)",
             blue: "rgb(var(--theme-accent) / <alpha-value>)",
@@ -45,6 +46,22 @@ export default {
             "#efeae0": "#efeae0",
             lightDark: "rgb(var(--theme-surface) / <alpha-value>)",
             lightSecondDark: "rgb(var(--theme-raised) / <alpha-value>)",
+=======
+            textGray: "var(--muted)",
+            textSecondGray: "var(--muted)",
+            blue: "var(--brand)",
+            white: "#fff",
+            black: "var(--ink)",
+            errorText: "var(--danger)",
+            dark: "var(--app-bg)",
+            "#262626": "var(--surface-strong)",
+            "#efeae0": "var(--brand-soft)",
+            lightDark: "var(--surface)",
+            lightSecondDark: "var(--surface-raised)",
+            red: { 400: "var(--danger)", 500: "var(--danger)", 600: "var(--danger-hover)" },
+            green: { 400: "var(--success)" },
+            gray: { 400: "#98a3b2", 500: "var(--muted)", 600: "#536176", 800: "#334155" },
+>>>>>>> Stashed changes
             transparent: "transparent",
         },
         screens: {

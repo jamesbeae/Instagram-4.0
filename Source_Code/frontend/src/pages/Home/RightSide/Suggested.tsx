@@ -61,7 +61,7 @@ const Suggested = () => {
     useEffect(() => {
         void loadSuggestions();
     }, [loadSuggestions]);
-    return (<div className="mx-4 mt-6 mb-3">
+    return (<div className="home-suggestion-card mx-4 mt-6 mb-3">
             <div className="flex justify-between items-center">
                 <div className="font-semibold text-textSecondGray">
                     Suggested for you

@@ -7,7 +7,309 @@
 }
 
 .swiper-pagination .swiper-pagination-bullet-active {
-    background: #efeae0;
+    background: var(--brand-soft);
+}
+
+/* Orbit-inspired light social interface. The existing routes and actions stay intact. */
+.social-app {
+    background: var(--app-bg) !important;
+    color: var(--ink);
+    font-family: "Source Sans 3", sans-serif;
+}
+.social-app .bg-dark { background-color: var(--app-bg) !important; }
+.social-app .bg-lightDark { background-color: var(--surface) !important; }
+.social-app .bg-lightSecondDark { background-color: var(--surface-raised) !important; }
+.social-app .bg-textGray { background-color: var(--surface-strong) !important; }
+.social-app .hover\:bg-lightSecondDark:hover { background-color: var(--surface-raised) !important; }
+.social-app .hover\:bg-gray-600:hover { background-color: var(--surface-strong) !important; }
+.social-app [class~="dark:bg-black"],
+.social-app [class~="dark:bg-gray-800"] { background-color: var(--surface-raised) !important; }
+.social-app .text-white { color: var(--ink) !important; }
+.social-app [class~="dark:text-white"] { color: var(--ink) !important; }
+.social-app .text-textGray,
+.social-app .text-textSecondGray,
+.social-app .text-gray-500 { color: var(--muted) !important; }
+.social-app .border-lightDark,
+.social-app .border-lightSecondDark,
+.social-app .border-gray-400,
+.social-app .border-gray-800 { border-color: var(--line) !important; }
+.social-app .border-t-white { border-top-color: var(--brand) !important; }
+.social-app .text-blue { color: var(--brand) !important; }
+.social-app .text-red-400,
+.social-app .text-red-500,
+.social-app .text-errorText { color: var(--danger) !important; }
+.social-app .text-green-400 { color: var(--success) !important; }
+.social-app .bg-red-500 { background-color: var(--danger) !important; }
+.social-app .hover\:bg-red-600:hover { background-color: var(--danger-hover) !important; }
+.social-app .bg-blue.text-white,
+.social-app button.bg-blue.text-white,
+.social-app .orbit-create-nav { color: #fff !important; }
+.social-app .bg-dark.opacity-70 { background-color: var(--ink) !important; }
+.social-app button svg[fill="rgb(245, 245, 245)"] { color: var(--ink) !important; fill: var(--ink) !important; }
+.social-app svg[aria-label="Unlike"] { color: var(--like) !important; fill: var(--like) !important; }
+.social-app .app-sidebar {
+    width: 232px;
+    padding: 20px 14px;
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+}
+.social-app .app-sidebar [role="button"] {
+    min-height: 48px;
+    margin: 3px 0;
+    padding: 0 14px;
+    color: var(--ink);
+    border-radius: 14px;
+}
+.social-app .app-sidebar [role="button"]:hover,
+.social-app .app-sidebar [role="button"].bg-lightDark {
+    background: var(--brand-soft) !important;
+    color: var(--brand);
+}
+.social-app .home-workspace { gap: 34px; padding: 28px 32px 48px; }
+.social-app .home-feed-column { max-width: 740px; }
+.social-app .home-feed-tabs {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+}
+.social-app .home-feed-tabs button {
+    min-width: 130px;
+    padding: 9px 18px;
+    border-radius: 12px;
+    color: var(--muted);
+    transition: background .18s ease, color .18s ease;
+}
+.social-app .home-feed-tabs button[aria-pressed="true"] {
+    color: var(--brand);
+    background: var(--brand-soft);
+    font-weight: 600;
+}
+.social-app .home-composer {
+    width: 100%;
+    margin: 14px 0 8px;
+    padding: 16px 18px 12px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+}
+.social-app .home-composer-prompt { display: flex; align-items: center; gap: 12px; }
+.social-app .home-composer-prompt > button {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 24px;
+    background: var(--app-bg);
+    color: var(--muted);
+    text-align: left;
+}
+.social-app .home-composer-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+}
+.social-app .home-composer-actions button { padding: 7px 10px; color: var(--muted); font-size: .875rem; }
+.social-app .home-composer-actions button:last-child { color: var(--brand); font-weight: 600; }
+.social-app .home-post {
+    max-width: 740px;
+    padding: 18px;
+    margin-bottom: 22px;
+    border: 1px solid var(--line) !important;
+    border-radius: 20px;
+    background: var(--surface);
+    box-shadow: 0 8px 28px rgba(37, 55, 88, .045);
+}
+.social-app .home-post [class*="rounded"] { border-color: var(--line); }
+.social-app .home-post button > svg { color: var(--muted) !important; fill: var(--muted) !important; }
+.social-app .home-post button[aria-label="Unlike post"] > svg { color: var(--like) !important; fill: var(--like) !important; }
+.social-app .home-current-account,
+.social-app .home-suggestion-card {
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+}
+.social-app .home-suggestion-card { margin: 14px 0 18px; }
+.social-app .home-topics-card { margin: 0 0 18px; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+.home-panel-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.home-panel-heading h2 { color: var(--ink); font-size: .92rem; font-weight: 650; }
+.home-panel-heading button { color: var(--brand); font-size: .78rem; }
+.home-topics-card ul { margin: 0; padding: 0; list-style: none; }
+.home-topics-card li + li { border-top: 1px solid var(--line); }
+.home-topics-card li button { display: flex; flex-direction: column; gap: 3px; width: 100%; padding: 10px 0; text-align: left; }
+.home-topics-card li strong { color: var(--brand); font-size: .9rem; }
+.home-topics-card li span, .home-topics-empty p { color: var(--muted); font-size: .75rem; }
+.home-topics-empty button { margin-top: 8px; color: var(--brand); font-size: .8rem; font-weight: 600; }
+.social-app .story-strip { padding-top: 16px; }
+.social-app main h1 { color: var(--ink); font-size: 1.65rem; font-weight: 700; }
+.social-app main a[class*="aspect-square"] { border-radius: 14px; }
+.social-app .profile-header,
+.social-app .chat-list-panel { border-color: var(--line); background: var(--surface); }
+.social-app .profile-page { max-width: 1060px; padding-top: 30px; }
+.social-app .profile-cover { height: 190px; border-radius: 20px 20px 0 0; background: linear-gradient(180deg, rgba(40, 60, 75, .02), rgba(40, 60, 75, .08)), linear-gradient(168deg, transparent 44%, var(--cover-hill-dark) 45% 55%, transparent 56%), linear-gradient(190deg, transparent 48%, var(--cover-hill) 49% 61%, transparent 62%), linear-gradient(180deg, var(--cover-sky) 0%, #edf0e9 62%, var(--cover-water) 63% 100%); overflow: hidden; }
+.social-app .profile-header { position: relative; margin-top: -34px; padding: 18px 28px 28px; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 22px 22px; }
+.social-app .profile-header > div:first-child { padding-top: 0; }
+.social-app .profile-header > div:first-child > div { width: 132px !important; height: 132px !important; border: 5px solid #fff; border-radius: 50%; box-shadow: 0 3px 14px rgba(20, 43, 73, .18); }
+.social-app .profile-page > div:nth-child(3) { margin-top: 30px; }
+.social-app .profile-page > div:nth-child(3) > div:first-child { border-color: var(--line); }
+.social-app .profile-page > div:nth-child(3) [class*="aspect-"] { border-radius: 12px; }
+.social-app .profile-page .group:hover .bg-dark.bg-opacity-50 { background-color: rgba(40, 53, 72, .58) !important; }
+.social-app .profile-header button { border-radius: 10px !important; background: var(--brand-soft) !important; color: var(--brand) !important; }
+.social-app .fixed.inset-0.z-50 { justify-content: flex-end; }
+.social-app .fixed.inset-0.z-50 > div { width: min(420px, 100vw); height: 100%; max-width: none; overflow-y: auto; border: 0; border-radius: 22px 0 0 22px; background: #fff !important; color: var(--ink) !important; }
+.social-app .profile-page [class*="grid"] a { border-radius: 14px; }
+.social-app .discover-page { padding: 32px clamp(16px, 4vw, 64px); }
+.discover-heading { display: flex; justify-content: space-between; align-items: flex-end; max-width: 1200px; margin: 0 auto 22px; }
+.discover-eyebrow { margin-bottom: 6px; color: var(--muted); font-size: .68rem; font-weight: 700; letter-spacing: .12em; }
+.social-app main .discover-heading h1 { margin: 0; font-size: 2rem !important; }
+.discover-heading p:last-child { margin-top: 2px; color: var(--muted); }
+.discover-topics { display: flex; max-width: 1200px; gap: 10px; overflow-x: auto; margin: 0 auto 22px; padding: 3px 0 7px; }
+.discover-topics button { flex: 0 0 auto; padding: 9px 19px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); font-size: .86rem; }
+.discover-topics button[aria-selected="true"] { border-color: var(--brand); background: var(--brand); color: white; }
+.discover-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; max-width: 1200px; margin: 0 auto; }
+.discover-tile { position: relative; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); box-shadow: 0 5px 18px rgba(37, 55, 88, .05); }
+.discover-tile img, .discover-tile video { transition: transform .2s ease; }
+.discover-tile:hover img, .discover-tile:hover video { transform: scale(1.04); }
+.discover-tile > span { position: absolute; right: 8px; bottom: 8px; padding: 5px 9px; border-radius: 99px; background: rgba(40, 53, 72, .78); color: white; font-size: .72rem; }
+.discover-tile:first-child { grid-column: span 2; grid-row: span 2; min-height: 380px; }
+.discover-tile:nth-child(6) { grid-row: span 2; min-height: 300px; }
+.discover-empty, .discover-error { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 600px; margin: 64px auto; padding: 32px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); color: var(--muted); text-align: center; }
+.discover-empty strong { color: var(--ink); font-size: 1.15rem; }
+.discover-error button { color: var(--brand); font-weight: 600; }
+.discover-load-more { display: block; margin: 22px auto; padding: 10px 20px; border-radius: 12px; background: var(--brand); color: white; }
+.reels-heading { text-align: center; }
+.reels-page .discover-heading { max-width: 920px; }
+.reels-feed { max-width: 920px; margin: 0 auto; }
+.reels-feed .home-post { max-width: 780px; }
+.reels-feed .home-post > div > div:first-child { max-height: min(70vh, 760px); border-radius: 18px; background: var(--surface-raised); }
+.social-app .discover-page > div.flex { max-width: 920px; margin: 0 auto; }
+.social-app .chat-list-panel { width: 340px; }
+.social-app .messages-page { min-width: 0; border: 1px solid var(--line); border-radius: 20px 0 0 20px; background: var(--surface); overflow: hidden; }
+.social-app .messages-page [class*="border-b"] { border-color: var(--line) !important; }
+.social-app .messages-page [class~="hover:bg-lightSecondDark"]:hover,
+.social-app .messages-page [class~="bg-lightSecondDark"] { background: var(--brand-soft) !important; }
+.social-app .message-thread { box-sizing: border-box; min-height: 0; padding-bottom: 94px; }
+.social-app .message-empty-state { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); text-align: center; }
+.social-app .message-empty-state > span { display: grid; width: 72px; height: 72px; place-items: center; border: 2px solid var(--ink); border-radius: 50%; color: var(--brand); font-size: 2rem; }
+.social-app .message-empty-state h2 { color: var(--ink); font-size: 1.2rem; font-weight: 650; }
+.social-app .home-feed-list > [role="alert"],
+.social-app .home-feed-list > [role="status"] { color: var(--muted); }
+.orbit-topbar {
+    z-index: 30;
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(250px, 440px) minmax(180px, 1fr);
+    align-items: center;
+    gap: 24px;
+    height: 66px;
+    flex: 0 0 66px;
+    padding: 0 clamp(20px, 4vw, 56px);
+    border-bottom: 1px solid var(--line);
+    background: rgba(255, 255, 255, .94);
+    backdrop-filter: blur(16px);
+}
+.orbit-brand { display: inline-flex; align-items: center; gap: 9px; justify-self: start; color: var(--ink); font-size: 1.4rem; font-weight: 750; letter-spacing: -.04em; }
+.orbit-brand-mark { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: var(--brand); color: #fff; font-size: 1.15rem; line-height: 1; }
+.orbit-search { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 15px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-raised); color: var(--muted); text-align: left; font-size: .9rem; }
+.orbit-search:hover { border-color: var(--brand); background: var(--brand-soft); }
+.orbit-account-wrap { position: relative; justify-self: end; }
+.orbit-account { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: .9rem; font-weight: 600; }
+.orbit-account-menu { position: absolute; top: calc(100% + 12px); right: 0; z-index: 50; width: 180px; padding: 7px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 14px 36px rgba(40, 53, 72, .10); }
+.orbit-account-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px; border-radius: 9px; color: var(--ink); text-align: left; }
+.orbit-account-menu button:hover { background: var(--app-bg); }
+.legacy-sidebar { display: none !important; }
+.app-content { overflow: hidden; }
+.orbit-bottom-nav {
+    position: fixed;
+    z-index: 35;
+    bottom: 18px;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: max-content;
+    max-width: calc(100vw - 28px);
+    padding: 8px 12px;
+    transform: translateX(-50%);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, .94);
+    box-shadow: 0 12px 32px rgba(40, 53, 72, .10);
+    backdrop-filter: blur(18px);
+}
+.orbit-bottom-nav > button {
+    display: flex;
+    flex: 0 0 74px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 54px;
+    border-radius: 16px;
+    color: var(--muted);
+    font-size: .7rem;
+    transition: background .15s ease, color .15s ease, transform .15s ease;
+}
+.orbit-bottom-nav > button svg { font-size: 1rem; }
+.orbit-bottom-nav > button:hover,
+.orbit-bottom-nav > button.is-active { background: var(--brand-soft); color: var(--brand); }
+.orbit-bottom-nav > .orbit-create-nav { flex-basis: 48px; width: 48px; min-height: 48px; margin: 0 7px; border-radius: 50%; background: var(--brand); color: white; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(40, 53, 72, .18); }
+.orbit-bottom-nav > .orbit-nav-utility { flex-basis: 74px; }
+.orbit-bottom-nav-messages { bottom: 8px; }
+.social-app .home-workspace { align-items: flex-start; overflow-y: auto; padding-top: 22px; padding-bottom: 110px; }
+.social-app .home-feed-column { flex: 0 1 740px; }
+.social-app .home-suggestions { margin-top: 22px; }
+.social-app .profile-page { padding-bottom: 112px; }
+.social-app .discover-page { padding-bottom: 112px; }
+.social-app .messages-page { height: 100%; border-radius: 0; }
+.social-app .chat-list-panel { height: 100%; }
+@media (max-width: 920px) {
+    .orbit-bottom-nav > button { flex-basis: 62px; }
+    .orbit-bottom-nav > .orbit-nav-utility { flex-basis: 62px; }
+    .social-app .home-suggestions { display: none; }
+    .social-app .home-feed-column { margin: 0 auto; }
+}
+@media (max-width: 900px) { .discover-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+    .orbit-topbar { grid-template-columns: 1fr auto; gap: 12px; height: 58px; flex-basis: 58px; padding: 0 14px; }
+    .orbit-brand { font-size: 1.2rem; }
+    .orbit-brand-mark { width: 25px; height: 25px; }
+    .orbit-search { width: 40px; height: 40px; justify-content: center; padding: 0; border-radius: 50%; }
+    .orbit-search span { display: none; }
+    .orbit-account-wrap { display: none; }
+    .orbit-bottom-nav { bottom: 8px; width: calc(100vw - 16px); justify-content: space-around; gap: 0; padding: 6px 4px; border-radius: 20px; }
+    .orbit-bottom-nav > button,
+    .orbit-bottom-nav > .orbit-nav-utility { flex: 1 1 0; min-width: 0; min-height: 48px; font-size: .58rem; }
+    .orbit-bottom-nav > .orbit-create-nav { flex: 0 0 42px; width: 42px; min-height: 42px; margin: 0 2px; }
+    .orbit-bottom-nav > button > span { display: none; }
+    .social-app .home-workspace { padding: 10px 8px 90px; }
+    .social-app .profile-page { width: 100%; padding: 20px 12px 90px; }
+    .social-app .profile-header { display: flex; gap: 16px; padding: 18px 12px; }
+    .social-app .profile-header > div:first-child > div { width: 82px !important; height: 82px !important; }
+    .social-app .messages-page { overflow: auto; }
+    .social-app .chat-list-panel { width: 100%; }
+    .social-app .messages-page.has-active-chat .chat-list-panel { display: none; }
+    .social-app .messages-page:not(.has-active-chat) .message-empty-state { display: none; }
+    .social-app .message-thread { padding-bottom: 78px; }
+    .social-app .discover-page { padding: 20px 12px 90px; }
+    .discover-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+    .social-app main .discover-heading h1 { font-size: 1.6rem !important; }
+    .discover-tile:first-child { min-height: 260px; }
+    .discover-tile:nth-child(6) { min-height: 220px; }
+}
+@media (max-width: 1279px) {
+    .social-app .home-workspace { padding-left: 22px; padding-right: 22px; }
+}
+@media (max-width: 700px) {
+    .social-app .app-sidebar { width: 64px !important; padding-left: 6px; padding-right: 6px; }
+    .social-app .home-workspace { padding: 12px 10px 90px; }
+    .social-app .home-post { padding: 12px; border-radius: 16px; }
+    .social-app .home-feed-tabs button { min-width: 0; flex: 1; }
 }
 
 @media(max-width:1100px){.app-sidebar{width:72px!important;padding-left:8px;padding-right:8px}.app-sidebar .navigation-label{display:none}.app-sidebar p{overflow:hidden}.app-sidebar>div:first-child{max-width:55px;overflow:hidden}}

@@ -57,7 +57,11 @@ const TopInformation: React.FC<{
             console.log(error);
         }
     };
+<<<<<<< Updated upstream
     return (<> {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)}/>}<div className="grid grid-cols-3 text-foreground px-4 py-6">
+=======
+    return (<> {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)}/>}<div className="profile-cover" role="img" aria-label="Profile cover"/><div className="profile-header grid grid-cols-3 text-white px-4 py-6">
+>>>>>>> Stashed changes
             {/* <LeftAvatar avatarUrl={profile.avatar} />
         <RightContent profile={profile} /> */}
 

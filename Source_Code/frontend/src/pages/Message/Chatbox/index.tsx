@@ -99,6 +99,7 @@ export default function ChatBox() {
             setSendError("Connection unavailable. Please try again.");
             return false;
         }
+<<<<<<< Updated upstream
         return new Promise<boolean>(resolve => {
             socket.timeout(10000).emit("sendMessage", { receiverId: user_id, contents }, (error: Error | null, result?: {
                 ok: boolean;
@@ -138,4 +139,20 @@ export default function ChatBox() {
             )}
         </section>
     );
+=======
+        return new Promise<boolean>(resolve => socket.timeout(10000).emit('sendMessage', { receiverId: user_id, contents }, (err: any, result: any) => {
+            if (err || !result?.ok) {
+                setError(result?.message || 'Unable to send message');
+                resolve(false);
+                return;
+            }
+            setError('');
+            setMessages(prev => [...prev, result.message]);
+            resolve(true);
+        }));
+    };
+    if (!user)
+        return <p role="status" className="text-white p-6">{error || 'Loading conversation…'}</p>;
+    return <div className="message-thread flex-1 h-full flex flex-col"><ChatBoxHeader user={user}/>{error && <p role="alert" className="text-red-400 p-2">{error}</p>}<ChatBoxList messages={messages} sendingUser={user}/><ChatBoxInput sendMessage={sendMessage}/></div>;
+>>>>>>> Stashed changes
 }

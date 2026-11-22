@@ -5,6 +5,7 @@ import MessageIcon from "../../components/UI/Icons/MessageIcon";
 import { useMessageInbox } from "../../components/RootLayout/MessageInboxProvider";
 import { socket } from "../../socket/socket";
 import ChatUserList from "./ChatUserList";
+<<<<<<< Updated upstream
 import "./Message.css";
 
 export default function Message() {
@@ -12,12 +13,31 @@ export default function Message() {
     const [online, setOnline] = useState<string[]>([]);
     const selectedUserId = useMatch("/message/:user_id")?.params.user_id;
 
+=======
+import { User } from "../../models/User";
+import { getAllUsers } from "../../services/userService";
+import { useParams } from "react-router-dom";
+
+const Message = () => {
+    const { user_id } = useParams();
+    const [users, setUsers] = useState<User[] | null>(null);
+>>>>>>> Stashed changes
     useEffect(() => {
         const update = (ids: string[]) => setOnline(ids);
         socket.on("onlineUsers", update);
         socket.emit("addUser");
         return () => { socket.off("onlineUsers", update); };
     }, []);
+<<<<<<< Updated upstream
+=======
+    return (
+        <div className={`messages-page h-screen flex flex-1 ${user_id ? "has-active-chat" : ""}`}>
+            <ChatUserList users={users} />
+            {user_id ? <Outlet /> : <div className="message-empty-state"><span>✉</span><h2>Your messages</h2><p>Select a conversation to start chatting.</p></div>}
+        </div>
+    );
+};
+>>>>>>> Stashed changes
 
     return (
         <main className="message-page">
