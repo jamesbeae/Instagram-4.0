@@ -1,6 +1,8 @@
 const Joi = require("joi");
 
 exports.updateProfileSchema = Joi.object({
+    username: Joi.string().trim().min(3).max(30).pattern(/^[a-zA-Z0-9._]+$/),
+    email: Joi.string().trim().email().max(254),
     fullName: Joi.string().trim().min(3).max(120),
 
     bio: Joi.string().trim().allow("").max(500),

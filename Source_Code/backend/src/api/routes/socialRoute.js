@@ -28,13 +28,12 @@ router.post('/post/:postId/interaction', verifyJWT, wrap(async (req) => {
     return { status: 201 };
 }));
 router.patch('/post/:postId', verifyJWT, wrap(req => {
-    const data = validated(Joi.object({ content: Joi.string().trim().min(1).max(2200), mediaUrl: Joi.string().trim().uri({ scheme: ['http', 'https'] }).max(2048) }).min(1), req.body);
+    const data = validated(Joi.object({ content: Joi.string().trim().min(1).max(2200), mediaUrl: Joi.string().trim().uri({ scheme: ['http', 'https'] }).max(2048), visibility: Joi.string().valid('public', 'followers', 'group'), groupId: Joi.string().uuid().allow(null) }).min(1), req.body);
     return require('../services/postService').updatePost({ postId: req.params.postId, userId: req.currentUser.id, ...data });
 }));
 const updateProfile = wrap(async req => {
-    const data = validated(Joi.object({ fullName: Joi.string().trim().min(1).max(120), bio: Joi.string().max(2000).allow(''), avatar: Joi.string().uri({ scheme: ['http', 'https'] }).allow(null, ''), avatarData: Joi.string().pattern(/^data:image\/(png|jpeg|webp);base64,/).max(7000000).allow(null) }).oxor('avatar', 'avatarData').min(1), req.body);
-    const result = await require('../services/userService').updateProfile(req.currentUser.id, data);
-    return { ...result, userInfo: { ...result.userInfo, role: req.currentUser.role } };
+    const data = validated(Joi.object({ username: Joi.string().trim().min(3).max(30).pattern(/^[a-zA-Z0-9._]+$/), email: Joi.string().trim().email().max(254), fullName: Joi.string().trim().min(1).max(120), bio: Joi.string().max(2000).allow(''), avatar: Joi.string().uri({ scheme: ['http', 'https'] }).allow(null, ''), avatarData: Joi.string().pattern(/^data:image\/(png|jpeg|webp);base64,/).max(7000000).allow(null) }).oxor('avatar', 'avatarData').min(1), req.body);
+    return require('../services/userService').updateProfile(req.currentUser.id, data);
 });
 router.patch('/user/me', verifyJWT, updateProfile);
 router.post('/auth/change-password', verifyJWT, wrap(async (req) => {
@@ -47,5 +46,6 @@ router.post('/auth/change-password', verifyJWT, wrap(async (req) => {
     return { status: 200, message: 'Password changed. Sign in again to renew your session.' };
 }));
 router.patch('/notification/:id/read', verifyJWT, wrap(async (req) => { await Notification.update({ read: true }, { where: { id: s.id(req.params.id), receiverId: req.currentUser.id } }); return { status: 200 }; }));
+router.delete('/notification/:id', verifyJWT, wrap(async (req) => { await Notification.destroy({ where: { id: s.id(req.params.id), receiverId: req.currentUser.id } }); return { status: 200 }; }));
 router.get('/user/activity', verifyJWT, wrap(async (req) => ({ status: 200, activity: await Interaction.findAll({ where: { userId: req.currentUser.id }, order: [['createdAt', 'DESC']], limit: 100 }) })));
 module.exports = router;

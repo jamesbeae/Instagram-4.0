@@ -2,7 +2,8 @@ const { Op } = require('sequelize');
 const { Post, Follow, Interaction } = require('../../database/models');
 const social = require('./socialService');
 const config = require('../../config/recommendation-weights.json');
-const weights = exports.weights = { VIEW: 1, LIKE: 3, COMMENT: 4, SAVE: 5, SHARE: 3, FOLLOW: 4 };
+// Copying a post URL is tracked for creator analytics, but is not a preference signal.
+const weights = exports.weights = { VIEW: 1, LIKE: 3, COMMENT: 4, SAVE: 5, SHARE: 0, FOLLOW: 4 };
 const terms = text => new Set((text.toLowerCase().match(/[\p{L}\p{N}]{3,}/gu) || []).filter(t => !['the', 'and', 'this', 'with', 'your', 'from', 'that'].includes(t)));
 // A deterministic, explainable hybrid baseline. No external user identities are mixed into the live database.
 exports.rank = (posts, events, followed, userId, now = Date.now()) => {
@@ -27,7 +28,7 @@ exports.rank = (posts, events, followed, userId, now = Date.now()) => {
     }).sort((a, b) => b.score - a.score || String(a.post.id).localeCompare(String(b.post.id)));
 };
 exports.getRecommended = async (userId, { page = 1, limit = 10 }) => {
-    const models = await Post.findAll({ where: { ...require("./accessService").visibleWhere(userId), kind: "POST" }, include: social.includes, order: [['createdAt', 'DESC']], limit: 1000 });
+    const models = await Post.findAll({ where: { ...require("./accessService").visibleWhere(userId), kind: "POST", userId: { [Op.ne]: userId } }, include: social.includes, order: [['createdAt', 'DESC']], limit: 1000 });
     const posts = models.map(p => p.get({ plain: true }));
     const events = (await Interaction.findAll({ where: { userId, createdAt: { [Op.gte]: new Date(Date.now() - 90 * 86400000) } }, order: [['createdAt', 'DESC']], limit: 5000 })).map(e => e.get({ plain: true }));
     const followed = new Set((await Follow.findAll({ where: { followerId: userId } })).map(f => f.followingId));

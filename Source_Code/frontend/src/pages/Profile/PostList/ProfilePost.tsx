@@ -8,6 +8,8 @@ import { postDetailModalActions } from "../../../lib/redux/postDetailModalSlice"
 
 const ProfilePost: React.FC<{ post: Post }> = ({ post }) => {
     const dispatch = useAppDispatch();
+    const preview = post.photoVideo?.[0];
+    const [previewFailed, setPreviewFailed] = React.useState(false);
     const handleOpenPostDetail = (postData: Post) => {
         dispatch(
             postDetailModalActions.openPostDetailModal({
@@ -22,11 +24,34 @@ const ProfilePost: React.FC<{ post: Post }> = ({ post }) => {
             className="relative aspect-[3/4] group cursor-pointer overflow-hidden"
             onClick={() => handleOpenPostDetail(post)}
         >
-            <img
-                src={post.photoVideo[0].url}
-                alt="Post"
-                className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-            />
+            {preview && !previewFailed ? preview.type === 'VIDEO' ? (
+                <video
+                    src={preview.url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    aria-label="Video post preview"
+                    onError={() => setPreviewFailed(true)}
+                    className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                />
+            ) : (
+                <img
+                    src={preview.url}
+                    alt="Post"
+                    onError={() => setPreviewFailed(true)}
+                    className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                />
+            ) : (
+                <div role="img" aria-label="Preview unavailable" className="grid h-full w-full place-items-center bg-lightDark text-sm text-textSecondGray">
+                    Preview unavailable
+                </div>
+            )}
+
+            {preview?.type === 'VIDEO' && !previewFailed && (
+                <div aria-hidden="true" className="absolute top-2 right-2 z-10 rounded bg-black/60 px-2 py-1 text-xs text-white">▶</div>
+            )}
 
             {/* Carousel indicator */}
             {post.photoVideo.length > 1 && (

@@ -4,11 +4,14 @@ import { useUnsavedChanges } from "./UnsavedChanges";
 import Button from "./UI/Button/Button";
 import Card from "./UI/Card";
 
-export default function ReportPostDialog({ postId, onClose, onSubmitted }: {
-    postId: string;
+type ReportPostDialogProps = {
+    postId?: string;
+    targetUserId?: string;
     onClose: () => void;
     onSubmitted: () => void;
-}) {
+};
+
+export default function ReportPostDialog({ postId, targetUserId, onClose, onSubmitted }: ReportPostDialogProps) {
     const http = usePrivateHttp();
     const dialog = useRef<HTMLDialogElement>(null);
     const titleId = useId();
@@ -32,7 +35,7 @@ export default function ReportPostDialog({ postId, onClose, onSubmitted }: {
         setSending(true);
         setError("");
         try {
-            await http.post("/reports", { postId, reason: reason.trim() });
+            await http.post("/reports", { ...(postId ? { postId } : { targetUserId }), reason: reason.trim() });
             markSaved();
             onSubmitted();
             onClose();
@@ -49,10 +52,10 @@ export default function ReportPostDialog({ postId, onClose, onSubmitted }: {
             onClick={event => { if (event.target === event.currentTarget) close(); }}>
             <Card className="p-5">
                 <form className="grid gap-4" onSubmit={event => { event.preventDefault(); void submit(); }}>
-                    <h2 className="text-xl font-semibold" id={titleId}>Report post</h2>
+                    <h2 className="text-xl font-semibold" id={titleId}>{targetUserId ? 'Report account' : 'Report post'}</h2>
                     <div className="grid gap-2">
                         <label className="grid gap-2 text-sm">
-                            Why are you reporting this post?
+                            {targetUserId ? 'Why are you reporting this account?' : 'Why are you reporting this post?'}
                             <textarea autoFocus className="w-full rounded-xl border border-lightSecondDark bg-dark p-3" rows={4}
                                 value={reason} minLength={5} maxLength={2000} disabled={sending}
                                 onChange={event => setReason(event.target.value)} />

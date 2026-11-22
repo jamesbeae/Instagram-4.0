@@ -13,7 +13,8 @@ const safeUser = exports.safeUser = user => {
 };
 const commentJSON = exports.commentJSON = c => {
     const data = c.get ? c.get({ plain: true }) : c;
-    return { ...data, _id: data.id, userId: data.user ? safeUser(data.user) : data.userId, likes: [] };
+    return { ...data, _id: data.id, userId: data.user ? safeUser(data.user) : data.userId, parentCommentId: data.parentCommentId || null,
+        likes: (data.likes || []).map(like => ({ _id: like.id, userId: like.userId })) };
 };
 const includes = exports.includes = [
     { model: User, as: 'user', attributes: ['id', 'username', 'fullName', 'avatar', 'bio'] },
@@ -36,13 +37,13 @@ const findPost = exports.findPost = async (postId, currentUserId) => {
     return post;
 };
 exports.record = async (userId, type, postId, targetUserId, transaction) => Interaction.create({ userId, type, postId, targetUserId }, { transaction });
-exports.notify = async (senderId, receiverId, type, postId, transaction) => {
+exports.notify = async (senderId, receiverId, type, postId, transaction, actionText) => {
     if (senderId === receiverId)
         return null;
     const sender = await User.findByPk(senderId, { transaction });
-    const content = sender.username + ({ LIKE: ' liked your post', COMMENT: ' commented on your post', FOLLOW: ' started following you' }[type] || ' interacted with you');
+    const content = sender.username + (actionText || ({ LIKE: ' liked your post', COMMENT: ' commented on your post', FOLLOW: ' started following you' }[type] || ' interacted with you'));
     const n = await Notification.create({ senderId, receiverId, type, postId, content }, { transaction });
-    return { ...n.get({ plain: true }), _id: n.id };
+    return { ...n.get({ plain: true }), _id: n.id, sender: safeUser(sender) };
 };
 exports.emitNotification = (receiverId, data) => {
     if (!data)
@@ -75,21 +76,50 @@ exports.unlike = async (userId, postId) => {
     });
     return { status: 200, message: 'Like removed' };
 };
-exports.comment = async (userId, postId, content) => {
+exports.comment = async (userId, postId, content, parentCommentId) => {
     const post = await findPost(postId, userId);
     if (typeof content !== 'string' || !content.trim() || content.length > 2200)
         throw error(400, 'Comment must contain 1–2200 characters');
+    let parent = null;
+    if (parentCommentId) {
+        parent = await Comment.findByPk(id(parentCommentId));
+        if (!parent || parent.postId !== post.id) throw error(400, 'Reply target is not part of this post');
+    }
     const { comment: c, notification } = await sequelize.transaction(async (transaction) => {
-        const c = await Comment.create({ userId, postId, content: content.trim() }, { transaction });
-        await exports.record(userId, 'COMMENT', postId, null, transaction);
-        const notification = await exports.notify(userId, post.userId, 'COMMENT', postId, transaction);
+        const c = await Comment.create({ userId, postId, parentCommentId: parent?.id || null, content: content.trim() }, { transaction });
+        await exports.record(userId, parent ? 'COMMENT_REPLY' : 'COMMENT', postId, parent?.userId || null, transaction);
+        const receiverId = parent ? parent.userId : post.userId;
+        const notification = await exports.notify(userId, receiverId, parent ? 'COMMENT_REPLY' : 'COMMENT', postId, transaction, parent ? ' replied to your comment' : undefined);
         const comment = await Comment.findByPk(c.id, { include: [{ model: User, as: 'user' }], transaction });
         return { comment, notification };
     });
-    exports.emitNotification(post.userId, notification);
+    exports.emitNotification(parent ? parent.userId : post.userId, notification);
     return { status: 201, comment: commentJSON(c) };
 };
-exports.comments = async (postId, currentUserId) => { await findPost(postId, currentUserId); return { status: 200, comments: (await Comment.findAll({ where: { postId }, include: [{ model: User, as: 'user' }], order: [['createdAt', 'DESC']] })).map(commentJSON) }; };
+exports.comments = async (postId, currentUserId) => { await findPost(postId, currentUserId); return { status: 200, comments: (await Comment.findAll({ where: { postId }, include: [{ model: User, as: 'user' }, { model: Like, as: 'likes', attributes: ['id', 'userId'] }], order: [['createdAt', 'DESC']] })).map(commentJSON) }; };
+exports.likeComment = async (userId, commentId) => {
+    const comment = await Comment.findByPk(id(commentId));
+    if (!comment) throw error(404, 'Comment not found');
+    const post = await findPost(comment.postId, userId);
+    const { like, created, notification } = await sequelize.transaction(async transaction => {
+        const [like, created] = await Like.findOrCreate({ where: { userId, commentId: comment.id }, defaults: { postId: null }, transaction });
+        if (created) await exports.record(userId, 'COMMENT_LIKE', post.id, comment.userId, transaction);
+        const notification = created ? await exports.notify(userId, comment.userId, 'COMMENT_LIKE', post.id, transaction, ' liked your comment') : null;
+        return { like, created, notification };
+    });
+    if (created) exports.emitNotification(comment.userId, notification);
+    return { status: created ? 201 : 200, like: { _id: like.id, userId, commentId: comment.id } };
+};
+exports.unlikeComment = async (userId, commentId) => {
+    const comment = await Comment.findByPk(id(commentId));
+    if (!comment) throw error(404, 'Comment not found');
+    const post = await findPost(comment.postId, userId);
+    await sequelize.transaction(async transaction => {
+        const removed = await Like.destroy({ where: { userId, commentId: comment.id }, transaction });
+        if (removed) await exports.record(userId, 'COMMENT_UNLIKE', post.id, comment.userId, transaction);
+    });
+    return { status: 200, message: 'Comment like removed' };
+};
 exports.save = async (userId, postId, saving) => {
     await findPost(postId, userId);
     if (saving)
@@ -125,15 +155,40 @@ exports.messageInbox = async userId => {
             EXISTS (
                 SELECT 1 FROM messages m
                 WHERE m.receiver_id = $userId AND m.sender_id = u.id AND m.read_at IS NULL
-            ) AS unread
+            ) AS unread,
+            (SELECT COUNT(*)::int FROM messages m
+                WHERE m.receiver_id = $userId AND m.sender_id = u.id AND m.read_at IS NULL
+            ) AS "unreadCount",
+            last_message.contents AS "lastMessageContents",
+            last_message.sender_id AS "lastMessageSenderId",
+            last_message.created_at AS "lastMessageCreatedAt"
         FROM follows outbound
         JOIN follows inbound ON inbound.follower_id = outbound.following_id
             AND inbound.following_id = outbound.follower_id
         JOIN users u ON u.id = outbound.following_id AND u.disabled = false
+        LEFT JOIN LATERAL (
+            SELECT m.contents, m.sender_id, m.created_at
+            FROM messages m
+            WHERE (m.sender_id = $userId AND m.receiver_id = u.id)
+                OR (m.sender_id = u.id AND m.receiver_id = $userId)
+            ORDER BY m.created_at DESC, m.id DESC
+            LIMIT 1
+        ) last_message ON true
         WHERE outbound.follower_id = $userId AND u.id <> $userId
-        ORDER BY u.username
+        ORDER BY last_message.created_at DESC NULLS LAST, u.username
     `, { bind: { userId }, type: QueryTypes.SELECT });
-    return { contacts: contacts.map(safeUser), unread: contacts.filter(contact => contact.unread).map(contact => contact.id) };
+    return {
+        contacts: contacts.map(contact => ({
+            ...safeUser(contact),
+            lastMessage: contact.lastMessageContents == null ? null : {
+                contents: contact.lastMessageContents,
+                senderId: contact.lastMessageSenderId,
+                createdAt: contact.lastMessageCreatedAt,
+            },
+        })),
+        unread: contacts.filter(contact => contact.unread).map(contact => contact.id),
+        unreadCount: contacts.reduce((total, contact) => total + Number(contact.unreadCount || 0), 0),
+    };
 };
 exports.markMessagesRead = async (receiverId, messageId) => {
     const message = await Message.findOne({ where: { id: id(messageId), receiverId } });
@@ -156,6 +211,7 @@ exports.createMessage = async (senderId, receiverId, contents) => {
     });
     const data = exports.messageJSON(message);
     realtime?.to('user:' + receiverId).emit('receiveMessage', data);
+    realtime?.to(['user:' + senderId, 'user:' + receiverId]).emit('messageInboxChanged');
     return data;
 };
 exports.messageJSON = message => { const m = message.get({ plain: true }); return { ...m, _id: m.id, sender_id: m.senderId, receiver_id: m.receiverId }; };
@@ -166,7 +222,7 @@ exports.getMessages = async (senderId, receiverId, { page = 1, limit = 50 } = {}
     const messages = await Message.findAll({ where: { [Op.or]: [{ senderId, receiverId }, { senderId: receiverId, receiverId: senderId }] }, order: [['createdAt', 'DESC']], limit, offset: (page - 1) * limit });
     return messages.reverse().map(exports.messageJSON);
 };
-exports.notifications = async (receiverId) => ({ status: 200, notifications: (await Notification.findAll({ where: { receiverId }, order: [['createdAt', 'DESC']], limit: 100 })).map(n => ({ ...n.get({ plain: true }), _id: n.id })) });
+exports.notifications = async (receiverId) => ({ status: 200, notifications: (await Notification.findAll({ where: { receiverId }, include: [{ model: User, as: 'sender', attributes: ['id', 'username', 'fullName', 'avatar'] }], order: [['createdAt', 'DESC']], limit: 100 })).map(n => ({ ...n.get({ plain: true }), _id: n.id, sender: n.sender ? safeUser(n.sender) : null })) });
 exports.suggestedUsers = async (userId) => {
     const following = await Follow.findAll({ where: { followerId: userId }, attributes: ['followingId'] });
     const excluded = [userId, ...following.map(x => x.followingId)];

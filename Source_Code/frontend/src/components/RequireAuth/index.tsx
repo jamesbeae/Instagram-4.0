@@ -18,6 +18,10 @@ const RequireAuth = () => {
         );
     }
 
+    if (location.pathname.startsWith("/admin") && userInfo.role?.name !== "admin") {
+        return <Navigate to="/" replace />;
+    }
+
     return <Outlet />;
 };
 

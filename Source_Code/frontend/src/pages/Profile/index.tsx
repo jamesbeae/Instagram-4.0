@@ -6,6 +6,7 @@ import { getUserProfile } from "../../services/userService";
 import usePrivateHttp from "../../hooks/usePrivateHttp";
 import TopInformation from "./TopInformation";
 import PostList from "./PostList";
+import RelationshipManager from "./RelationshipManager";
 const Profile = () => {
     const { _id } = useParams<{
         _id: string;
@@ -14,6 +15,7 @@ const Profile = () => {
     const [profile, setProfile] = useState<ProfileType | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
+    const [relationshipsOpen, setRelationshipsOpen] = useState(false);
     useEffect(() => {
         const getProfile = async () => {
             if (!_id) {
@@ -59,7 +61,9 @@ const Profile = () => {
             </div>);
     }
     return (<div className="max-w-[935px] w-[calc(100%-40px)] mx-auto py-[30px] px-5 overflow-y-auto scrollbar-hide">
-            <TopInformation profile={profile} onProfileUpdated={user => setProfile(current => current ? { ...current, ...user } : current)}/>
+            <TopInformation profile={profile} onProfileUpdated={user => setProfile(current => current ? { ...current, ...user } : current)} onManageRelationships={() => setRelationshipsOpen(true)}/>
+
+            {relationshipsOpen && <RelationshipManager profile={profile} onClose={() => setRelationshipsOpen(false)} onUnfollow={userId => setProfile(current => current ? { ...current, followings: current.followings?.filter(user => user._id !== userId) } : current)} />}
 
             <PostList posts={profile.posts || []} saved={profile.saved || []}/>
         </div>);

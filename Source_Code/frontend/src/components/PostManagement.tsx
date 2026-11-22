@@ -17,12 +17,18 @@ export default function PostManagement({ post }: { post: Post }) {
     const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState(false);
     const [caption, setCaption] = useState(post.caption);
+    const [visibility, setVisibility] = useState<Post['visibility']>(post.visibility || 'public');
+    const [groupId, setGroupId] = useState(post.groupId || '');
+    const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
     const root = useRef<HTMLDivElement>(null);
     const trigger = useRef<HTMLButtonElement>(null);
     const optionsId = useId();
-    const { markSaved, requestExit } = useUnsavedChanges(owner === post.userId._id && editing && caption !== post.caption, closeEditor);
+    const hasUnsavedChanges = caption !== post.caption
+        || (visibility || 'public') !== (post.visibility || 'public')
+        || (visibility === 'group' && groupId !== (post.groupId || ''));
+    const { markSaved, requestExit } = useUnsavedChanges(owner === post.userId._id && editing && hasUnsavedChanges, closeEditor);
 
     useEffect(() => {
         if (!open) return;
@@ -34,6 +40,11 @@ export default function PostManagement({ post }: { post: Post }) {
         document.addEventListener('pointerdown', dismissOnOutsideClick);
         return () => document.removeEventListener('pointerdown', dismissOnOutsideClick);
     }, [open]);
+
+    useEffect(() => {
+        if (!editing) return;
+        http.get('/groups').then(response => setGroups(response.data.groups || [])).catch(() => setError('Unable to load relation lists'));
+    }, [editing, http]);
 
     if (owner !== post.userId._id) return null;
 
@@ -47,7 +58,7 @@ export default function PostManagement({ post }: { post: Post }) {
         setBusy(true);
         setError('');
         try {
-            const response = await http.patch('/post/' + post._id, { content: caption });
+            const response = await http.patch('/post/' + post._id, { content: caption, visibility, groupId: visibility === 'group' ? groupId : null });
             dispatch(postsListActions.updatePost(response.data.post));
             window.dispatchEvent(new CustomEvent('post-updated', { detail: response.data.post }));
             markSaved();
@@ -110,6 +121,8 @@ export default function PostManagement({ post }: { post: Post }) {
                     onClick={() => {
                         setOpen(false);
                         setCaption(post.caption);
+                        setVisibility(post.visibility || 'public');
+                        setGroupId(post.groupId || '');
                         setEditing(true);
                     }}>
                     Edit post
@@ -127,10 +140,17 @@ export default function PostManagement({ post }: { post: Post }) {
                     <textarea id={optionsId + '-caption'} autoFocus value={caption} maxLength={2200}
                         disabled={busy} rows={3} onChange={event => setCaption(event.target.value)}
                         className="w-full resize-y rounded-lg border border-lightSecondDark bg-dark p-2" />
+                    <label htmlFor={optionsId + '-visibility'} className="font-semibold">Who can see this post?</label>
+                    <select id={optionsId + '-visibility'} value={visibility || 'public'} disabled={busy} onChange={event => setVisibility(event.target.value as Post['visibility'])} className="rounded-lg border border-lightSecondDark bg-dark p-2">
+                        <option value="public">Public</option><option value="followers">Followers</option><option value="group">Relation list</option>
+                    </select>
+                    {visibility === 'group' && <select aria-label="Relation list" value={groupId} disabled={busy} onChange={event => setGroupId(event.target.value)} className="rounded-lg border border-lightSecondDark bg-dark p-2">
+                        <option value="">Choose a list</option>{groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
+                    </select>}
                     {error && <p role="alert" className="text-red-400">{error}</p>}
                     <div className="flex justify-end gap-3">
                         <Button disabled={busy} onClick={() => requestExit(closeEditor)}>Cancel</Button>
-                        <Button type="submit" disabled={busy} className="font-semibold text-blue">Save changes</Button>
+                        <Button type="submit" disabled={busy || (visibility === 'group' && !groupId)} className="font-semibold text-blue">Save changes</Button>
                     </div>
                 </form>
             </Card>}

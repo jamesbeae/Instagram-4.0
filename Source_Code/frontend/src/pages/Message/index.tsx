@@ -4,11 +4,13 @@ import Card from "../../components/UI/Card";
 import MessageIcon from "../../components/UI/Icons/MessageIcon";
 import { useMessageInbox } from "../../components/RootLayout/MessageInboxProvider";
 import { socket } from "../../socket/socket";
+import { useAppSelector } from "../../hooks/useStore";
 import ChatUserList from "./ChatUserList";
 import "./Message.css";
 
 export default function Message() {
     const { inbox, failed } = useMessageInbox();
+    const currentUserId = useAppSelector(state => state.authSlice.userInfo?._id);
     const [online, setOnline] = useState<string[]>([]);
     const selectedUserId = useMatch("/message/:user_id")?.params.user_id;
 
@@ -22,7 +24,7 @@ export default function Message() {
     return (
         <main className="message-page">
             <Card as="section" className="message-card" aria-label="Messages" data-conversation-open={Boolean(selectedUserId)}>
-                <ChatUserList users={inbox?.contacts ?? null} online={online} unread={inbox?.unread ?? []} loadError={failed} />
+                <ChatUserList users={inbox?.contacts ?? null} online={online} unread={inbox?.unread ?? []} currentUserId={currentUserId} loadError={failed} />
                 <div className="message-conversation" key={selectedUserId}>
                     {selectedUserId ? <Outlet context={online} /> : (
                         <div className="message-empty">
