@@ -1,0 +1,75 @@
+name: QA
+
+on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: Source_Code/frontend
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: Source_Code/frontend/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - run: npm run build
+      - run: npx vitest run
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-ci-only
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            Source_Code/backend/package-lock.json
+            Source_Code/frontend/package-lock.json
+      # The API suite imports socket.io-client from the frontend directory.
+      - run: npm ci --legacy-peer-deps
+        working-directory: Source_Code/frontend
+      - run: npm ci
+        working-directory: Source_Code/backend
+      - run: npm test
+        working-directory: Source_Code/backend
+        env:
+          TEST_DATABASE_URL: postgres://postgres:local-ci-only@127.0.0.1:5432/postgres
+          ACCESS_TOKEN_CODE: ci-only-access-token-signing-key
+          REFRESH_TOKEN_CODE: ci-only-refresh-token-signing-key
+          FRONTEND_URL: http://localhost:5173
+          PUBLIC_API_URL: http://127.0.0.1:18000
+          PASSWORD_RESET_URL: http://localhost:5173/reset-password
