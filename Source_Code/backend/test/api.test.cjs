@@ -120,7 +120,7 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
         const emit = payload => new Promise((resolve, reject) => socket1.timeout(5000).emit('sendMessage', payload, (err, r) => err ? reject(err) : resolve(r)));
         assert.equal((await emit({ senderId: ownerId, receiverId: ownerId, contents: 'Forged sender' })).status, 403);
         assert.equal((await request('GET', '/message/inbox')).status, 401);
-        assert.deepEqual((await request('GET', '/message/inbox', null, v)).data, { contacts: [], unread: [] });
+        assert.deepEqual((await request('GET', '/message/inbox', null, v)).data, { contacts: [], unread: [], unreadCount: 0 });
         assert.equal((await emit({ receiverId: ownerId, contents: 'One-way follow' })).status, 403);
         assert.equal((await request('POST', '/user/create-follow', { userId: viewerId }, o)).status, 200);
         assert.deepEqual((await request('GET', '/message/inbox', null, v)).data.contacts.map(user => user._id), [ownerId]);
@@ -279,6 +279,41 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             await request('DELETE', '/post/' + upload.data.post._id, null, o);
             assert.equal((await fetch(local)).status, 404);
         });
+
+        await t.test('public browsing and comment replies respect post visibility', async () => {
+            const created = await request('POST', '/post/create-post', { content: 'Public reply QA', mediaUrl: 'https://example.com/replies.jpg' }, o);
+            assert.equal(created.status, 201);
+            const item = created.data.post;
+            assert.equal((await request('GET', '/user/get-profile?_id=' + ownerId)).status, 200);
+            assert.equal((await request('GET', '/post/explore')).status, 200);
+            assert.equal((await request('GET', '/post/reels')).status, 200);
+            assert.equal((await request('GET', '/post/stories')).status, 200);
+            const root = await request('POST', '/comment/create-comment', { postId: item._id, content: 'Root comment' }, v);
+            assert.equal(root.status, 201);
+            const reply = await request('POST', '/comment/create-comment', { postId: item._id, parentCommentId: root.data.comment._id, content: 'Reply QA' }, o);
+            assert.equal(reply.status, 201);
+            assert.equal(reply.data.comment.parentCommentId, root.data.comment._id);
+            const likeUrl = '/comment/' + root.data.comment._id + '/like';
+            assert.equal((await request('POST', likeUrl, {}, o)).status, 201);
+            assert.equal((await request('POST', likeUrl, {}, o)).status, 200);
+            const comments = await request('GET', '/comment/get-comments?postId=' + item._id);
+            assert.equal(comments.status, 200);
+            assert.equal(comments.data.comments.find(c => c._id === root.data.comment._id).likes.length, 1);
+            assert.equal((await request('GET', '/post/' + item._id)).data.post.likes.length, 0);
+            assert.equal((await request('POST', likeUrl)).status, 401);
+            assert.equal((await request('POST', '/comment/create-comment', { postId: post._id, parentCommentId: root.data.comment._id, content: 'Wrong post' }, v)).status, 400);
+            const group = (await request('POST', '/groups', { name: 'Reply QA private' }, o)).data.group;
+            assert.equal((await request('PATCH', '/post/' + item._id, { visibility: 'group', groupId: group.id }, o)).status, 200);
+            assert.equal((await request('GET', '/post/' + item._id)).status, 404);
+            assert.equal((await request('POST', likeUrl, {}, v)).status, 404);
+            assert.equal((await request('POST', '/comment/create-comment', { postId: item._id, parentCommentId: root.data.comment._id, content: 'Forbidden reply' }, v)).status, 404);
+            assert.equal((await request('PATCH', '/post/' + item._id, { visibility: 'public' }, o)).status, 200);
+            assert.equal((await request('DELETE', likeUrl, null, o)).status, 200);
+            assert.equal((await request('GET', '/comment/get-comments?postId=' + item._id)).data.comments.find(c => c._id === root.data.comment._id).likes.length, 0);
+            assert.equal((await request('DELETE', '/post/' + item._id, null, o)).status, 200);
+            assert.equal((await request('DELETE', '/groups/' + group.id, null, o)).status, 200);
+        });
+
         await t.test('roles, analytics and moderation cannot be invoked by ordinary users', async () => {
             assert.equal((await request('GET', '/admin/reports', null, v)).status, 403);
             assert.equal((await request('GET', '/creator/analytics', null, v)).status, 403);
@@ -305,6 +340,24 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             assert.equal((await request('GET', '/post/' + flagged._id, null, v)).status, 404);
             assert.equal((await request('GET', '/search?scope=posts&q=Moderation', null, v)).data.postsList.some(p => p._id === flagged._id), false);
         });
+
+        await t.test('profile updates retain roles and admin audit endpoints enforce permissions', async () => {
+            assert.equal((await request('GET', '/admin/stats', null, v)).status, 403);
+            assert.equal((await request('GET', '/admin/actions', null, v)).status, 403);
+            assert.equal((await request('GET', '/admin/stats', null, o)).status, 200);
+            const actions = await request('GET', '/admin/actions', null, o);
+            assert.equal(actions.status, 200);
+            assert(actions.data.actions.some(action => action.action === 'UPDATE_USER'));
+            assert(actions.data.actions.some(action => action.action === 'RESOLVE_REPORT'));
+            for (const endpoint of ['/user/me', '/user/profile']) {
+                const update = await request('PATCH', endpoint, { fullName: 'Owner QA' }, o);
+                assert.equal(update.status, 200);
+                assert.equal(update.data.userInfo.role.name, 'admin');
+            }
+            assert.equal((await request('PATCH', '/user/me', { email: 'VIEWER@example.com' }, o)).status, 409);
+            assert.equal((await request('PATCH', '/user/me', { username: 'VIEWER' }, o)).status, 409);
+        });
+
         await t.test('password recovery is single-use and revokes existing sessions', async () => {
             assert.equal((await request('POST', '/auth/forgot-password', { email: viewer.userInfo.email })).status, 200);
             assert.equal(mailbox.length, 1);

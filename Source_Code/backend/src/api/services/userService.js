@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { User, Follow, Post, Save, sequelize } = require('../../database/models');
+const { User, Role, Follow, Post, Save, sequelize } = require('../../database/models');
 const s = require('./socialService');
 exports.getAllUsers = async () => ({ status: 200, users: (await User.findAll({ where: { disabled: false }, attributes: ['id', 'username', 'fullName', 'bio', 'avatar'], order: [['username', 'ASC']], limit: 500 })).map(s.safeUser) });
 exports.getSuggestedUsers = s.suggestedUsers;
@@ -48,7 +48,7 @@ exports.deleteFollow = async (userId, followingId) => {
 };
 
 exports.updateProfile = async (userId, { avatarData, ...update }) => {
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(userId, { include: [{ model: Role, as: 'role' }] });
     if (!user) throw s.error(404, 'User not found');
     if (update.username !== undefined && await User.findOne({ where: { [Op.and]: [sequelize.where(sequelize.fn('lower', sequelize.col('username')), update.username.toLowerCase()), { id: { [Op.ne]: userId } }] } })) throw s.error(409, 'username');
     if (update.email !== undefined) {
@@ -61,5 +61,5 @@ exports.updateProfile = async (userId, { avatarData, ...update }) => {
         if (error.name === 'SequelizeUniqueConstraintError') throw s.error(409, error.errors?.[0]?.path || 'username');
         throw error;
     }
-    return { status: 200, userInfo: { ...s.safeUser(user), email: user.email } };
+    return { status: 200, userInfo: { ...s.safeUser(user), email: user.email, role: user.role ? { id: user.role.id, name: user.role.name } : null } };
 };

@@ -52,11 +52,7 @@ const SideBar = () => {
         };
     }, [userId]);
     return (<>
-<<<<<<< Updated upstream
             <Card className={`app-sidebar relative z-10 shrink-0 ${openedModal || isSmall ? "w-72px" : "w-60"} flex flex-col px-3 pt-2 pb-5 transition-[width] duration-200 ease-out`}>
-=======
-            <div className={`app-sidebar legacy-sidebar shrink-0 h-full ${openedModal || isSmall ? "w-72px" : "w-60"} flex flex-col px-3 pt-2 pb-5 border-r-0.5 border-lightDark transition-all delay-300 ease-in`}>
->>>>>>> Stashed changes
                 <SideBarLogo />
                 <NavigationList unreadNotificationCount={unreadNotificationCount} onNotificationsOpen={dismissNotificationBadges} />
             </Card>

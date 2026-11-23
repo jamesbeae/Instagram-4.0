@@ -19,16 +19,13 @@ export default function StoryList() {
         window.addEventListener('stories-updated', load);
         return () => window.removeEventListener('stories-updated', load);
     }, [http]);
-<<<<<<< Updated upstream
-    if (!stories.length) return null;
+    if (!stories.length && !user) return null;
     return <Card as="section" className="feed-card story-strip mt-4" aria-label="Stories">
-=======
-    return <section className="story-strip" aria-label="Stories">
-        <button type="button" className="story-item story-create" onClick={() => dispatch(sideBarActions.openCreatePost(true))} aria-label="Create a story">
-            <span className="story-ring"><span className="story-create-avatar"><Avatar className="story-avatar" avatarUrl={user?.avatar} username={user?.username} /><span>+</span></span></span>
+        {user && <button type="button" className="story-item story-create" aria-label="Create story"
+            onClick={() => dispatch(sideBarActions.openCreatePost(true))}>
+            <span className="story-ring story-create-avatar"><Avatar className="story-avatar" avatarUrl={user.avatar} username={user.username} /><span>+</span></span>
             <span className="story-username">Your story</span>
-        </button>
->>>>>>> Stashed changes
+        </button>}
         {stories.map(story => <button key={story._id} type="button" className="story-item"
             aria-label={'View story by ' + story.userId.username}
             onClick={() => dispatch(postDetailModalActions.openPostDetailModal({ post: story, prevPath: '/' }))}>

@@ -18,7 +18,7 @@ const AppChrome = () => {
     const [accountMenuOpen, setAccountMenuOpen] = useState(false);
     const isCurrent = (route: string) => route === "/" ? location.pathname === "/" : location.pathname.startsWith(route);
     const go = (route: string) => {
-        const currentPage = route === "/" ? "home" : route.startsWith("/profile/") ? "profile" : route.slice(1);
+        const currentPage = route === "/" ? "home" : route.startsWith("/profile/") ? "profile" : route === "/message" ? "message" : route === "/reels" ? "reels" : "explore";
         dispatch(sideBarActions.selectCurrentPage(currentPage));
         navigate(route);
     };
