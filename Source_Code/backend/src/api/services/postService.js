@@ -35,7 +35,7 @@ exports.deletePost = async ({ postId, userId }) => {
     return { status: 200, message: 'Post deleted' };
 };
 
-exports.updatePost = async ({ postId, userId, content, mediaUrl }) => {
+exports.updatePost = async ({ postId, userId, content, mediaUrl, visibility, groupId }) => {
     const oldMedia = await sequelize.transaction(async transaction => {
         const post = await Post.findByPk(social.id(postId), { transaction, lock: transaction.LOCK.UPDATE });
         if (!post) throw social.error(404, 'Post not found');
@@ -43,6 +43,20 @@ exports.updatePost = async ({ postId, userId, content, mediaUrl }) => {
         await require('./accessService').assertView(post, userId);
         const previous = post.media || [];
         const update = content === undefined ? {} : { content };
+        if (visibility !== undefined) {
+            update.visibility = visibility;
+            if (visibility === 'group') {
+                const { Group } = require('../../database/models');
+                const selectedGroupId = social.id(groupId || post.groupId);
+                const group = await Group.findByPk(selectedGroupId, { transaction });
+                if (!group || group.ownerId !== userId) throw social.error(403, 'You may only share to your own relation lists');
+                update.groupId = selectedGroupId;
+            } else {
+                update.groupId = null;
+            }
+        } else if (groupId !== undefined) {
+            throw social.error(400, 'Choose group visibility before selecting a relation list');
+        }
         if (mediaUrl !== undefined && mediaUrl !== post.mediaUrl) {
             update.media = await prepareMedia([{ url: mediaUrl, type: /\.(mp4|webm|mov)(\?|$)/i.test(mediaUrl) ? 'VIDEO' : 'PHOTO' }]);
             update.mediaUrl = mediaUrl;

@@ -29,35 +29,20 @@ const routes: RouteObject[] = [
         element: <Login />,
     },
     {
-        element: <RequireAuth />,
+        path: "/",
+        element: <RootLayout />,
         children: [
+            { index: true, element: <Home /> },
+            { path: "post/:postId", element: <PostPage /> },
+            { path: "explore", element: <Discover /> },
+            { path: "profile/:_id", element: <Profile /> },
+            { path: "reels", element: <Discover /> },
             {
-                path: "/",
-                element: <RootLayout />,
+                element: <RequireAuth />,
                 children: [
-                    {
-                        index: true,
-                        element: <Home />,
-                    },
-                    { path: "post/:postId", element: <PostPage /> },
-                    { path: "explore", element: <Discover /> },
-                    { path: "reels", element: <Discover /> },
                     { path: "settings", element: <Settings /> },
                     ...["groups", "creator", "admin"].map(path => ({ path, element: <Workspace key={path} /> })),
-                    {
-                        path: "profile/:_id",
-                        element: <Profile />,
-                    },
-                    {
-                        path: "message",
-                        element: <Message />,
-                        children: [
-                            {
-                                path: ":user_id",
-                                element: <ChatBox />,
-                            },
-                        ],
-                    },
+                    { path: "message", element: <Message />, children: [{ path: ":user_id", element: <ChatBox /> }] },
                 ],
             },
         ],

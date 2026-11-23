@@ -1,5 +1,37 @@
 @import url("https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@200;300;400;500;600;700&display=swap");
 
+:root {
+    color-scheme: light;
+    --app-bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface-raised: #f0f3f7;
+    --surface-strong: #e7ecf2;
+    --ink: #283548;
+    --muted: #66758a;
+    --line: #e1e7ef;
+    --brand: #4f6f9f;
+    --brand-hover: #405f8b;
+    --brand-soft: #edf2f9;
+    --danger: #b85860;
+    --danger-hover: #9e4850;
+    --danger-soft: #faeeee;
+    --success: #437561;
+    --warning: #92703c;
+    --like: #c76b75;
+    --cover-sky: #dce6eb;
+    --cover-hill: #829a98;
+    --cover-hill-dark: #5f7878;
+    --cover-water: #9cbab8;
+}
+
+html, body, #root { min-height: 100%; }
+body { background: var(--app-bg); color: var(--ink); }
+button, input, textarea, select { accent-color: var(--brand); }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--brand) 55%, white);
+    outline-offset: 2px;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

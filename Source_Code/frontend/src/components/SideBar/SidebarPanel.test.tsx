@@ -27,7 +27,7 @@ it("uses shared panels for Search and Notifications and keeps More as a popup", 
             <MemoryRouter>
                 <NavigationList />
                 <SearchModal />
-                <NotificationsModal notifications={[]} />
+                <NotificationsModal notifications={[]} onDismiss={vi.fn()} />
                 <Location />
             </MemoryRouter>
         </Provider>,

@@ -37,7 +37,7 @@ const PostDescription: React.FC<{
             case SET_COMMENTS:
                 return {
                     ...state,
-                    commentsList: [...new Map([...action.payload, ...state.commentsList].map((comment: Comment) => [comment._id, comment])).values()],
+                    commentsList: [...new Map([...state.commentsList, ...action.payload].map((comment: Comment) => [comment._id, comment])).values()],
                 };
             default:
                 return state;

@@ -8,7 +8,7 @@ import postsListSlice from '../lib/redux/postsListSlice';
 import postDetailModalSlice from '../lib/redux/postDetailModalSlice';
 import { Post } from '../models/Post';
 
-const http = { delete: vi.fn(), patch: vi.fn() };
+const http = { get: vi.fn(), delete: vi.fn(), patch: vi.fn() };
 vi.mock('../hooks/usePrivateHttp', () => ({ default: () => http }));
 
 const post: Post = {
@@ -33,7 +33,7 @@ const mount = () => render(
     </Provider>,
 );
 
-beforeEach(() => { vi.resetAllMocks(); });
+beforeEach(() => { vi.resetAllMocks(); http.get.mockResolvedValue({ data: { groups: [] } }); });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 describe('Post deletion flow', () => {
@@ -94,7 +94,7 @@ describe('Post options', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
 
         await waitFor(() => expect(options).toHaveFocus());
-        expect(http.patch).toHaveBeenCalledWith('/post/post-id', { content: 'Updated caption' });
+        expect(http.patch).toHaveBeenCalledWith('/post/post-id', { content: 'Updated caption', visibility: 'public', groupId: null });
         expect(screen.queryByRole('textbox', { name: 'Edit caption' })).not.toBeInTheDocument();
     });
 });

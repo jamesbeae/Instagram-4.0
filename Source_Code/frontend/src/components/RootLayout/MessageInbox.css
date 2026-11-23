@@ -17,14 +17,23 @@
     overflow-wrap: anywhere;
 }
 
-.sidebar-message-icon { position: relative; }
+.sidebar-badge-icon { position: relative; display: inline-flex; }
 
-.sidebar-message-badge {
+.sidebar-count-badge {
     position: absolute;
-    inset: -3px -4px auto auto;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #c92348;
-    box-shadow: 0 0 0 2px var(--theme-card, #141417);
+    top: -7px;
+    right: -10px;
+    display: flex;
+    min-width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid var(--theme-card, #141417);
+    border-radius: 999px;
+    background: #e11d48;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
 }

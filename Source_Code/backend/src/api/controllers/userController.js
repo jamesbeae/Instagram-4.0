@@ -26,7 +26,7 @@ exports.getSuggestedUsers = async (req, res, next) => {
 exports.getUserProfile = async (req, res, next) => {
     try {
         const profileId = req.query._id;
-        const result = await userService.getUserProfile(profileId, req.currentUser.id);
+        const result = await userService.getUserProfile(profileId, req.currentUser?.id);
         res.set({
             "Cache-Control": "no-store, no-cache, must-revalidate, private",
             Pragma: "no-cache",

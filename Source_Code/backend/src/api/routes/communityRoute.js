@@ -1,6 +1,6 @@
 const { Router } = require('express'), Joi = require('joi'), { Op } = require('sequelize');
-const { sequelize, Group, GroupMember, User, Role, Post, Report, Interaction } = require('../../database/models');
-const { verifyJWT, requireRole } = require('../middlewares/verifyJWT');
+const { sequelize, Group, GroupMember, User, Role, Post, Report, Interaction, Follow, Like, Comment, Save, Message, AdminAction } = require('../../database/models');
+const { verifyJWT, optionalJWT, requireRole } = require('../middlewares/verifyJWT');
 const s = require('../services/socialService'), access = require('../services/accessService');
 const r = Router(), wrap = fn => async (req, res, next) => { try {
     const result = await fn(req);
@@ -15,17 +15,19 @@ const ownedGroup = async (req) => { const group = await Group.findByPk(s.id(req.
     throw s.error(404, 'List not found'); return group; };
 r.get('/groups', verifyJWT, wrap(async (req) => ({ groups: await Group.findAll({ where: { ownerId: req.currentUser.id }, include: [{ model: GroupMember, as: 'members', include: [{ model: User, as: 'user', attributes: ['id', 'username', 'fullName', 'avatar'] }] }] }) })));
 r.post('/groups', verifyJWT, wrap(async (req) => { const data = parse(Joi.object({ name: Joi.string().trim().min(1).max(100).required() }), req.body); return { status: 201, group: await Group.create({ ...data, ownerId: req.currentUser.id }) }; }));
-r.post('/groups/:id/members', verifyJWT, wrap(async (req) => { const group = await ownedGroup(req); const { userId } = parse(Joi.object({ userId: Joi.string().uuid().required() }), req.body); if (!await User.findByPk(userId))
+r.patch('/groups/:id', verifyJWT, wrap(async (req) => { const group = await ownedGroup(req); const { name } = parse(Joi.object({ name: Joi.string().trim().min(1).max(100).required() }), req.body); await group.update({ name }); return { status: 200, group }; }));
+r.post('/groups/:id/members', verifyJWT, wrap(async (req) => { const group = await ownedGroup(req); const { userId } = parse(Joi.object({ userId: Joi.string().uuid().required() }), req.body); if (!await User.findOne({ where: { id: userId, disabled: false } }))
     throw s.error(404, 'User not found'); await GroupMember.findOrCreate({ where: { groupId: group.id, userId } }); return { status: 200 }; }));
 r.delete('/groups/:id/members/:userId', verifyJWT, wrap(async (req) => { await ownedGroup(req); await GroupMember.destroy({ where: { groupId: req.params.id, userId: s.id(req.params.userId) } }); return { status: 200 }; }));
 r.delete('/groups/:id', verifyJWT, wrap(async (req) => { const group = await ownedGroup(req); const count = await Post.count({ where: { groupId: group.id } }); if (count)
     throw s.error(409, 'This list has shared posts. Delete or change those posts before removing the list.'); await group.destroy(); return { status: 200 }; }));
-r.get('/post/stories', verifyJWT, wrap(async (req) => ({ postsList: (await Post.findAll({ where: { kind: 'STORY', ...access.visibleWhere(req.currentUser.id) }, include: s.includes, order: [['createdAt', 'DESC']], limit: 100 })).map(p => s.postJSON(p, req.currentUser.id)) })));
-r.get('/post/explore', verifyJWT, wrap(async (req) => { const { page, limit } = parse(require('../validations/postValidation').feedQuerySchema, req.query); const { count, rows } = await Post.findAndCountAll({ where: { kind: 'POST', ...access.visibleWhere(req.currentUser.id) }, include: s.includes, distinct: true, order: [['createdAt', 'DESC']], limit, offset: (page - 1) * limit }); return { postsList: rows.map(p => s.postJSON(p, req.currentUser.id)), pagination: { page, limit, total: count, totalPages: Math.ceil(count / limit) } }; }));
-r.get('/post/reels', verifyJWT, wrap(async (req) => { const { page, limit } = parse(require('../validations/postValidation').feedQuerySchema, req.query); const { count, rows } = await Post.findAndCountAll({ where: { kind: 'POST', media: { [Op.contains]: [{ type: 'VIDEO' }] }, ...access.visibleWhere(req.currentUser.id) }, include: s.includes, distinct: true, order: [['createdAt', 'DESC']], limit, offset: (page - 1) * limit }); return { postsList: rows.map(p => s.postJSON(p, req.currentUser.id)), pagination: { page, limit, total: count, totalPages: Math.ceil(count / limit) } }; }));
+r.get('/post/stories', optionalJWT, wrap(async (req) => ({ postsList: (await Post.findAll({ where: { kind: 'STORY', ...access.visibleWhere(req.currentUser?.id) }, include: s.includes, order: [['createdAt', 'DESC']], limit: 100 })).map(p => s.postJSON(p, req.currentUser?.id)) })));
+r.get('/post/explore', optionalJWT, wrap(async (req) => { const { page, limit } = parse(require('../validations/postValidation').feedQuerySchema, req.query); const { count, rows } = await Post.findAndCountAll({ where: { kind: 'POST', ...access.visibleWhere(req.currentUser?.id) }, include: s.includes, distinct: true, order: [['createdAt', 'DESC']], limit, offset: (page - 1) * limit }); return { postsList: rows.map(p => s.postJSON(p, req.currentUser?.id)), pagination: { page, limit, total: count, totalPages: Math.ceil(count / limit) } }; }));
+r.get('/post/reels', optionalJWT, wrap(async (req) => { const { page, limit } = parse(require('../validations/postValidation').feedQuerySchema, req.query); const { count, rows } = await Post.findAndCountAll({ where: { kind: 'POST', media: { [Op.contains]: [{ type: 'VIDEO' }] }, ...access.visibleWhere(req.currentUser?.id) }, include: s.includes, distinct: true, order: [['createdAt', 'DESC']], limit, offset: (page - 1) * limit }); return { postsList: rows.map(p => s.postJSON(p, req.currentUser?.id)), pagination: { page, limit, total: count, totalPages: Math.ceil(count / limit) } }; }));
 r.post('/reports', verifyJWT, wrap(async (req) => { const data = parse(Joi.object({ postId: Joi.string().uuid(), targetUserId: Joi.string().uuid(), reason: Joi.string().trim().min(5).max(2000).required() }).xor('postId', 'targetUserId'), req.body); if (data.postId)
     await s.findPost(data.postId, req.currentUser.id);
-else if (!await User.findByPk(data.targetUserId))
+else if (data.targetUserId === req.currentUser.id)
+    throw s.error(400, 'You cannot report your own account'); else if (!await User.findByPk(data.targetUserId))
     throw s.error(404, 'User not found'); return { status: 201, report: await Report.create({ ...data, reporterId: req.currentUser.id }) }; }));
 r.get('/creator/analytics', verifyJWT, requireRole('creator', 'admin'), wrap(async (req) => {
     const posts = await Post.findAll({ where: { userId: req.currentUser.id }, include: s.includes });
@@ -37,6 +39,14 @@ r.post('/user/become-creator', verifyJWT, wrap(async (req) => { if (req.currentU
     throw s.error(503, 'Creator role missing'); await User.update({ roleId: role.id }, { where: { id: req.currentUser.id } }); return { status: 200 }; }));
 r.get('/admin/reports', verifyJWT, requireRole('admin'), wrap(async () => ({ reports: await Report.findAll({ order: [['createdAt', 'DESC']], limit: 200 }) })));
 r.get('/admin/users', verifyJWT, requireRole('admin'), wrap(async () => ({ users: (await User.findAll({ include: [{ model: Role, as: 'role' }], limit: 200 })).map(u => ({ ...s.safeUser(u), disabled: u.disabled, role: u.role?.name })) })));
+r.get('/admin/stats', verifyJWT, requireRole('admin'), wrap(async () => ({
+    users: await User.count(), activeUsers: await User.count({ where: { disabled: false } }), disabledUsers: await User.count({ where: { disabled: true } }),
+    posts: await Post.count({ where: { kind: 'POST', hidden: false } }), stories: await Post.count({ where: { kind: 'STORY', hidden: false } }),
+    reels: await Post.count({ where: { kind: 'POST', media: { [Op.contains]: [{ type: 'VIDEO' }] }, hidden: false } }),
+    openReports: await Report.count({ where: { status: 'open' } }), resolvedReports: await Report.count({ where: { status: { [Op.ne]: 'open' } } }),
+    follows: await Follow.count(), likes: await Like.count(), comments: await Comment.count(), saves: await Save.count(), messages: await Message.count(), behaviorEvents: await Interaction.count()
+})));
+r.get('/admin/actions', verifyJWT, requireRole('admin'), wrap(async () => ({ actions: await AdminAction.findAll({ include: [{ model: User, as: 'admin', attributes: ['id', 'username'] }, { model: User, as: 'targetUser', attributes: ['id', 'username'] }], order: [['createdAt', 'DESC']], limit: 100 }) })));
 r.patch('/admin/users/:id', verifyJWT, requireRole('admin'), wrap(async (req) => {
     const data = parse(Joi.object({ disabled: Joi.boolean(), role: Joi.string().valid('user', 'creator', 'admin') }).min(1), req.body);
     const user = await User.findByPk(s.id(req.params.id));
@@ -51,7 +61,10 @@ r.patch('/admin/users/:id', verifyJWT, requireRole('admin'), wrap(async (req) =>
         const role = await Role.findOne({ where: { name: data.role } });
         update.roleId = role.id;
     }
-    await user.update(update);
+    await sequelize.transaction(async transaction => {
+        await user.update(update, { transaction });
+        await AdminAction.create({ adminId: req.currentUser.id, targetUserId: user.id, action: 'UPDATE_USER', details: data }, { transaction });
+    });
     s.disconnectUser(user.id);
     return { status: 200 };
 }));
@@ -73,6 +86,7 @@ r.patch('/admin/reports/:id', verifyJWT, requireRole('admin'), wrap(async (req) 
             await user.update({ disabled: true, tokenVersion: user.tokenVersion + 1, refreshToken: null }, { transaction });
         }
         await report.update({ status: action }, { transaction });
+        await AdminAction.create({ adminId: req.currentUser.id, reportId: report.id, targetUserId: report.targetUserId, action: 'RESOLVE_REPORT', details: { decision: action, postId: report.postId } }, { transaction });
     });
     if (action === 'disable-user')
         s.disconnectUser(report.targetUserId);

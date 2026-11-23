@@ -11,7 +11,7 @@ export type User = {
     fullName: string;
     avatar: string | null;
     followers?: User[];
-    followings?: string[];
+    followings?: User[];
     refreshToken?: string;
     createdAt?: Date;
     updatedAt?: Date;

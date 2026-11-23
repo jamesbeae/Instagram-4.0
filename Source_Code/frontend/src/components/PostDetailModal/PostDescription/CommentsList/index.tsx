@@ -1,15 +1,38 @@
 import Loading from "../../../UI/Loading";
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import Avatar from '../../../UI/Avatar/Avatar';
 import { Post } from '../../../../models/Post';
+import type { Comment as CommentModel } from '../../../../models/Comment';
 import Comment from './Comment';
 import usePrivateHttp from '../../../../hooks/usePrivateHttp';
 import { CommentListContext } from '..';
+import CommentComposer from '../../../CommentComposer';
+import Button from '../../../UI/Button/Button';
 
 export default function CommentsList({ postData }: { postData: Post }) {
     const http = usePrivateHttp();
     const { commentListState, commentListDispatch } = useContext(CommentListContext);
     const [loading, setLoading] = useState(true), [error, setError] = useState('');
+    const [replyTo, setReplyTo] = useState<string | null>(null);
+    const threadComments = useMemo(() => {
+        const children = new Map<string, CommentModel[]>();
+        const roots: CommentModel[] = [];
+        for (const comment of commentListState.commentsList) {
+            if (comment.parentCommentId) children.set(comment.parentCommentId, [...(children.get(comment.parentCommentId) || []), comment]);
+            else roots.push(comment);
+        }
+        const ordered: { comment: CommentModel; depth: number }[] = [];
+        const visited = new Set<string>();
+        const append = (comment: CommentModel, depth: number) => {
+            if (visited.has(comment._id)) return;
+            visited.add(comment._id);
+            ordered.push({ comment, depth });
+            (children.get(comment._id) || []).forEach(child => append(child, depth + 1));
+        };
+        roots.forEach(comment => append(comment, 0));
+        commentListState.commentsList.forEach(comment => append(comment, 0));
+        return ordered;
+    }, [commentListState.commentsList]);
     useEffect(() => {
         let active = true;
         setLoading(true); setError('');
@@ -24,7 +47,13 @@ export default function CommentsList({ postData }: { postData: Post }) {
             <Avatar avatarUrl={postData.userId.avatar} username={postData.userId.username} className="w-8 h-8 mr-4 shrink-0" />
             <p className="text-foreground text-sm break-words min-w-0"><span className="font-semibold mr-1">{postData.userId.username}</span>{postData.caption}</p>
         </div>
-        {commentListState.commentsList.map(comment => <Comment key={comment._id} commentData={comment} />)}
+        {threadComments.map(({ comment, depth }) => <div key={comment._id} className={depth ? 'border-l border-lightDark pl-3' : ''} style={depth ? { marginLeft: `${Math.min(depth, 3) * 24}px` } : undefined}>
+            <Comment commentData={comment} onReply={() => setReplyTo(current => current === comment._id ? null : comment._id)} />
+            {replyTo === comment._id && <div className="ml-10">
+                <CommentComposer postId={postData._id} postData={postData} parentCommentId={comment._id} onCreated={reply => { commentListDispatch({ type: 'ADD_COMMENT', payload: reply }); setReplyTo(null); }} />
+                <Button type="button" onClick={() => setReplyTo(null)} className="text-xs text-textSecondGray">Cancel reply</Button>
+            </div>}
+        </div>)}
         {loading && <Loading message="Loading comments…" align="start" className="text-textSecondGray" />}
         {error && <p role="alert" className="text-errorText text-sm">{error}</p>}
         {!loading && !error && !commentListState.commentsList.length && <p className="text-textGray text-sm">No comments yet.</p>}

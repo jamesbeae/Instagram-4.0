@@ -14,7 +14,7 @@ vi.mock('../components/UI/VideoPhotoSwiper', () => ({ default: () => null }));
 
 function renderExplore() {
     const store = configureStore({
-        reducer: { postDetailModalSlice: postDetailModalSlice.reducer, postsListSlice: () => [] as Post[] },
+        reducer: { postDetailModalSlice: postDetailModalSlice.reducer, postsListSlice: () => [] as Post[], authSlice: () => ({ userInfo: { _id: "viewer" } }) },
     });
     type State = ReturnType<typeof store.getState>;
     function Page() {

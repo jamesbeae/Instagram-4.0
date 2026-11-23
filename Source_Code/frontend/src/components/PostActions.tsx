@@ -9,16 +9,26 @@ import SaveIcon from './UI/Icons/SaveIcon';
 import SharePostIcon from './UI/Icons/SharePostIcon';
 import ReportPostDialog from './ReportPostDialog';
 import { postsListActions } from '../lib/redux/postsListSlice';
-export default function PostActions({ post, onComment }: {
+import LoginPromptModal from './LoginPromptModal';
+export default function PostActions({ post, onComment, vertical = false }: {
     post: Post;
     onComment?: () => void;
+    vertical?: boolean;
 }) {
     const http = usePrivateHttp();
     const dispatch = useAppDispatch();
     const userId = useAppSelector(s => s.authSlice.userInfo?._id);
     const [liked, setLiked] = useState(false), [count, setCount] = useState(post.likes.length), [saved, setSaved] = useState(!!post.isSaved), [busy, setBusy] = useState(false), [error, setError] = useState('');
-    const [reportOpen, setReportOpen] = useState(false);
+    const [reportOpen, setReportOpen] = useState(false), [loginPrompt, setLoginPrompt] = useState(false);
     useEffect(() => { setLiked(post.likes.some(l => l.userId === userId)); setCount(post.likes.length); setSaved(!!post.isSaved); }, [post, userId]);
+    if (!userId) return <><div className={`post-actions ${vertical ? 'post-actions-vertical' : ''} flex items-center gap-3 py-2 text-sm`}>
+        <button type="button" aria-label="Like post" onClick={() => setLoginPrompt(true)}><LikeIcon />{vertical && <span>{count}</span>}</button>
+        <button type="button" aria-label="View comments" onClick={onComment}><CommentIcon />{vertical && <span>{post.comments.length}</span>}</button>
+        <button type="button" aria-label="Share post" onClick={() => setLoginPrompt(true)}><SharePostIcon />{vertical && <span>Share</span>}</button>
+        <button type="button" aria-label="Save post" className="ml-auto" onClick={() => setLoginPrompt(true)}><SaveIcon />{vertical && <span>Save</span>}</button>
+        <button type="button" onClick={() => setLoginPrompt(true)} className="text-xs">Report</button>
+        {!vertical && <span>{count} {count === 1 ? 'like' : 'likes'}</span>}
+    </div>{loginPrompt && <LoginPromptModal onClose={() => setLoginPrompt(false)} />}</>;
     async function like() {
         if (busy)
             return;
@@ -84,11 +94,11 @@ export default function PostActions({ post, onComment }: {
     catch {
         setError('Unable to copy link');
     } }
-    return <div><div className="flex items-center gap-3 py-2">
-  <button type="button" aria-label={liked ? 'Unlike post' : 'Like post'} aria-pressed={liked} disabled={busy} onClick={like}>{liked ? <LikedIcon /> : <LikeIcon />}</button>
-  <button type="button" aria-label="View comments" onClick={onComment}><CommentIcon /></button>
-  <button type="button" aria-label="Share post" onClick={share}><SharePostIcon /></button>
-  <button type="button" aria-label={saved ? 'Unsave post' : 'Save post'} aria-pressed={saved} disabled={busy} onClick={save} className="ml-auto"><SaveIcon />{saved && <span className="text-xs">Saved</span>}</button>
+    return <div><div className={`post-actions flex items-center gap-3 py-2 ${vertical ? 'post-actions-vertical' : ''}`}>
+  <button type="button" aria-label={liked ? 'Unlike post' : 'Like post'} aria-pressed={liked} disabled={busy} onClick={like}>{liked ? <LikedIcon /> : <LikeIcon />}{vertical && <span>{count}</span>}</button>
+  <button type="button" aria-label="View comments" onClick={onComment}><CommentIcon />{vertical && <span>{post.comments.length}</span>}</button>
+  <button type="button" aria-label="Share post" onClick={share}><SharePostIcon />{vertical && <span>Share</span>}</button>
+  <button type="button" aria-label={saved ? 'Unsave post' : 'Save post'} aria-pressed={saved} disabled={busy} onClick={save} className={`ml-auto ${saved ? 'text-white' : ''}`}><SaveIcon saved={saved} />{vertical && <span>Save</span>}</button>
   <button type="button" aria-label="Report post" onClick={() => setReportOpen(true)} className="text-xs">Report</button>
  </div><p className="text-sm font-semibold">{count} {count === 1 ? 'like' : 'likes'}</p>{error && <p role="status" className="text-xs text-red-400">{error}</p>}{reportOpen && <ReportPostDialog postId={post._id} onClose={() => setReportOpen(false)}
      onSubmitted={() => setError('Report submitted')} />}</div>;

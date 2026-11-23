@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Post } from '../../../models/Post';
 import usePrivateHttp from '../../../hooks/usePrivateHttp';
-import { useAppDispatch } from '../../../hooks/useStore';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';
 import { postDetailModalActions } from '../../../lib/redux/postDetailModalSlice';
 import Avatar from '../../../components/UI/Avatar/Avatar';
 import Card from '../../../components/UI/Card';
 import './StoryList.css';
+import { sideBarActions } from '../../../lib/redux/sideBarSlice';
 
 export default function StoryList() {
     const http = usePrivateHttp();
     const dispatch = useAppDispatch();
+    const user = useAppSelector(state => state.authSlice.userInfo);
     const [stories, setStories] = useState<Post[]>([]);
     useEffect(() => {
         const load = () => http.get('/post/stories').then(r => setStories(r.data.postsList)).catch(() => {});
@@ -17,8 +19,13 @@ export default function StoryList() {
         window.addEventListener('stories-updated', load);
         return () => window.removeEventListener('stories-updated', load);
     }, [http]);
-    if (!stories.length) return null;
+    if (!stories.length && !user) return null;
     return <Card as="section" className="feed-card story-strip mt-4" aria-label="Stories">
+        {user && <button type="button" className="story-item story-create" aria-label="Create story"
+            onClick={() => dispatch(sideBarActions.openCreatePost(true))}>
+            <span className="story-ring story-create-avatar"><Avatar className="story-avatar" avatarUrl={user.avatar} username={user.username} /><span>+</span></span>
+            <span className="story-username">Your story</span>
+        </button>}
         {stories.map(story => <button key={story._id} type="button" className="story-item"
             aria-label={'View story by ' + story.userId.username}
             onClick={() => dispatch(postDetailModalActions.openPostDetailModal({ post: story, prevPath: '/' }))}>

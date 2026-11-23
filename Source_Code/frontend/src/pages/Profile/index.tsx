@@ -8,6 +8,7 @@ import usePrivateHttp from "../../hooks/usePrivateHttp";
 import TopInformation from "./TopInformation";
 import PostList from "./PostList";
 import "./Profile.css";
+import RelationshipManager from "./RelationshipManager";
 const Profile = () => {
     const { _id } = useParams<{
         _id: string;
@@ -17,8 +18,10 @@ const Profile = () => {
     const [profile, setProfile] = useState<ProfileType | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
+    const [relationshipsOpen, setRelationshipsOpen] = useState(false);
     useEffect(() => {
         let active = true;
+        setRelationshipsOpen(false);
         const getProfile = async () => {
             if (!_id) {
                 setErrorMessage("Không tìm thấy ID người dùng");
@@ -68,8 +71,10 @@ const Profile = () => {
     return (
         <main className="profile-page" aria-labelledby="profile-name">
             <div className="profile-content" key={profile._id}>
-                <TopInformation profile={profile}
+                <TopInformation profile={profile} onManageRelationships={() => setRelationshipsOpen(true)}
                     onProfileUpdated={user => setProfile(current => current?._id === profile._id ? { ...current, ...user } : current)} />
+                {canViewSaved && relationshipsOpen && <RelationshipManager profile={profile} onClose={() => setRelationshipsOpen(false)}
+                    onUnfollow={userId => setProfile(current => current ? { ...current, followings: current.followings?.filter(user => user._id !== userId) } : current)} />}
                 <PostList posts={profile.posts || []} saved={profile.saved || []} canViewSaved={canViewSaved} />
             </div>
         </main>

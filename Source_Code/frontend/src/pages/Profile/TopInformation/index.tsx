@@ -9,9 +9,12 @@ import type { Profile } from '../../../models/Profile';
 import type { User } from '../../../models/User';
 import { createFollow, deleteFollow } from '../../../services/userService';
 import EditProfileModal from '../EditProfileModal';
+import LoginPromptModal from '../../../components/LoginPromptModal';
+import ReportPostDialog from '../../../components/ReportPostDialog';
 
-export default function TopInformation({ profile, onProfileUpdated }: {
+export default function TopInformation({ profile, onProfileUpdated, onManageRelationships }: {
     profile: Profile;
+    onManageRelationships: () => void;
     onProfileUpdated: (user: User) => void;
 }) {
     const navigate = useNavigate();
@@ -24,6 +27,9 @@ export default function TopInformation({ profile, onProfileUpdated }: {
     const [following, setFollowing] = useState(false);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
+    const [loginPrompt, setLoginPrompt] = useState(false);
+    const [reportOpen, setReportOpen] = useState(false);
+    const [reportNotice, setReportNotice] = useState('');
 
     useEffect(() => {
         setFollowers(profile.followers?.length ?? 0);
@@ -31,6 +37,7 @@ export default function TopInformation({ profile, onProfileUpdated }: {
     }, [profile.followers, currentUserId]);
 
     async function toggleFollow() {
+        if (!currentUserId) { setLoginPrompt(true); return; }
         if (busy) return;
         setBusy(true);
         setError('');
@@ -72,11 +79,13 @@ export default function TopInformation({ profile, onProfileUpdated }: {
                                 <>
                                     <Button className="profile-action" onClick={() => setEditing(true)}>Edit profile</Button>
                                     <Button className="profile-action" onClick={viewActivity}>View activity</Button>
+                                    <Button className="profile-action" onClick={onManageRelationships}>Manage Groups</Button>
                                 </>
                             ) : (
                                 <>
                                     <Button className="profile-action" disabled={busy} onClick={toggleFollow}>{following ? 'Unfollow' : 'Follow'}</Button>
-                                    <Button className="profile-action" onClick={() => navigate(`/message/${profile._id}`, { state: { user: profile } })}>Message</Button>
+                                    <Button className="profile-action" onClick={() => currentUserId ? navigate("/message/" + profile._id, { state: { user: profile } }) : setLoginPrompt(true)}>Message</Button>
+                                    <Button className="profile-action" onClick={() => currentUserId ? setReportOpen(true) : setLoginPrompt(true)}>Report</Button>
                                 </>
                             )}
                         </div>
@@ -90,8 +99,11 @@ export default function TopInformation({ profile, onProfileUpdated }: {
                     {profile.email && <p className="profile-muted profile-email">{profile.email}</p>}
                     {error && <p className="profile-error" role="alert">{error}</p>}
                 </div>
+                {reportNotice && <p role="status">{reportNotice}</p>}
             </Card>
             {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)} />}
+            {loginPrompt && <LoginPromptModal onClose={() => setLoginPrompt(false)} />}
+            {reportOpen && <ReportPostDialog targetUserId={profile._id} onClose={() => setReportOpen(false)} onSubmitted={() => setReportNotice("Đã gửi báo cáo tài khoản")} />}
         </>
     );
 }

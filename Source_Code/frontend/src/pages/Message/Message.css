@@ -82,6 +82,14 @@
 .message-contact-label,
 .message-header-label { min-width: 0; }
 
+.message-contact-label {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+}
+
 .message-contact-name,
 .message-header h2 {
     display: block;
@@ -89,6 +97,23 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-weight: 650;
+}
+
+.message-contact-preview {
+    overflow: hidden;
+    color: var(--message-muted);
+    font-size: .8125rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.message-contact-time {
+    flex: none;
+    align-self: flex-start;
+    padding-top: 2px;
+    color: var(--message-muted);
+    font-size: .75rem;
 }
 
 .message-presence,
