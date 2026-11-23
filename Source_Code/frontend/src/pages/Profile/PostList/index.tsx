@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import OptionGroup from '../../../components/UI/OptionGroup';
-import { Post } from '../../../models/Post';
+import type { Post } from '../../../models/Post';
 import ProfilePostGrid from './ProfilePostGrid';
 
-const options = [{ id: 'posts', label: 'POSTS' }, { id: 'saved', label: 'SAVED' }] as const;
+const options = [{ id: 'posts', label: 'Posts' }, { id: 'saved', label: 'Saved' }] as const;
 
-export default function ProfilePostList({ posts, saved }: { posts: Post[]; saved: Post[] }) {
-    const [activeTab, setActiveTab] = useState<typeof options[number]['id']>('posts');
+export default function ProfilePostList({ posts, saved, canViewSaved }: { posts: Post[]; saved: Post[]; canViewSaved: boolean }) {
+    const [selection, setSelection] = useState<typeof options[number]['id']>('posts');
+    const viewingSaved = canViewSaved && selection === 'saved';
+
     return (
-        <div className="mt-16">
-            <div className="border-t border-lightDark text-foreground text-xs">
-                <OptionGroup label="Profile posts" options={options} value={activeTab} onChange={setActiveTab} variant="underline" />
+        <section className="profile-collection" aria-label="Profile posts">
+            <div className="profile-tabs">
+                {canViewSaved ? <OptionGroup label="Profile collection" options={options} value={selection} onChange={setSelection} /> : <h2>Posts</h2>}
             </div>
-            <ProfilePostGrid posts={activeTab === 'posts' ? posts : saved} />
-        </div>
+            <ProfilePostGrid posts={viewingSaved ? saved : posts} emptyMessage={viewingSaved ? 'No saved posts yet.' : 'No posts yet.'} />
+        </section>
     );
 }
