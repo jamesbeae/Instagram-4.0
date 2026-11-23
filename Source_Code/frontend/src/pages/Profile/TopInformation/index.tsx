@@ -1,122 +1,109 @@
-import React from "react";
-import EditProfileModal from "../EditProfileModal";
-import { User } from "../../../models/User";
-import { useNavigate } from "react-router-dom";
-import { Profile } from "../../../models/Profile";
-import Avatar from "../../../components/UI/Avatar/Avatar";
-import Button from "../../../components/UI/Button/Button";
-import { useAppSelector } from "../../../hooks/useStore";
-import { createFollow, deleteFollow } from "../../../services/userService";
-import usePrivateHttp from "../../../hooks/usePrivateHttp";
-import LoginPromptModal from "../../../components/LoginPromptModal";
-import ReportPostDialog from "../../../components/ReportPostDialog";
-const TopInformation: React.FC<{
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Avatar from '../../../components/UI/Avatar/Avatar';
+import Button from '../../../components/UI/Button/Button';
+import Card from '../../../components/UI/Card';
+import usePrivateHttp from '../../../hooks/usePrivateHttp';
+import { useAppSelector } from '../../../hooks/useStore';
+import type { Profile } from '../../../models/Profile';
+import type { User } from '../../../models/User';
+import { createFollow, deleteFollow } from '../../../services/userService';
+import EditProfileModal from '../EditProfileModal';
+import LoginPromptModal from '../../../components/LoginPromptModal';
+import ReportPostDialog from '../../../components/ReportPostDialog';
+
+export default function TopInformation({ profile, onProfileUpdated, onManageRelationships }: {
     profile: Profile;
-    onProfileUpdated: (user: User) => void;
     onManageRelationships: () => void;
-}> = ({ profile, onProfileUpdated, onManageRelationships }) => {
-    const [editing, setEditing] = React.useState(false);
-    const [loginPrompt, setLoginPrompt] = React.useState(false);
-    const [reportOpen, setReportOpen] = React.useState(false);
-    const [reportNotice, setReportNotice] = React.useState('');
+    onProfileUpdated: (user: User) => void;
+}) {
     const navigate = useNavigate();
-    const privateHttp = usePrivateHttp();
-    const currentUser = useAppSelector((state) => state.authSlice.userInfo);
-    const currentUserId = currentUser?._id;
+    const http = usePrivateHttp();
+    const currentUserId = useAppSelector(state => state.authSlice.userInfo?._id);
     const isOwnProfile = profile._id === currentUserId;
-    const [followers, setFollowers] = React.useState<number>(profile.followers ? profile.followers.length : 0);
-    console.log("TopInformation", profile);
-    const [isFollowing, setIsFollowing] = React.useState<boolean>(!!(currentUserId &&
-        profile.followers?.some((follower) => {
-            return follower._id === currentUserId;
-        })));
-    React.useEffect(() => {
-        setFollowers(profile.followers?.length || 0);
-        const currentUserIsFollowing = !!(currentUserId &&
-            profile.followers?.some((follower) => follower._id === currentUserId));
-        setIsFollowing(currentUserIsFollowing);
-    }, [profile, currentUserId]);
-    const handleFollowUser = async () => {
+    const name = profile.fullName || profile.username || 'Profile';
+    const [editing, setEditing] = useState(false);
+    const [followers, setFollowers] = useState(0);
+    const [following, setFollowing] = useState(false);
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState('');
+    const [loginPrompt, setLoginPrompt] = useState(false);
+    const [reportOpen, setReportOpen] = useState(false);
+    const [reportNotice, setReportNotice] = useState('');
+
+    useEffect(() => {
+        setFollowers(profile.followers?.length ?? 0);
+        setFollowing(Boolean(profile.followers?.some(follower => follower._id === currentUserId)));
+    }, [profile.followers, currentUserId]);
+
+    async function toggleFollow() {
+        if (!currentUserId) { setLoginPrompt(true); return; }
+        if (busy) return;
+        setBusy(true);
+        setError('');
         try {
-            if (!isFollowing && profile._id) {
-                const response = await createFollow(privateHttp, profile._id);
-                if (!response || response.status >= 400) {
-                    alert("Unable to follow user");
-                    return;
-                }
-                setIsFollowing(true);
-                setFollowers((prev) => prev + 1);
-                console.log(response);
-            }
-            else if (profile._id) {
-                const response = await deleteFollow(privateHttp, profile._id);
-                if (!response || response.status >= 400) {
-                    alert("Unable to unfollow user");
-                    return;
-                }
-                setIsFollowing(false);
-                setFollowers((prev) => Math.max(0, prev - 1));
-                console.log(response);
-            }
+            const action = following ? deleteFollow : createFollow;
+            const response = await action(http, profile._id);
+            if (!response || response.status >= 400) throw Error('Follow action failed');
+            setFollowing(!following);
+            setFollowers(count => following ? Math.max(0, count - 1) : count + 1);
+        } catch {
+            setError(following ? 'Unable to unfollow this account.' : 'Unable to follow this account.');
+        } finally {
+            setBusy(false);
         }
-        catch (error) {
-            console.log(error);
+    }
+
+    async function viewActivity() {
+        setError('');
+        try {
+            const { data } = await http.get<{ activity: { type: string; createdAt: string }[] }>('/user/activity');
+            alert(data.activity.map(item => `${item.type} · ${new Date(item.createdAt).toLocaleString()}`).join('\n') || 'No activity yet');
+        } catch {
+            setError('Unable to load your activity.');
         }
-    };
-    return (<> {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)}/>} {reportOpen && <ReportPostDialog targetUserId={profile._id} onClose={() => setReportOpen(false)} onSubmitted={() => setReportNotice('Đã gửi báo cáo tài khoản')}/>}<div className="grid grid-cols-3 text-foreground px-4 py-6">
-            {/* <LeftAvatar avatarUrl={profile.avatar} />
-        <RightContent profile={profile} /> */}
+    }
 
-            {/* Profile Picture */}
-            <div className="relative">
-                <Avatar avatarUrl={profile.avatar} className="w-[150px] h-[150px]"/>
-            </div>
-
-            {/* Profile Stats and Info */}
-            <div className="flex-1 col-span-2">
-                <div className="flex gap-2 mb-6">
-                    {!currentUser ? <><Button onClick={() => setLoginPrompt(true)} className="px-4 py-1.5 text-sm bg-textGray rounded">Follow</Button><Button onClick={() => setLoginPrompt(true)} className="px-4 py-1.5 text-sm bg-textGray rounded">Message</Button><Button onClick={() => setLoginPrompt(true)} className="px-4 py-1.5 text-sm bg-textGray rounded">Report</Button>{loginPrompt && <LoginPromptModal onClose={() => setLoginPrompt(false)} />}</> : isOwnProfile ? (<>
-                            <Button onClick={() => setEditing(true)} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded">Edit profile</Button>
-
-                            <Button onClick={async () => { const r = await privateHttp.get("/user/activity"); alert(r.data.activity.map((a: any) => a.type + " · " + new Date(a.createdAt).toLocaleString()).join("\n") || "No activity yet"); }} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded ">View activity</Button>
-
-                            <Button onClick={onManageRelationships} className="rounded bg-textGray px-4 py-1.5 text-sm hover:bg-gray-600">Manage Groups</Button>
-                        </>) : (<>
-                            <Button onClick={handleFollowUser} className="flex items-center gap-1 px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded">{isFollowing ? "Following" : "Follow"}</Button>
-
-                            {isFollowing && (<Button onClick={handleFollowUser} className="px-4 py-1.5 text-sm bg-red-500 hover:bg-red-600 rounded">Unfollow</Button>)}
-                            <Button onClick={() => navigate("/message/" + profile._id, { state: { user: profile } })} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded">Message</Button>
-                            <Button onClick={() => { setReportNotice(''); setReportOpen(true); }} className="px-4 py-1.5 text-sm bg-textGray hover:bg-gray-600 rounded">Report</Button>
-                        </>)}
-                </div>
-                {reportNotice && <p role="status" className="mb-3 text-sm text-blue">{reportNotice}</p>}
-                {/* Stats */}
-                <div className="flex gap-8 mb-4">
-                    <div className="text-center">
-                        <div className="text-xl font-semibold">
-                            {profile.posts.length}
+    return (
+        <>
+            <Card as="section" className="profile-identity" aria-labelledby="profile-name">
+                <span aria-hidden="true"><Avatar avatarUrl={profile.avatar} username={profile.username} className="profile-avatar" /></span>
+                <div className="profile-info">
+                    <div className="profile-name-row">
+                        <div className="profile-name">
+                            <h1 id="profile-name">{name}</h1>
+                            {profile.username && <p className="profile-muted">@{profile.username}</p>}
                         </div>
-                        <div className="text-sm">posts</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-xl font-semibold">{followers}</div>
-                        <div className="text-sm">followers</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-xl font-semibold">
-                            {profile.followings?.length}
+                        <div className="profile-actions">
+                            {isOwnProfile ? (
+                                <>
+                                    <Button className="profile-action" onClick={() => setEditing(true)}>Edit profile</Button>
+                                    <Button className="profile-action" onClick={viewActivity}>View activity</Button>
+                                    <Button className="profile-action" onClick={onManageRelationships}>Manage Groups</Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button className="profile-action" disabled={busy} onClick={toggleFollow}>{following ? 'Unfollow' : 'Follow'}</Button>
+                                    <Button className="profile-action" onClick={() => currentUserId ? navigate("/message/" + profile._id, { state: { user: profile } }) : setLoginPrompt(true)}>Message</Button>
+                                    <Button className="profile-action" onClick={() => currentUserId ? setReportOpen(true) : setLoginPrompt(true)}>Report</Button>
+                                </>
+                            )}
                         </div>
-                        <div className="text-sm">following</div>
                     </div>
+                    <ul className="profile-stats" aria-label="Profile counts">
+                        <li><strong>{profile.posts.length}</strong> posts</li>
+                        <li><strong>{followers}</strong> followers</li>
+                        <li><strong>{profile.followings?.length ?? 0}</strong> following</li>
+                    </ul>
+                    {profile.bio && <p className="profile-bio">{profile.bio}</p>}
+                    {profile.email && <p className="profile-muted profile-email">{profile.email}</p>}
+                    {error && <p className="profile-error" role="alert">{error}</p>}
                 </div>
-
-                {/* Bio */}
-                <div className="space-y-1">
-                    <h2 className="font-semibold">{profile.fullName}</h2>
-                    {profile.bio && <p className="text-sm">{profile.bio}</p>}
-                    {profile.email && (<p className="text-sm">{profile.email}</p>)}
-                </div>
-            </div>
-        </div></>);
-};
-export default TopInformation;
+                {reportNotice && <p role="status">{reportNotice}</p>}
+            </Card>
+            {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)} />}
+            {loginPrompt && <LoginPromptModal onClose={() => setLoginPrompt(false)} />}
+            {reportOpen && <ReportPostDialog targetUserId={profile._id} onClose={() => setReportOpen(false)} onSubmitted={() => setReportNotice("Đã gửi báo cáo tài khoản")} />}
+        </>
+    );
+}
