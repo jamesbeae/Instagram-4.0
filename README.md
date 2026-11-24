@@ -29,10 +29,10 @@ Hai tài khoản **chỉ có trong DB demo đã seed**: `owner@example.com / 123
 | Quan hệ | Theo dõi/bỏ theo dõi, tìm kiếm, gợi ý người dùng, danh sách bạn bè/đồng nghiệp/gia đình tùy tên |
 | Bài viết | Nhiều ảnh/video, tạo/sửa/xóa, feed phân trang, permalink và sao chép link |
 | Tương tác | Like/unlike, comment, save/unsave, tab bài đã lưu chỉ hiện với chủ tài khoản |
-| Nội dung | Story hết hạn sau 24 giờ, Explore và Reels từ bài video |
+| Nội dung | Bài viết, Story hết hạn sau 24 giờ và Reel là nội dung riêng gồm một video; video bài viết cũ vẫn được giữ trong Reels để tương thích |
 | Riêng tư | Chia sẻ public/followers/relation list; kiểm tra quyền trên feed, chi tiết, profile, tương tác và media local |
 | Realtime | Socket xác thực JWT, tin nhắn có lưu DB, online nhiều phiên, thông báo từ hành vi đã lưu trên server |
-| Phân quyền | User/creator/admin; creator xem thống kê; admin xem báo cáo, ẩn nội dung, khóa tài khoản, đổi role |
+| Phân quyền | User/creator/admin; creator lọc thống kê theo ngày/bài viết; admin xử lý báo cáo, kiểm duyệt nội dung có ghi chú, xem thống kê theo ngày/nhóm, khóa tài khoản và đổi role |
 | Gợi ý | Ghi VIEW/LIKE/COMMENT/FOLLOW/SAVE/SHARE; xếp hạng theo tác giả, nội dung, theo dõi, phổ biến và thời gian |
 
 ## Cấu hình cần bổ sung
@@ -63,11 +63,11 @@ Mỗi người được đánh giá với một positive tương lai và 99 nega
 
 Để chạy lại, dùng Python 3: `python scripts/train-recommendation.py --archive PATH_TO_ARCHIVE --output OUTPUT_DIR`. Dữ liệu tải và artifact đầy đủ hiện ở `D:\codes\Instagram-4.0-local`. Phần tiếp theo cho báo cáo khoa học: full-catalog evaluation, cold start, ablation, dữ liệu view/comment/save thực tế và benchmark hiệu năng.
 
-Frontend build hiện còn cảnh báo bundle khoảng 1 MB; cần tách tải các trang và emoji picker trước khi tối ưu cho mạng chậm.
+Frontend tải các trang và thư viện emoji theo nhu cầu để giảm JavaScript ban đầu. Cần đo lại kích thước bundle sau build và kiểm thử tải để xác nhận mục tiêu hiệu năng của đồ án.
 
 ## Đối chiếu thiết kế mới — 28/10/2026
 
-Đã bổ sung tìm kiếm tài khoản/nội dung có phân quyền và lịch sử UNLIKE/UNSAVE/UNFOLLOW. API tìm kiếm cho khách chỉ trả nội dung công khai; giao diện tìm kiếm hiện yêu cầu đăng nhập. Xem [bảng đối chiếu 24 use case, schema và công việc còn thiếu](Source_Code/backend/docs/DESIGN_ALIGNMENT_2026-10-28.md). Đây là đợt cập nhật đầu tiên; chưa chuyển schema public sang mxh/bigint.
+Tài liệu đối chiếu ngày 28/10 là ảnh chụp trạng thái cũ. Hiện API và giao diện cho phép khách tìm kiếm tài khoản/nội dung công khai; quyền xem vẫn được kiểm tra ở backend. Xem [bảng đối chiếu 24 use case, schema và công việc còn thiếu](Source_Code/backend/docs/DESIGN_ALIGNMENT_2026-10-28.md) như ghi chú lịch sử, không dùng làm trạng thái hiện tại.
 
 ## Pipeline gợi ý Bluesky mở rộng
 

@@ -1,6 +1,6 @@
 export type Notification = {
     _id: string;
-    type: "LIKE" | "COMMENT" | "COMMENT_LIKE" | "COMMENT_REPLY" | "FOLLOW";
+    type: "LIKE" | "COMMENT" | "COMMENT_LIKE" | "COMMENT_REPLY" | "FOLLOW" | "REPORT_RESOLVED";
     userId: string;
     senderId?: string;
     postId?: string | null;

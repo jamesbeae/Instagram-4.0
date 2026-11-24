@@ -34,6 +34,13 @@ function DiscoverFeed({ mode }: { mode: Mode }) {
     const [pages, setPages] = useState(1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [refreshVersion, setRefreshVersion] = useState(0);
+
+    useEffect(() => {
+        const refresh = () => { setRequest({ page: 1 }); setRefreshVersion(value => value + 1); };
+        window.addEventListener('reels-updated', refresh);
+        return () => window.removeEventListener('reels-updated', refresh);
+    }, []);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -58,7 +65,7 @@ function DiscoverFeed({ mode }: { mode: Mode }) {
             if (!controller.signal.aborted) setLoading(false);
         });
         return () => controller.abort();
-    }, [http, isExplore, mode, request, query, scope]);
+    }, [http, isExplore, mode, request, query, scope, refreshVersion]);
 
     const loadPage = useCallback((page: number) => {
         setLoading(true);

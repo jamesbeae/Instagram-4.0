@@ -10,7 +10,7 @@ exports.createPost = async ({ content, mediaUrl, photoVideoList, userId, kind = 
     }
     const media = await prepareMedia(photoVideoList || [{ url: mediaUrl, type: /\.(mp4|webm|mov)(\?|$)/i.test(mediaUrl) ? 'VIDEO' : 'PHOTO' }]);
     try {
-        const post = await Post.create({ content, mediaUrl: media[0].url, media, userId, kind, visibility, groupId: visibility === 'group' ? groupId : null, expiresAt: kind === 'STORY' ? new Date(Date.now() + 24 * 3600000) : null });
+        const post = await Post.create({ content: content ?? '', mediaUrl: media[0].url, media, userId, kind, visibility, groupId: visibility === 'group' ? groupId : null, expiresAt: kind === 'STORY' ? new Date(Date.now() + 24 * 3600000) : null });
         return { status: 201, post: social.postJSON(await social.findPost(post.id, userId), userId) };
     }
     catch (e) {

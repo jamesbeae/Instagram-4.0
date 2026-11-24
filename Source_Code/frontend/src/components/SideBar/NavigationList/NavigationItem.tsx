@@ -10,7 +10,7 @@ export default function NavigationItem({ icon, title, onClick, panel, accessible
     onClick: () => void;
     panel?: SidebarPanelName;
 }) {
-    const { openedModal, isSmall, currentPage } = useAppSelector(state => state.sideBarSlice);
+    const { openedModal, currentPage } = useAppSelector(state => state.sideBarSlice);
     const isOpen = panel !== undefined && openedModal === panel;
     const isCurrent = currentPage === title.toLowerCase();
 
@@ -19,10 +19,10 @@ export default function NavigationItem({ icon, title, onClick, panel, accessible
             aria-label={accessibleLabel} aria-expanded={panel ? isOpen : undefined}
             aria-controls={isOpen ? `sidebar-panel-${panel}` : undefined}
             aria-current={isCurrent ? "page" : undefined}
-            className={`sidebar-nav-item group mt-0.5 flex w-full items-center gap-4 rounded-[14px] border py-3 hover:bg-lightSecondDark ${openedModal || isSmall ? "justify-center" : "px-3"} ${isCurrent ? "bg-lightDark" : ""} ${isOpen ? "border-foreground" : "border-transparent"}`}
+            className={`sidebar-nav-item group mt-0.5 flex w-full items-center gap-4 rounded-[14px] border py-3 hover:bg-lightSecondDark ${isCurrent ? "bg-lightDark" : ""} ${isOpen ? "border-foreground" : "border-transparent"}`}
             onClick={onClick}>
             <span className="transition-transform group-hover:scale-105">{icon}</span>
-            {!(openedModal || isSmall) && <span className="navigation-label text-base font-normal">{title}</span>}
+            <span className="navigation-label text-base font-normal">{title}</span>
         </Button>
     );
 }

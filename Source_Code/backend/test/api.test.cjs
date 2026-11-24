@@ -228,6 +228,7 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             assert.equal((await request('GET', '/post/recommended', null, v)).data.postsList.some(p => p._id === privatePost._id), false);
             assert.equal((await request('GET', '/user/get-profile?_id=' + ownerId, null, v)).data.profile.posts.some(p => p._id === privatePost._id), false);
             assert.equal((await request('POST', '/like/create-like-post', { postId: privatePost._id }, v)).status, 404);
+            await request('POST', '/user/create-follow', { userId: viewerId }, o);
             await request('POST', '/groups/' + group.id + '/members', { userId: viewerId }, o);
             assert.equal((await request('GET', '/post/' + privatePost._id, null, v)).status, 200);
             assert.equal((await request('GET', '/search?scope=posts&q=Friends', null, v)).data.postsList.some(p => p._id === privatePost._id), true);
@@ -336,7 +337,7 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             assert.equal((await request('PATCH', '/admin/users/' + ownerId, { disabled: true }, o)).status, 400);
             const flagged = (await request('POST', '/post/create-post', { content: 'Moderation test', mediaUrl: 'https://example.com/flagged.jpg' }, v)).data.post;
             const flag = (await request('POST', '/reports', { postId: flagged._id, reason: 'Test moderation action' }, o)).data.report;
-            assert.equal((await request('PATCH', '/admin/reports/' + flag.id, { action: 'hide-post' }, o)).status, 200);
+            assert.equal((await request('PATCH', '/admin/reports/' + flag.id, { action: 'hide-post', resolution: 'Reviewed and hid the reported post.' }, o)).status, 200);
             assert.equal((await request('GET', '/post/' + flagged._id, null, v)).status, 404);
             assert.equal((await request('GET', '/search?scope=posts&q=Moderation', null, v)).data.postsList.some(p => p._id === flagged._id), false);
         });

@@ -1,22 +1,23 @@
 import "./App.css";
+import { lazy, Suspense } from "react";
 import UnsavedChangesProvider from "./components/UnsavedChanges";
 import { createBrowserRouter, RouterProvider, type RouteObject } from "react-router-dom";
-import SignUp from "./pages/Signup";
-import Login from "./pages/Login";
 import RootLayout from "./components/RootLayout";
-import Home from "./pages/Home";
-import Profile from "./pages/Profile";
-import Message from "./pages/Message";
-import PasswordRecovery from "./pages/PasswordRecovery";
-import Discover from "./pages/Discover";
-import Workspace from "./pages/Workspace";
-import Settings from "./pages/Settings";
-import PostPage from "./pages/PostPage";
-import ChatBox from "./pages/Message/Chatbox";
 import { useSocket } from "./hooks/useSocket";
 import { useAppSelector } from "./hooks/useStore";
 import AuthInitializer from "./components/AuthInitializer";
 import RequireAuth from "./components/RequireAuth";
+const SignUp = lazy(() => import("./pages/Signup"));
+const Login = lazy(() => import("./pages/Login"));
+const Home = lazy(() => import("./pages/Home"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Message = lazy(() => import("./pages/Message"));
+const PasswordRecovery = lazy(() => import("./pages/PasswordRecovery"));
+const Discover = lazy(() => import("./pages/Discover"));
+const Workspace = lazy(() => import("./pages/Workspace"));
+const Settings = lazy(() => import("./pages/Settings"));
+const PostPage = lazy(() => import("./pages/PostPage"));
+const ChatBox = lazy(() => import("./pages/Message/Chatbox"));
 const routes: RouteObject[] = [
     { path: "/forgot-password", element: <PasswordRecovery key="forgot" /> },
     { path: "/reset-password", element: <PasswordRecovery key="reset" /> },
@@ -53,7 +54,9 @@ function App() {
     const userId = useAppSelector((state) => state.authSlice.userInfo?._id);
     useSocket(userId);
     return (<AuthInitializer>
+            <Suspense fallback={<div role="status" className="p-6 text-foreground">Loading page…</div>}>
             <RouterProvider router={router}/>
+            </Suspense>
         </AuthInitializer>);
 }
 export default App;

@@ -5,7 +5,7 @@ import { Comment } from "./Comment";
 export type Post = {
     _id: string;
     isSaved?: boolean;
-    kind?: "POST" | "STORY";
+    kind?: "POST" | "STORY" | "REEL";
     visibility?: "public" | "followers" | "group";
     groupId?: string | null;
     caption: string;

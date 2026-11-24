@@ -21,6 +21,6 @@ export default function TopicsCard() {
         <div className="home-panel-heading"><h2>Trending topics</h2><button type="button" onClick={() => navigate("/explore")}>Explore</button></div>
         {topics.length ? <ul>{topics.map(([topic, count]) => <li key={topic}>
             <button type="button" onClick={() => navigate(`/explore?topic=${encodeURIComponent(topic.slice(1))}`)}><strong>{topic}</strong><span>{count} posts in your feed</span></button>
-        </li>)}</ul> : <div className="home-topics-empty"><p>Topics appear here as people add hashtags to posts.</p><button type="button" onClick={() => navigate("/explore")}>Discover posts</button></div>}
+        </li>)}</ul> : <div className="home-topics-empty"><p>No trending topics yet.</p><button type="button" onClick={() => navigate("/explore")}>Explore posts</button></div>}
     </section>;
 }

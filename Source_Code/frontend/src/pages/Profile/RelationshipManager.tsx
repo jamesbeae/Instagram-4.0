@@ -24,7 +24,7 @@ export default function RelationshipManager({ profile, onClose, onUnfollow }: { 
     const isOwner = Boolean(userId && profile._id === userId);
 
     async function loadGroups() {
-        const [groupResult, userResult] = await Promise.all([http.get('/groups'), http.get('/user/get-all-users')]);
+        const [groupResult, userResult] = await Promise.all([http.get('/groups'), http.get('/groups/eligible-members')]);
         setGroups(groupResult.data.groups || []);
         setUsers(userResult.data.users || []);
     }
@@ -52,6 +52,7 @@ export default function RelationshipManager({ profile, onClose, onUnfollow }: { 
             await http.post('/user/delete-follow', { userId: targetId });
             setFollowing(current => current.filter(user => user._id !== targetId));
             onUnfollow(targetId);
+            await loadGroups();
         } catch (reason: any) { setError(reason?.response?.data?.message || 'Không thể bỏ theo dõi tài khoản.'); }
     }
 

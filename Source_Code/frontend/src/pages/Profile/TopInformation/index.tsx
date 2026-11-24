@@ -103,7 +103,7 @@ export default function TopInformation({ profile, onProfileUpdated, onManageRela
             </Card>
             {editing && <EditProfileModal user={profile} onUpdated={onProfileUpdated} onClose={() => setEditing(false)} />}
             {loginPrompt && <LoginPromptModal onClose={() => setLoginPrompt(false)} />}
-            {reportOpen && <ReportPostDialog targetUserId={profile._id} onClose={() => setReportOpen(false)} onSubmitted={() => setReportNotice("Đã gửi báo cáo tài khoản")} />}
+            {reportOpen && <ReportPostDialog targetUserId={profile._id} onClose={() => setReportOpen(false)} onSubmitted={duplicate => setReportNotice(duplicate ? "Báo cáo tài khoản này đang chờ xử lý." : "Đã gửi báo cáo tài khoản, đang chờ xử lý.")} />}
         </>
     );
 }
