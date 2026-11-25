@@ -19,6 +19,7 @@ export default function SharePostDialog({ post, onClose, onSent }: {
     onSent: (recipientName: string) => void;
 }) {
     const dialog = useRef<HTMLDialogElement>(null);
+    const openerRef = useRef(document.activeElement);
     const titleId = useId();
     const recipientGroup = useId();
     const attemptIds = useRef(new Map<string, string>());
@@ -37,9 +38,16 @@ export default function SharePostDialog({ post, onClose, onSent }: {
     const url = `${window.location.origin}/post/${post._id}`;
 
     useEffect(() => {
+        const opener = openerRef.current;
         const modal = dialog.current;
         modal?.showModal();
-        return () => modal?.close();
+        return () => {
+            modal?.close();
+            queueMicrotask(() => {
+                if (opener instanceof HTMLElement && opener.isConnected && document.activeElement === document.body)
+                    opener.focus({ preventScroll: true });
+            });
+        };
     }, []);
 
     function close() {
