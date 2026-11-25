@@ -1,4 +1,4 @@
-.ui-button-primary {
+button.ui-button-primary {
     --primary-button-bg: #075dbf;
     background-color: var(--primary-button-bg);
     color: #fff;
