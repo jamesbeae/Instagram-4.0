@@ -135,38 +135,30 @@ exports.save = async (userId, postId, saving) => {
         });
     return { status: 200, isSaved: saving };
 };
-const areMutualContacts = exports.areMutualContacts = async (userId, peerId, transaction) => {
-    if (userId === peerId || Joi.string().uuid().required().validate(peerId).error) return false;
-    const links = await Follow.findAll({
-        where: { [Op.or]: [
-            { followerId: userId, followingId: peerId },
-            { followerId: peerId, followingId: userId },
-        ] },
+const findMessageRecipient = exports.findMessageRecipient = async (userId, peerId, transaction) => {
+    if (Joi.string().uuid().required().validate(peerId).error || userId === peerId.toLowerCase()) return null;
+    return User.findOne({
+        where: { id: peerId, disabled: false },
+        attributes: ['id', 'username', 'fullName', 'bio', 'avatar'],
         ...(transaction && { transaction, lock: transaction.LOCK.SHARE }),
     });
-    return links.length === 2;
-};
-exports.messageContactsChanged = (userId, peerId) => {
-    realtime?.to(['user:' + userId, 'user:' + peerId]).emit('messageContactsChanged');
 };
 exports.messageInbox = async userId => {
-    const contacts = await sequelize.query(`
+    const peers = await sequelize.query(`
+        WITH peers AS (
+            SELECT receiver_id AS peer_id FROM messages WHERE sender_id = $userId
+            UNION SELECT sender_id FROM messages WHERE receiver_id = $userId
+        )
         SELECT u.id, u.username, u.full_name AS "fullName", u.bio, u.avatar,
-            EXISTS (
-                SELECT 1 FROM messages m
-                WHERE m.receiver_id = $userId AND m.sender_id = u.id AND m.read_at IS NULL
-            ) AS unread,
             (SELECT COUNT(*)::int FROM messages m
                 WHERE m.receiver_id = $userId AND m.sender_id = u.id AND m.read_at IS NULL
             ) AS "unreadCount",
             last_message.contents AS "lastMessageContents",
             last_message.sender_id AS "lastMessageSenderId",
             last_message.created_at AS "lastMessageCreatedAt"
-        FROM follows outbound
-        JOIN follows inbound ON inbound.follower_id = outbound.following_id
-            AND inbound.following_id = outbound.follower_id
-        JOIN users u ON u.id = outbound.following_id AND u.disabled = false
-        LEFT JOIN LATERAL (
+        FROM peers
+        JOIN users u ON u.id = peers.peer_id
+        JOIN LATERAL (
             SELECT m.contents, m.sender_id, m.created_at
             FROM messages m
             WHERE (m.sender_id = $userId AND m.receiver_id = u.id)
@@ -174,20 +166,21 @@ exports.messageInbox = async userId => {
             ORDER BY m.created_at DESC, m.id DESC
             LIMIT 1
         ) last_message ON true
-        WHERE outbound.follower_id = $userId AND u.id <> $userId
-        ORDER BY last_message.created_at DESC NULLS LAST, u.username
+        WHERE u.id <> $userId
+        ORDER BY last_message.created_at DESC, u.username
     `, { bind: { userId }, type: QueryTypes.SELECT });
+    const toInboxUser = peer => ({
+        ...safeUser(peer),
+        lastMessage: peer.lastMessageContents == null ? null : {
+            contents: peer.lastMessageContents,
+            senderId: peer.lastMessageSenderId,
+            createdAt: peer.lastMessageCreatedAt,
+        },
+    });
     return {
-        contacts: contacts.map(contact => ({
-            ...safeUser(contact),
-            lastMessage: contact.lastMessageContents == null ? null : {
-                contents: contact.lastMessageContents,
-                senderId: contact.lastMessageSenderId,
-                createdAt: contact.lastMessageCreatedAt,
-            },
-        })),
-        unread: contacts.filter(contact => contact.unread).map(contact => contact.id),
-        unreadCount: contacts.reduce((total, contact) => total + Number(contact.unreadCount || 0), 0),
+        contacts: peers.map(toInboxUser),
+        unread: peers.filter(peer => peer.unreadCount > 0).map(peer => peer.id),
+        unreadCount: peers.reduce((total, peer) => total + peer.unreadCount, 0),
     };
 };
 exports.markMessagesRead = async (receiverId, messageId) => {
@@ -198,28 +191,59 @@ exports.markMessagesRead = async (receiverId, messageId) => {
     });
     if (updated) realtime?.to('user:' + receiverId).emit('messageInboxChanged');
 };
-exports.createMessage = async (senderId, receiverId, contents) => {
+exports.createMessage = async (senderId, receiverId, contents, messageId) => {
     id(receiverId);
+    if (senderId === receiverId.toLowerCase()) throw error(400, 'You cannot message yourself');
+    if (messageId !== undefined)
+        messageId = id(messageId);
     if (typeof contents !== 'string' || !contents.trim() || contents.length > 4000)
         throw error(400, 'Message must contain 1–4000 characters');
-    const message = await sequelize.transaction(async transaction => {
-        if (!await User.findOne({ where: { id: receiverId, disabled: false }, transaction }))
+    const values = { senderId, receiverId, contents: contents.trim() };
+    const { message, created } = await sequelize.transaction(async transaction => {
+        if (messageId) {
+            const existing = await Message.findByPk(messageId, { transaction });
+            if (existing)
+                return { message: existing, created: false };
+        }
+        if (!await findMessageRecipient(senderId, receiverId, transaction))
             throw error(404, 'Recipient not found');
-        if (!await areMutualContacts(senderId, receiverId, transaction))
-            throw error(403, 'You can only message people who follow you back');
-        return Message.create({ senderId, receiverId, contents: contents.trim() }, { transaction });
+        if (!messageId)
+            return { message: await Message.create(values, { transaction }), created: true };
+        const [message, created] = await Message.findOrCreate({
+            where: { id: messageId }, defaults: values, transaction,
+        });
+        return { message, created };
     });
+    if (message.senderId !== senderId || message.receiverId !== receiverId.toLowerCase() || message.contents !== values.contents)
+        throw error(409, 'Message ID already used');
     const data = exports.messageJSON(message);
-    realtime?.to('user:' + receiverId).emit('receiveMessage', data);
-    realtime?.to(['user:' + senderId, 'user:' + receiverId]).emit('messageInboxChanged');
+    if (created) {
+        realtime?.to('user:' + message.receiverId).emit('receiveMessage', data);
+        realtime?.to(['user:' + senderId, 'user:' + message.receiverId]).emit('messageInboxChanged');
+    }
     return data;
 };
 exports.messageJSON = message => { const m = message.get({ plain: true }); return { ...m, _id: m.id, sender_id: m.senderId, receiver_id: m.receiverId }; };
-exports.getMessages = async (senderId, receiverId, { page = 1, limit = 50 } = {}) => {
+exports.getMessages = async (senderId, receiverId, { page = 1, limit = 50, before = null } = {}) => {
     id(receiverId);
     if (!await User.findByPk(receiverId))
         throw error(404, 'Recipient not found');
-    const messages = await Message.findAll({ where: { [Op.or]: [{ senderId, receiverId }, { senderId: receiverId, receiverId: senderId }] }, order: [['createdAt', 'DESC']], limit, offset: (page - 1) * limit });
+    const messages = await sequelize.query(`
+        WITH conversation AS NOT MATERIALIZED (
+            SELECT * FROM messages
+            WHERE (sender_id = $senderId AND receiver_id = $receiverId)
+                OR (sender_id = $receiverId AND receiver_id = $senderId)
+        )
+        SELECT * FROM conversation
+        WHERE $before::uuid IS NULL OR (created_at, id) < (
+            SELECT created_at, id FROM conversation WHERE id = $before
+        )
+        ORDER BY created_at DESC, id DESC
+        LIMIT $limit OFFSET $offset
+    `, {
+        bind: { senderId, receiverId, before, limit, offset: before ? 0 : (page - 1) * limit },
+        model: Message, mapToModel: true, type: QueryTypes.SELECT,
+    });
     return messages.reverse().map(exports.messageJSON);
 };
 exports.notifications = async (receiverId) => ({ status: 200, notifications: (await Notification.findAll({ where: { receiverId }, include: [{ model: User, as: 'sender', attributes: ['id', 'username', 'fullName', 'avatar'] }], order: [['createdAt', 'DESC']], limit: 100 })).map(n => ({ ...n.get({ plain: true }), _id: n.id, sender: n.sender ? safeUser(n.sender) : null })) });

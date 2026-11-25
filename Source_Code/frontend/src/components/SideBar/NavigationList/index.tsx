@@ -19,7 +19,7 @@ import Avatar from "../../UI/Avatar/Avatar";
 
 export default function NavigationList({ unreadNotificationCount = 0, onNotificationsOpen = () => {} }: { unreadNotificationCount?: number; onNotificationsOpen?: () => void }) {
     const navigate = useNavigate();
-    const { unreadBadgeCount: unreadMessageCount, dismissUnreadBadge } = useMessageInbox();
+    const { unreadBadgeCount: unreadMessageCount } = useMessageInbox();
     const user = useAppSelector(state => state.authSlice.userInfo);
     const dispatch = useAppDispatch();
     const { moreModal, isSmall, openedModal } = useAppSelector(state => state.sideBarSlice);
@@ -58,7 +58,6 @@ export default function NavigationList({ unreadNotificationCount = 0, onNotifica
                 icon={<span className="sidebar-badge-icon"><MessageIcon />{unreadMessageCount > 0 && <span className="sidebar-count-badge" aria-hidden="true">{unreadMessageCount > 99 ? '99+' : unreadMessageCount}</span>}</span>}
                 onClick={() => {
                     if (!user) { navigate("/login"); return; }
-                    dismissUnreadBadge();
                     goTo("message", () => gotoMessagePage());
                 }} />
             <NavigationItem icon={<span className="sidebar-badge-icon"><NotificationIcon />{unreadNotificationCount > 0 && <span className="sidebar-count-badge" aria-hidden="true">{unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}</span>}</span>}

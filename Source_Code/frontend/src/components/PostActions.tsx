@@ -8,6 +8,7 @@ import CommentIcon from './UI/Icons/CommentIcon';
 import SaveIcon from './UI/Icons/SaveIcon';
 import SharePostIcon from './UI/Icons/SharePostIcon';
 import ReportPostDialog from './ReportPostDialog';
+import SharePostDialog from './SharePostDialog';
 import { postsListActions } from '../lib/redux/postsListSlice';
 import LoginPromptModal from './LoginPromptModal';
 export default function PostActions({ post, onComment, vertical = false }: {
@@ -20,6 +21,8 @@ export default function PostActions({ post, onComment, vertical = false }: {
     const userId = useAppSelector(s => s.authSlice.userInfo?._id);
     const [liked, setLiked] = useState(false), [count, setCount] = useState(post.likes.length), [saved, setSaved] = useState(!!post.isSaved), [busy, setBusy] = useState(false), [error, setError] = useState('');
     const [reportOpen, setReportOpen] = useState(false), [loginPrompt, setLoginPrompt] = useState(false);
+    const [shareOpen, setShareOpen] = useState(false);
+    const [shareNotice, setShareNotice] = useState('');
     useEffect(() => { setLiked(post.likes.some(l => l.userId === userId)); setCount(post.likes.length); setSaved(!!post.isSaved); }, [post, userId]);
     if (!userId) return <><div className={`post-actions ${vertical ? 'post-actions-vertical' : ''} flex items-center gap-3 py-2 text-sm`}>
         <button type="button" aria-label="Like post" onClick={() => setLoginPrompt(true)}><LikeIcon />{vertical && <span>{count}</span>}</button>
@@ -85,21 +88,18 @@ export default function PostActions({ post, onComment, vertical = false }: {
             setBusy(false);
         }
     }
-    async function share() { try {
-        const url = location.origin + '/post/' + post._id;
-        await navigator.clipboard.writeText(url);
-        await http.post('/post/' + post._id + '/interaction', { type: 'SHARE' });
-        setError('Link copied');
-    }
-    catch {
-        setError('Unable to copy link');
-    } }
     return <div><div className={`post-actions flex items-center gap-3 py-2 ${vertical ? 'post-actions-vertical' : ''}`}>
   <button type="button" aria-label={liked ? 'Unlike post' : 'Like post'} aria-pressed={liked} disabled={busy} onClick={like}>{liked ? <LikedIcon /> : <LikeIcon />}{vertical && <span>{count}</span>}</button>
   <button type="button" aria-label="View comments" onClick={onComment}><CommentIcon />{vertical && <span>{post.comments.length}</span>}</button>
-  <button type="button" aria-label="Share post" onClick={share}><SharePostIcon />{vertical && <span>Share</span>}</button>
+  <button type="button" aria-label="Share post" aria-haspopup="dialog" onClick={() => { setShareNotice(''); setShareOpen(true); }}><SharePostIcon />{vertical && <span>Share</span>}</button>
   <button type="button" aria-label={saved ? 'Unsave post' : 'Save post'} aria-pressed={saved} disabled={busy} onClick={save} className={`ml-auto ${saved ? 'text-white' : ''}`}><SaveIcon saved={saved} />{vertical && <span>Save</span>}</button>
   <button type="button" aria-label="Report post" onClick={() => setReportOpen(true)} className="text-xs">Report</button>
  </div><p className="text-sm font-semibold">{count} {count === 1 ? 'like' : 'likes'}</p>{error && <p role="status" className="text-xs text-red-400">{error}</p>}{reportOpen && <ReportPostDialog postId={post._id} onClose={() => setReportOpen(false)}
-     onSubmitted={duplicate => setError(duplicate ? 'A report for this item is already awaiting review.' : 'Report submitted and awaiting review.')} />}</div>;
+     onSubmitted={duplicate => setError(duplicate ? 'A report for this item is already awaiting review.' : 'Report submitted and awaiting review.')} />}
+     {shareNotice && <p role="status" className="text-sm">{shareNotice}</p>}
+     {shareOpen && <SharePostDialog key={post._id} post={post} onClose={() => setShareOpen(false)} onSent={name => {
+         setShareOpen(false);
+         setShareNotice(`Post sent to ${name}.`);
+     }} />}
+ </div>;
 }

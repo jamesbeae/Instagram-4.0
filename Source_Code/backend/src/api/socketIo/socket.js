@@ -47,8 +47,9 @@ module.exports = server => {
                 const user = await User.findByPk(userId);
                 if (!user || user.disabled || user.tokenVersion !== socket.data.tokenVersion)
                     return;
-                if (await social.areMutualContacts(userId, receiverId) && socket.connected) {
-                    io.to('user:' + receiverId).volatile.emit('messageTyping', { senderId: userId, typing: event.typing });
+                const recipient = await social.findMessageRecipient(userId, receiverId);
+                if (recipient && socket.connected) {
+                    io.to('user:' + recipient.id).volatile.emit('messageTyping', { senderId: userId, typing: event.typing });
                 }
             } catch (error) {
                 console.error('Unable to relay typing status:', error.message);
@@ -64,7 +65,7 @@ module.exports = server => {
                     throw social.error(401, 'Session revoked');
                 if (payload.senderId && payload.senderId !== userId)
                     throw social.error(403, 'Sender does not match authenticated user');
-                const message = await social.createMessage(userId, payload.receiverId, payload.contents);
+                const message = await social.createMessage(userId, payload.receiverId, payload.contents, payload.messageId);
                 respond({ ok: true, message });
             }
             catch (e) {

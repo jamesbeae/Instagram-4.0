@@ -59,6 +59,23 @@
     overscroll-behavior: contain;
 }
 
+.message-recipient-search {
+    min-width: 0;
+    margin: 0 3px 8px;
+    padding: 8px;
+    border: 1px solid var(--message-border);
+    border-radius: 10px;
+    background: var(--message-field);
+    font-size: .875rem;
+}
+
+.message-search-pages {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 9px;
+    font-size: .875rem;
+}
+
 .message-contact {
     display: flex;
     flex: 0 0 auto;
@@ -173,6 +190,7 @@
     min-height: 0;
     padding: 14px 16px;
     overflow: auto;
+    overflow-anchor: none;
     overscroll-behavior: contain;
 }
 
@@ -182,6 +200,19 @@
     justify-content: flex-end;
     gap: 9px;
     min-height: 100%;
+}
+
+.message-load-older {
+    align-self: center;
+    padding: 6px 12px;
+    border-radius: 8px;
+    color: var(--message-muted);
+    font-size: .8125rem;
+}
+
+.message-load-older:hover,
+.message-load-older:focus-visible {
+    background-color: var(--theme-hover, #29292f);
 }
 
 .message-bubble-row {
@@ -204,6 +235,16 @@
     border-radius: 15px 15px 5px 15px;
     background-color: var(--message-blue);
     color: #fff;
+}
+
+.message-bubble a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: .15em;
+}
+
+.message-bubble a:hover {
+    text-decoration-thickness: 2px;
 }
 
 .message-bubble-row time {

@@ -121,9 +121,15 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
         assert.equal((await emit({ senderId: ownerId, receiverId: ownerId, contents: 'Forged sender' })).status, 403);
         assert.equal((await request('GET', '/message/inbox')).status, 401);
         assert.deepEqual((await request('GET', '/message/inbox', null, v)).data, { contacts: [], unread: [], unreadCount: 0 });
-        assert.equal((await emit({ receiverId: ownerId, contents: 'One-way follow' })).status, 403);
-        assert.equal((await request('POST', '/user/create-follow', { userId: viewerId }, o)).status, 200);
-        assert.deepEqual((await request('GET', '/message/inbox', null, v)).data.contacts.map(user => user._id), [ownerId]);
+        assert.equal((await request('POST', '/user/delete-follow', { userId: ownerId }, v)).status, 200);
+        const recipientUrl = '/message/recipient?receiver_id=';
+        assert.equal((await request('GET', recipientUrl + ownerId)).status, 401);
+        const recipient = await request('GET', recipientUrl + ownerId, null, v);
+        assert.equal(recipient.data.user._id, ownerId);
+        assert.equal(recipient.data.user.email, undefined);
+        assert.equal((await request('GET', recipientUrl + viewerId, null, v)).status, 404);
+        assert.equal((await emit({ receiverId: viewerId, contents: 'Self-message' })).status, 400);
+        assert.equal((await emit({ receiverId: randomUUID(), contents: 'Unknown recipient' })).status, 404);
         const typingEvent = () => new Promise((resolve, reject) => {
             const listener = event => { clearTimeout(timer); resolve(event); };
             const timer = setTimeout(() => {
@@ -166,20 +172,42 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
         });
 
         const receive = new Promise(resolve => socket2.once('receiveMessage', resolve));
-        const sent = await emit({ receiverId: ownerId, contents: 'Realtime message' });
+        const firstPayload = { receiverId: ownerId, contents: 'Realtime message', messageId: randomUUID() };
+        const sent = await emit(firstPayload);
         assert.equal(sent.ok, true);
         assert.equal((await receive).sender_id, viewerId);
+        assert.equal((await emit(firstPayload)).message._id, sent.message._id);
+        assert.equal((await emit({ ...firstPayload, contents: 'Changed message' })).status, 409);
         const history = await request('GET', '/message?receiver_id=' + viewerId, null, o);
         assert.equal(history.data.length, 1);
         assert.equal(history.data[0]._id, sent.message._id);
+        assert.equal((await request('POST', '/user/create-follow', { userId: ownerId }, v)).status, 200);
+        assert.equal((await request('POST', '/user/create-follow', { userId: viewerId }, o)).status, 200);
+        const latest = await emit({ receiverId: ownerId, contents: 'Second message' });
+        assert.equal(latest.ok, true);
+        const historyUrl = '/message?receiver_id=' + viewerId;
+        const recent = await request('GET', historyUrl + '&limit=1', null, o);
+        assert.deepEqual(recent.data.map(message => message._id), [latest.message._id]);
+        const older = await request('GET', historyUrl + '&limit=1&before=' + latest.message._id, null, o);
+        assert.deepEqual(older.data.map(message => message._id), [sent.message._id]);
         assert.deepEqual((await request('GET', '/message/inbox', null, o)).data.unread, [viewerId]);
         assert.equal((await request('POST', '/message/read', { messageId: sent.message._id }, v)).status, 404);
-        assert.equal((await request('POST', '/message/read', { messageId: sent.message._id }, o)).status, 200);
-        assert.deepEqual((await request('GET', '/message/inbox', null, o)).data.unread, []);
         assert.equal((await request('POST', '/user/delete-follow', { userId: viewerId }, o)).status, 200);
-        assert.deepEqual((await request('GET', '/message/inbox', null, v)).data.contacts, []);
-        assert.equal((await emit({ receiverId: ownerId, contents: 'After unfollow' })).status, 403);
-        assert.equal((await request('GET', '/message?receiver_id=' + viewerId, null, o)).data.length, 1);
+        const senderInbox = (await request('GET', '/message/inbox', null, v)).data;
+        const recipientInbox = (await request('GET', '/message/inbox', null, o)).data;
+        assert.deepEqual(senderInbox.contacts.map(user => user._id), [ownerId]);
+        assert.deepEqual(recipientInbox.contacts.map(user => user._id), [viewerId]);
+        assert.deepEqual(recipientInbox.unread, [viewerId]);
+        assert.equal(recipientInbox.unreadCount, 2);
+        const afterUnfollow = await emit({ receiverId: ownerId, contents: 'After unfollow' });
+        assert.equal(afterUnfollow.ok, true);
+        assert.equal((await emit(firstPayload)).message._id, sent.message._id);
+        assert.deepEqual((await request('GET', historyUrl, null, o)).data.map(message => message._id), [sent.message._id, latest.message._id, afterUnfollow.message._id]);
+        assert.equal((await request('POST', '/message/read', { messageId: afterUnfollow.message._id }, o)).status, 200);
+        assert.deepEqual((await request('GET', '/message/inbox', null, o)).data.unread, []);
+        const typingAfterUnfollow = typingEvent();
+        socket1.emit('messageTyping', { receiverId: ownerId, typing: true });
+        assert.deepEqual(await typingAfterUnfollow, { senderId: viewerId, typing: true });
         await t.test('search validates input and returns only matching permitted content', async () => {
             assert.equal((await request('GET', '/search?q=owner')).status, 200);
             assert.equal((await request('GET', '/search?q=owner', null, 'invalid')).status, 401);
@@ -204,14 +232,15 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             await request('DELETE', '/post/' + literal._id, null, o);
         });
         await t.test('cancelled interactions keep exactly one event per actual state change', async () => {
+            const before = (await request('GET', '/user/activity', null, v)).data.activity;
             for (let i = 0; i < 2; i++) {
                 assert.equal((await request('DELETE', '/like/delete-like-post', { postId: post._id }, v)).status, 200);
                 assert.equal((await request('DELETE', '/post/' + post._id + '/save', null, v)).status, 200);
                 assert.equal((await request('POST', '/user/delete-follow', { userId: ownerId }, v)).status, 200);
             }
             const activity = (await request('GET', '/user/activity', null, v)).data.activity;
-            for (const type of ['UNLIKE', 'UNSAVE', 'UNFOLLOW']) assert.equal(activity.filter(e => e.type === type).length, 1);
-            for (const type of ['LIKE', 'SAVE', 'FOLLOW']) assert.equal(activity.filter(e => e.type === type).length, 1);
+            for (const type of ['UNLIKE', 'UNSAVE', 'UNFOLLOW']) assert.equal(activity.filter(e => e.type === type).length, before.filter(e => e.type === type).length + 1);
+            for (const type of ['LIKE', 'SAVE', 'FOLLOW']) assert.equal(activity.filter(e => e.type === type).length, before.filter(e => e.type === type).length);
             assert.equal((await request('GET', '/post/' + post._id, null, v)).data.post.likes.length, 0);
             assert.equal((await request('GET', '/post/' + post._id, null, v)).data.post.isSaved, false);
         });
@@ -386,6 +415,8 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             assert.equal((await request('POST', '/user/create-follow', { userId: disabledTarget._id }, v)).status, 404);
             assert.equal((await request('POST', '/user/delete-follow', { userId: disabledTarget._id }, v)).status, 404);
             assert.equal((await request('GET', '/user/get-profile?_id=' + disabledTarget._id, null, v)).status, 404);
+            assert.equal((await request('GET', recipientUrl + disabledTarget._id, null, v)).status, 404);
+            assert.equal((await emit({ receiverId: disabledTarget._id, contents: 'Unavailable recipient' })).status, 404);
             assert.equal((await request('GET', '/user/get-suggested-users', null, v)).data.users.some(user => user._id === disabledTarget._id), false);
             assert.equal((await request('PATCH', '/admin/users/' + ownerId, { disabled: true }, o)).status, 400);
             const flagged = (await request('POST', '/post/create-post', { content: 'Moderation test', mediaUrl: 'https://example.com/flagged.jpg' }, v)).data.post;

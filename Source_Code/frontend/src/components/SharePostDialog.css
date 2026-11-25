@@ -1,0 +1,53 @@
+.share-post-dialog {
+    width: min(460px, calc(100% - 24px));
+    max-height: calc(100dvh - 32px);
+    border-radius: 24px;
+    background: transparent;
+    color: rgb(var(--theme-text));
+}
+
+.share-post-dialog::backdrop { background: rgb(0 0 0 / 70%); }
+.share-post-card.ui-card {
+    --card-background: var(--theme-card, #151516);
+    --card-border: var(--theme-border, #303032);
+    --card-radius: 24px;
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+}
+
+.share-post-heading, .share-post-contact, .share-post-footer, .share-post-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.share-post-heading, .share-post-footer { justify-content: space-between; }
+.share-post-heading h2 { font-size: 1.25rem; font-weight: 700; }
+.share-post-close { width: 36px; height: 36px; border-radius: 10px; }
+.share-post-close:hover, .share-post-contact:hover { background: var(--theme-hover, #262626); }
+.share-post-search {
+    border: 1px solid var(--theme-border, #38383b);
+    border-radius: 12px;
+    padding-inline: 12px;
+    background: var(--theme-field, #1b1b1d);
+    color: rgb(var(--theme-secondary));
+}
+.share-post-search input { min-width: 0; width: 100%; min-height: 42px; background: transparent; color: rgb(var(--theme-text)); }
+.share-post-search:focus-within { outline: 2px solid var(--theme-focus, #91c4ff); }
+.share-post-search input:focus-visible { outline: none; }
+.share-post-contacts { min-width: 0; max-height: min(45dvh, 290px); overflow: auto; padding: 2px; }
+.share-post-contact { min-height: 54px; padding: 6px 9px; border-radius: 12px; cursor: pointer; }
+.share-post-contact:has(input:checked) { background: var(--theme-selected, #333); }
+.share-post-contact-name { display: grid; flex: 1; min-width: 0; }
+.share-post-contact-name > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.share-post-contact-name small, .share-post-empty { color: rgb(var(--theme-secondary)); font-size: .875rem; }
+.share-post-empty { padding: 6px; text-align: center; }
+.share-post-contact input { width: 17px; height: 17px; accent-color: rgb(var(--theme-accent)); }
+.share-post-footer { flex-wrap: wrap; border-top: 1px solid var(--theme-border, #303032); padding-top: 12px; }
+.share-post-feedback { width: 100%; font-size: .875rem; }
+.share-post-copy, .share-post-send { min-height: 42px; border-radius: 12px; padding: 8px 14px; font-size: .875rem; font-weight: 650; }
+.share-post-copy { background: var(--theme-field, #222); }
+.share-post-send { min-width: 88px; background: #1767ba; color: #fff; }
+:root[data-theme="light"] .share-post-send:not(:disabled) { background: rgb(var(--theme-accent)); }
+.share-post-send:disabled { background: var(--theme-elevated, #39393d); color: rgb(var(--theme-secondary)); }
