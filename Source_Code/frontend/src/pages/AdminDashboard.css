@@ -56,9 +56,9 @@
 }
 .admin-nav-item { justify-content: flex-start; border-color: transparent; color: var(--admin-muted); white-space: nowrap; }
 .admin-nav-item svg { width: 16px; }
-.admin-nav-item:hover, .admin-button:hover:not(:disabled) { background: var(--admin-hover); }
-.admin-nav-item[aria-current="page"], .admin-button.primary { background: var(--admin-selected); color: var(--admin-selected-ink); }
-.admin-button.primary:hover:not(:disabled) { background: var(--admin-hover); color: var(--admin-selected-ink); }
+.admin-nav-item:hover, .admin-button:not(.ui-button-primary):hover:not(:disabled) { background: var(--admin-hover); }
+.admin-nav-item[aria-current="page"] { background: var(--admin-selected); color: var(--admin-selected-ink); }
+.admin-button.ui-button-primary { border-color: transparent; }
 .admin-button.danger, .admin-feedback[data-error="true"] { color: var(--admin-danger); }
 .admin-button:disabled { cursor: not-allowed; }
 .admin-dashboard :is(button, a, input, textarea, select):focus-visible { outline: 2px solid var(--theme-focus, #91c4ff); outline-offset: 2px; }

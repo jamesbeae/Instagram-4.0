@@ -70,7 +70,7 @@ export default function RelationshipManager({ profile, onClose, onUnfollow }: { 
         {tab === 'groups' && <div className="mt-5 space-y-4">
             <form onSubmit={createGroup} className="flex gap-2">
                 <input aria-label="Tên nhóm mới" value={name} maxLength={100} onChange={event => setName(event.target.value)} placeholder="Tên nhóm mới" className="min-w-0 flex-1 rounded-lg border border-lightSecondDark bg-dark px-3 py-2" />
-                <Button type="submit" disabled={!name.trim() || busy} className="rounded-lg bg-blue px-4 py-2 text-white">Tạo nhóm</Button>
+                <Button variant="primary" type="submit" disabled={!name.trim() || busy} className="rounded-lg px-4 py-2">Tạo nhóm</Button>
             </form>
             {!groups.length && <p className="text-sm text-textSecondGray">Bạn chưa tạo nhóm quan hệ nào.</p>}
             {groups.map(group => <article key={group.id} className="rounded-xl border border-lightDark p-4">

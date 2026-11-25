@@ -183,13 +183,8 @@
     min-height: 44px;
     padding: 8px 14px;
     border-radius: 12px;
-    background: #075dbf;
-    color: #fff;
     font-weight: 650;
 }
-
-.settings-form-actions .settings-submit:enabled:hover { background: #064e9e; }
-.settings-form-actions .settings-submit:disabled { cursor: not-allowed; }
 
 .settings-page :is(a, button, input):focus-visible {
     outline: 2px solid var(--theme-focus, #91c4ff);

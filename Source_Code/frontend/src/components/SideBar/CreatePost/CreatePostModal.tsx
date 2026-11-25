@@ -240,10 +240,10 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
                     {preparing && <Loading message="Preparing preview…" />}
                     {sharing && <Loading message="Uploading…" />}
                     {isDetails
-                        ? <Button className="create-post-share" disabled={!canShare} onClick={share}>{kind === "POST" ? "Share post" : kind === "STORY" ? "Share to story" : "Publish reel"}</Button>
+                        ? <Button variant="primary" className="create-post-share" disabled={!canShare} onClick={share}>{kind === "POST" ? "Share post" : kind === "STORY" ? "Share to story" : "Publish reel"}</Button>
                         : step === "media"
-                            ? <Button className="create-post-share" disabled={!canContinue || (kind === "REEL" && (media.length !== 1 || media[0]?.type !== "VIDEO"))} onClick={() => changeStep("details")}>Next</Button>
-                            : <Button className="create-post-share" onClick={() => chooseType(kind)}>Continue</Button>}
+                            ? <Button variant="primary" className="create-post-share" disabled={!canContinue || (kind === "REEL" && (media.length !== 1 || media[0]?.type !== "VIDEO"))} onClick={() => changeStep("details")}>Next</Button>
+                            : <Button variant="primary" className="create-post-share" onClick={() => chooseType(kind)}>Continue</Button>}
                 </footer>
             </Card>
         </dialog>

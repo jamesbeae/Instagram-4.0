@@ -124,7 +124,7 @@ function PasswordSettings() {
                 {error && <p role="alert" className="settings-error">{error}</p>}
                 <div className="settings-form-actions">
                     <p className="settings-muted">Changing your password signs you out on all devices.</p>
-                    <Button type="submit" className="settings-submit" disabled={!canSubmit}>
+                    <Button variant="primary" type="submit" className="settings-submit" disabled={!canSubmit}>
                         {saving ? 'Changing password…' : 'Change password'}
                     </Button>
                 </div>

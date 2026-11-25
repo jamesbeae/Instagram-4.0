@@ -191,17 +191,5 @@
     min-height: 44px;
     padding: 0 16px;
     border-radius: 14px;
-    background: #1767ba;
-    color: #fff;
     font-weight: 600;
-}
-
-.create-post-share:not(:disabled):hover {
-    background: #1c75cf;
-}
-
-.create-post-share:disabled {
-    background: var(--theme-elevated, #39393d);
-    color: var(--theme-dim, #adadb2);
-    opacity: 1;
 }

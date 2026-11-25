@@ -39,6 +39,7 @@ describe('Post interactions', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Share post' }));
         const popup = within(screen.getByRole('dialog', { name: 'Share post' }));
         expect(popup.getByRole('button', { name: 'Send' })).toBeDisabled();
+        expect(popup.getByRole('button', { name: 'Send' })).toHaveClass('ui-button-primary');
         expect(popup.getAllByRole('radio')).toHaveLength(2);
         fireEvent.change(popup.getByRole('searchbox'), { target: { value: 'second' } });
         fireEvent.click(popup.getByRole('radio', { name: /Second Person/ }));

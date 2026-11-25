@@ -8,6 +8,7 @@ import {
 import { useAppDispatch } from "../../../hooks/useStore";
 import { authActions } from "../../../lib/redux/authSlice";
 import Avatar from "../../../components/UI/Avatar/Avatar";
+import Button from "../../../components/UI/Button/Button";
 import { useUnsavedChanges } from "../../../components/UnsavedChanges";
 
 type EditProfileModalProps = {
@@ -255,16 +256,16 @@ const EditProfileModal = ({
                         Cancel
                     </button>
 
-                    <button
-                        type="button"
+                    <Button
+                        variant="primary"
                         onClick={handleSubmit}
                         disabled={isSubmitting || avatarReading}
-                        className="rounded bg-blue text-white px-4 py-2 font-semibold disabled:opacity-70"
+                        className="rounded-lg px-4 py-2 font-semibold"
                     >
                         {isSubmitting
                             ? "Saving..."
                             : "Save"}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

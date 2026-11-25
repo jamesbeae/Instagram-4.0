@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import usePrivateHttp from '../hooks/usePrivateHttp';
 import { useUnsavedChanges } from '../components/UnsavedChanges';
+import Button from '../components/UI/Button/Button';
 
 export default function Workspace() {
     const mode = useLocation().pathname.slice(1);
@@ -72,7 +73,7 @@ export default function Workspace() {
             {mode === 'groups' && <>
                 <form onSubmit={e => { e.preventDefault(); void run(() => http.post('/groups', { name })).then(saved => { if (saved) setName(current => current === name ? '' : current); }); }} className="flex gap-2">
                     <input aria-label="List name" value={name} maxLength={100} onChange={e => setName(e.target.value)} className="bg-dark border p-2" placeholder="Friends, colleagues, family…" />
-                    <button disabled={!name.trim()} type="submit">Create list</button>
+                    <Button variant="primary" className="rounded-lg px-4 py-2" disabled={!name.trim()} type="submit">Create list</Button>
                 </form>
                 {groups.map(group => <section key={group.id} className="border border-lightDark rounded p-4 space-y-3">
                     <h2 className="font-semibold">{group.name}</h2>
@@ -86,12 +87,12 @@ export default function Workspace() {
             </>}
 
             {mode === 'creator' && <>
-                <button className="border p-2" onClick={() => void run(() => http.post('/user/become-creator'))}>Enable creator account</button>
+                <Button variant="primary" className="rounded-lg px-4 py-2" onClick={() => void run(() => http.post('/user/become-creator'))}>Enable creator account</Button>
                 <section className="flex flex-wrap items-end gap-3" aria-label="Filter creator analytics">
                     <label className="grid gap-1">From<input aria-label="Analytics from date" type="date" value={analyticsFrom} onChange={e => setAnalyticsFrom(e.target.value)} /></label>
                     <label className="grid gap-1">To<input aria-label="Analytics to date" type="date" value={analyticsTo} onChange={e => setAnalyticsTo(e.target.value)} /></label>
                     <label className="grid gap-1">Content<select aria-label="Analytics content" value={analyticsPostId} onChange={e => setAnalyticsPostId(e.target.value)} className="bg-dark border p-2"><option value="">All content</option>{analyticsOptions.map(post => <option key={post.id} value={post.id}>{post.caption || 'Untitled post'}</option>)}</select></label>
-                    <button className="border p-2" onClick={() => void applyAnalyticsFilters()}>Apply filters</button>
+                    <Button variant="primary" className="rounded-lg px-4 py-2" onClick={() => void applyAnalyticsFilters()}>Apply filters</Button>
                     <button className="border p-2" onClick={() => { setAnalyticsFrom(''); setAnalyticsTo(''); setAnalyticsPostId(''); void applyAnalyticsFilters(true); }}>Clear filters</button>
                 </section>
                 {analytics.length > 0 ? <table className="w-full text-sm"><thead><tr>{['Post', 'Views', 'Likes', 'Comments', 'Saves', 'Shares'].map(heading => <th key={heading} className="text-left p-2">{heading}</th>)}</tr></thead><tbody>{analytics.map(post => <tr key={post.id}>{[post.caption, post.views, post.likes, post.comments, post.saves, post.shares].map((value, index) => <td key={index} className="border-t border-lightDark p-2">{value}</td>)}</tr>)}</tbody></table> : <p>No statistics match these filters.</p>}

@@ -41,7 +41,7 @@ export default function ChatBoxInput({ sendMessage, onDraftChange }: {
                 onDraftChange(draft);
             }}
                 handleEnterKey={handleSendMessage} addedEmojis={emojis} className="message-input " clear={clear} />
-            <Button type="submit" className="message-send" disabled={!canSend}>{sending ? "Sending…" : "Send"}</Button>
+            <Button variant="primary" type="submit" className="message-send" disabled={!canSend}>{sending ? "Sending…" : "Send"}</Button>
         </form>
     );
 }
