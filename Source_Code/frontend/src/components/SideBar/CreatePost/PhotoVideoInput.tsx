@@ -37,7 +37,7 @@ export default function PhotoVideoInput({ onFiles, busy, accept = acceptedMediaT
             <FontAwesomeIcon icon={faImage} className="text-3xl text-textGray" aria-hidden="true" />
             <p>{title}</p>
             {hint && <p className="text-sm text-textGray">{hint}</p>}
-            <Button className="create-post-select-files" disabled={busy} onClick={() => inputRef.current?.click()}>
+            <Button variant="primary" className="create-post-select-files" disabled={busy} onClick={() => inputRef.current?.click()}>
                 Select from your device
             </Button>
             <input ref={inputRef} type="file" accept={accept} multiple={multiple} hidden

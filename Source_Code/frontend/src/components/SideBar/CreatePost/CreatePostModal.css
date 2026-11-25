@@ -132,13 +132,20 @@
 .create-post-add-media {
     padding: 6px 10px;
     border-radius: 10px;
-    color: var(--theme-focus, #77b7ff);
     font-size: 14px;
     font-weight: 600;
 }
 
-.create-post-select-files:hover,
-.create-post-add-media:hover {
+.create-post-select-files {
+    min-height: 40px;
+    padding-inline: 14px;
+}
+
+.create-post-add-media {
+    color: var(--theme-focus, #77b7ff);
+}
+
+.create-post-add-media:not(:disabled):hover {
     background: var(--theme-hover, #252528);
 }
 

@@ -50,7 +50,11 @@ it("preserves the draft across steps and shares after the required options are s
     const next = () => screen.getByRole("button", { name: "Next" });
     const share = () => screen.getByRole("button", { name: "Share post" });
     expect(screen.queryByRole("button", { name: "Next" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    const continueButton = screen.getByRole("button", { name: "Continue" });
+    expect(continueButton).toHaveClass("ui-button-primary");
+    fireEvent.click(continueButton);
+    expect(screen.getByRole("button", { name: "Select from your device" })).toHaveClass("ui-button-primary");
+    expect(next()).toHaveClass("ui-button-primary");
     expect(next()).toBeDisabled();
     expect(screen.queryByRole("textbox", { name: "Caption" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Share" })).not.toBeInTheDocument();
@@ -69,6 +73,8 @@ it("preserves the draft across steps and shares after the required options are s
 
     fireEvent.click(next());
     expect(share()).toBeEnabled();
+    expect(share()).toHaveClass("ui-button-primary");
+    expect(screen.getByRole("button", { name: "Add more" })).not.toHaveClass("ui-button-primary");
 
     fireEvent.click(screen.getByRole("button", { name: "Remove media" }));
     expect(screen.getByRole("button", { name: "Select from your device" })).toBeInTheDocument();
