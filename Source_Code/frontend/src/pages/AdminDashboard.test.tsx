@@ -36,7 +36,10 @@ it("opens reported content, pages through filtered results and retains filters a
     }
     expect(screen.queryByText("Messages")).not.toBeInTheDocument();
     fireEvent.change(screen.getByRole("combobox", { name: "Category" }), { target: { value: "reports" } });
-    fireEvent.click(screen.getByRole("button", { name: "Apply filters" }));
+    const applyFilters = screen.getByRole("button", { name: "Apply filters" });
+    expect(applyFilters).toHaveClass("ui-button-primary");
+    expect(screen.getByRole("button", { name: "Clear" })).not.toHaveClass("ui-button-primary");
+    fireEvent.click(applyFilters);
     expect(await screen.findByText("Resolved")).toBeVisible();
     expect(screen.queryByRole("region", { name: "Key metrics" })).not.toBeInTheDocument();
     expect(screen.queryByText("Total accounts")).not.toBeInTheDocument();

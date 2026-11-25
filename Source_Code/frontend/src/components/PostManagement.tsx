@@ -150,7 +150,7 @@ export default function PostManagement({ post }: { post: Post }) {
                     {error && <p role="alert" className="text-red-400">{error}</p>}
                     <div className="flex justify-end gap-3">
                         <Button disabled={busy} onClick={() => requestExit(closeEditor)}>Cancel</Button>
-                        <Button type="submit" disabled={busy || (visibility === 'group' && !groupId)} className="font-semibold text-blue">Save changes</Button>
+                        <Button variant="primary" type="submit" disabled={busy || (visibility === 'group' && !groupId)} className="rounded-xl px-3 py-2 font-semibold">Save changes</Button>
                     </div>
                 </form>
             </Card>}

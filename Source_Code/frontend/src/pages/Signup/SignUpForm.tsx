@@ -81,14 +81,14 @@ export default function SignUpForm() {
                 <Input className="auth-input" type="password" name="confirmPassword" id="confirmPassword" autoComplete="new-password"
                     placeholder="Confirm Password" aria-label="Confirm password" disabled={isSubmitting} getInputValueHandler={setConfirmPassword} />
                 {error && <p role="alert" className="text-sm text-errorText">{error}</p>}
-                <Button className="auth-submit" type="submit" disabled={!canSubmit}>
+                <Button variant="primary" className="auth-submit" type="submit" disabled={!canSubmit}>
                     {isSubmitting ? "Đang đăng ký..." : "Sign up"}
                 </Button>
             </form>
             {import.meta.env.VITE_ENABLE_FACEBOOK_LOGIN === "true" && (
                 <div className="auth-social">
                     <FacebookLogin appId={import.meta.env.VITE_FACEBOOK_APP_ID || ""} autoLoad={false}
-                        fields="name,email,picture" callback={handleFacebookLogin} cssClass="auth-submit" />
+                        fields="name,email,picture" callback={handleFacebookLogin} cssClass="auth-submit ui-button-primary" />
                 </div>
             )}
         </div>

@@ -14,7 +14,6 @@
     --message-field: var(--theme-field, #202025);
     --message-muted: var(--theme-dim, #a6a8b0);
     --message-blue: #145fb5;
-    --message-blue-hover: #11529c;
     --message-online: #6bdbac;
     display: grid;
     grid-template-columns: clamp(180px, 26%, 310px) minmax(0, 1fr);
@@ -26,7 +25,6 @@
 
 :root[data-theme="light"] .message-card {
     --message-blue: rgb(var(--theme-accent));
-    --message-blue-hover: #004d97;
     --message-online: #157249;
 }
 
@@ -337,14 +335,9 @@
     min-height: 36px;
     border-radius: 10px;
     padding-inline: 12px;
-    background-color: var(--message-blue);
-    color: #fff;
     font-size: .875rem;
     font-weight: 650;
 }
-
-.message-compose .message-send:enabled:hover { background-color: var(--message-blue-hover); }
-.message-compose .message-send:disabled { cursor: not-allowed; }
 
 .message-card :is(a, textarea, button):focus-visible {
     outline: 2px solid var(--theme-focus, #91c4ff);

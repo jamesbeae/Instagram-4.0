@@ -48,6 +48,4 @@
 .share-post-feedback { width: 100%; font-size: .875rem; }
 .share-post-copy, .share-post-send { min-height: 42px; border-radius: 12px; padding: 8px 14px; font-size: .875rem; font-weight: 650; }
 .share-post-copy { background: var(--theme-field, #222); }
-.share-post-send { min-width: 88px; background: #1767ba; color: #fff; }
-:root[data-theme="light"] .share-post-send:not(:disabled) { background: rgb(var(--theme-accent)); }
-.share-post-send:disabled { background: var(--theme-elevated, #39393d); color: rgb(var(--theme-secondary)); }
+.share-post-send { min-width: 88px; }

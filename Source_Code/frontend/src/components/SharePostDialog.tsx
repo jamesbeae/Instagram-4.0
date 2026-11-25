@@ -143,7 +143,7 @@ export default function SharePostDialog({ post, onClose, onSent }: {
                     <Button className="share-post-copy" disabled={sending} onClick={() => void copyLink()}>
                         <FontAwesomeIcon icon={faLink} aria-hidden="true" /> Copy link
                     </Button>
-                    <Button className="share-post-send" disabled={!recipient || sending} onClick={send}>
+                    <Button variant="primary" className="share-post-send" disabled={!recipient || sending} onClick={send}>
                         {sending ? "Sending…" : "Send"}
                     </Button>
                 </footer>

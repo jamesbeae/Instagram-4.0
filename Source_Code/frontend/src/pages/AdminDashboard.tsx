@@ -231,7 +231,7 @@ export default function AdminDashboard() {
                         <label className="admin-field">From<input className="admin-input" type="date" value={statsDraft.from} onChange={event => setStatsDraft({ ...statsDraft, from: event.target.value })} /></label>
                         <label className="admin-field">To<input className="admin-input" type="date" value={statsDraft.to} onChange={event => setStatsDraft({ ...statsDraft, to: event.target.value })} /></label>
                         <SelectField label="Category" value={statsDraft.category} options={[{ value: "all", label: "All categories" }, ...metrics.map(group => ({ value: group.id, label: group.title }))]} onChange={category => setStatsDraft({ ...statsDraft, category })} />
-                        <Button className="admin-button primary" type="submit">Apply filters</Button>
+                        <Button variant="primary" className="admin-button" type="submit">Apply filters</Button>
                         <Button className="admin-button" onClick={() => { setStatsDraft(defaultStats); setStatsFilters({ ...defaultStats }); }}>Clear</Button>
                     </>)}
                     {stats.data && <OverviewMetrics stats={stats.data} category={statsFilters.category} />}
@@ -271,7 +271,7 @@ export default function AdminDashboard() {
                         </label>
                         <SelectField label="Type" value={contentDraft.kind} options={kindOptions} onChange={kind => setContentDraft({ ...contentDraft, kind })} />
                         <SelectField label="Status" value={contentDraft.status} options={visibilityOptions} onChange={status => setContentDraft({ ...contentDraft, status })} />
-                        <Button className="admin-button primary" type="submit">Search</Button>
+                        <Button variant="primary" className="admin-button" type="submit">Search</Button>
                     </>)}
                     {content.data?.postsList.map(post => <article className="admin-list-row admin-content-row" key={post._id}>
                         <div className="admin-media">

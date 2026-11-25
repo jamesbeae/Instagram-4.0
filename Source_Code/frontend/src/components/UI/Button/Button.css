@@ -1,0 +1,17 @@
+button.ui-button-primary {
+    --primary-button-bg: #075dbf;
+    background-color: var(--primary-button-bg);
+    color: #fff;
+}
+
+:root[data-theme="light"] .ui-button-primary {
+    --primary-button-bg: rgb(var(--theme-accent));
+}
+
+.ui-button-primary:not(:disabled):hover {
+    background-color: color-mix(in srgb, var(--primary-button-bg) 85%, black);
+}
+
+.ui-button-primary:disabled {
+    cursor: not-allowed;
+}

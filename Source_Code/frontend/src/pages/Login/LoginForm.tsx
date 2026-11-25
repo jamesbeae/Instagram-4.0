@@ -74,14 +74,14 @@ export default function LoginForm({ admin = false }: { admin?: boolean }) {
                 </div>
                 <Link to="/forgot-password" className="auth-recovery">Forgot password?</Link>
                 {error && <p role="alert" className="text-sm text-errorText">{error}</p>}
-                <Button className="auth-submit" type="submit" disabled={isSubmitting}>
+                <Button variant="primary" className="auth-submit" type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Logging in…" : admin ? "Sign in as admin" : "Log in"}
                 </Button>
             </form>
             {!admin && import.meta.env.VITE_ENABLE_FACEBOOK_LOGIN === "true" && (
                 <div className="auth-social">
                     <FacebookLogin appId={import.meta.env.VITE_FACEBOOK_APP_ID || ""} autoLoad={false}
-                        fields="name,email,picture" callback={handleFacebookLogin} cssClass="auth-submit" />
+                        fields="name,email,picture" callback={handleFacebookLogin} cssClass="auth-submit ui-button-primary" />
                 </div>
             )}
         </div>
