@@ -36,7 +36,9 @@ describe('Post interactions', () => {
     it('sends a post to the selected chat and retries a timed-out send without changing its message ID', async () => {
         http.post.mockResolvedValue({});
         mount();
-        fireEvent.click(screen.getByRole('button', { name: 'Share post' }));
+        const shareButton = screen.getByRole('button', { name: 'Share post' });
+        shareButton.focus();
+        fireEvent.click(shareButton);
         const popup = within(screen.getByRole('dialog', { name: 'Share post' }));
         expect(popup.getByRole('button', { name: 'Send' })).toBeDisabled();
         expect(popup.getAllByRole('radio')).toHaveLength(2);
@@ -53,6 +55,7 @@ describe('Post interactions', () => {
         expect(emit.mock.calls[1][1]).toEqual(payload);
         act(() => emit.mock.calls[1][2](null, { ok: true }));
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        await waitFor(() => expect(shareButton).toHaveFocus());
         expect(screen.getByText('Post sent to Second Person.')).toBeInTheDocument();
         expect(http.post).toHaveBeenCalledWith('/post/post/interaction', { type: 'SHARE' });
     });
