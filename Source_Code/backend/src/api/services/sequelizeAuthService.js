@@ -59,18 +59,22 @@ exports.register = async ({ username, password, email, fullName }) => {
         throw error;
     }
 };
-exports.login = async (res, email, password) => {
+exports.login = async (res, email, password, requiredRole) => {
+    const invalidCredentials = field => httpError(StatusCodes.UNAUTHORIZED,
+        requiredRole ? "Email or password is incorrect." : field);
     const user = await User.findOne({
         where: { email },
         include: userInclude,
     });
     if (!user) {
-        throw httpError(StatusCodes.UNAUTHORIZED, "email");
+        throw invalidCredentials("email");
     }
     if (!user.passwordHash ||
         !(await comparePassword(password, user.passwordHash))) {
-        throw httpError(StatusCodes.UNAUTHORIZED, "password");
+        throw invalidCredentials("password");
     }
+    if (requiredRole && user.role?.name !== requiredRole)
+        throw httpError(StatusCodes.FORBIDDEN, "This account does not have administrator access.");
     if (user.disabled)
         throw httpError(403, "Account disabled");
     const accessToken = generateAccessToken(user);

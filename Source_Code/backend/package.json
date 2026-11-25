@@ -25,6 +25,7 @@
   "scripts": {
     "dev": "nodemon src/app.js",
     "start": "node src/app.js",
+    "admin:bootstrap": "node scripts/bootstrap-admin.cjs",
     "test": "node --test test/api.test.cjs test/recommendation.test.cjs",
     "db:migrate": "sequelize-cli db:migrate",
     "db:seed": "sequelize-cli db:seed:all",

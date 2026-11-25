@@ -1,12 +1,16 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAppSelector } from "../../hooks/useStore";
 
-const RequireAuth = () => {
+const RequireAuth = ({ adminOnly = false }: { adminOnly?: boolean }) => {
     const userInfo = useAppSelector(
         (state) => state.authSlice.userInfo
     );
 
     const location = useLocation();
+
+    if (adminOnly && userInfo?.role?.name !== "admin") {
+        return <Navigate to="/admin/login" replace />;
+    }
 
     if (!userInfo) {
         return (
@@ -16,10 +20,6 @@ const RequireAuth = () => {
                 state={{ from: location }}
             />
         );
-    }
-
-    if (location.pathname.startsWith("/admin") && userInfo.role?.name !== "admin") {
-        return <Navigate to="/" replace />;
     }
 
     return <Outlet />;

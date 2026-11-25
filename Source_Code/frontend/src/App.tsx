@@ -9,6 +9,8 @@ import AuthInitializer from "./components/AuthInitializer";
 import RequireAuth from "./components/RequireAuth";
 const SignUp = lazy(() => import("./pages/Signup"));
 const Login = lazy(() => import("./pages/Login"));
+const AdminLogin = lazy(() => import("./pages/Login/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const Home = lazy(() => import("./pages/Home"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Message = lazy(() => import("./pages/Message"));
@@ -29,6 +31,8 @@ const routes: RouteObject[] = [
         path: "/login",
         element: <Login />,
     },
+    { path: "/admin/login", element: <AdminLogin /> },
+    { element: <RequireAuth adminOnly />, children: [{ path: "/admin", element: <AdminDashboard /> }] },
     {
         path: "/",
         element: <RootLayout />,
@@ -42,7 +46,7 @@ const routes: RouteObject[] = [
                 element: <RequireAuth />,
                 children: [
                     { path: "settings", element: <Settings /> },
-                    ...["groups", "creator", "admin"].map(path => ({ path, element: <Workspace key={path} /> })),
+                    ...["groups", "creator"].map(path => ({ path, element: <Workspace key={path} /> })),
                     { path: "message", element: <Message />, children: [{ path: ":user_id", element: <ChatBox /> }] },
                 ],
             },
