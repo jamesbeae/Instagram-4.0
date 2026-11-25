@@ -1,22 +1,24 @@
-import React from "react";
-import { User } from "../../../models/User";
-import UserTagBar from "../../UI/UserTagBar";
+import { Link } from "react-router-dom";
+import type { User } from "../../../models/User";
+import Avatar from "../../UI/Avatar/Avatar";
+import { useAppDispatch } from "../../../hooks/useStore";
+import { sideBarActions } from "../../../lib/redux/sideBarSlice";
 
-const SearchedResult: React.FC<{ results?: User[] }> = ({ results = [] }) => {
-    const safeResults = Array.isArray(results) ? results : [];
+export default function SearchedResult({ user }: { user: User }) {
+    const dispatch = useAppDispatch();
+    const name = user.username || user.fullName || "Unknown account";
 
     return (
-        <div className="flex flex-col gap-2 px-4">
-            {safeResults.map((user) => (
-                <UserTagBar
-                    key={user._id}
-                    _id={user._id}
-                    username={user.username || user.fullName || "Unknown user"}
-                    avatar={user.avatar}
-                />
-            ))}
-        </div>
+        <Link to={`/profile/${user._id}`} className="sidebar-post-result sidebar-account-result"
+            onClick={event => {
+                if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                dispatch(sideBarActions.closePanel("search"));
+            }}>
+            <Avatar className="h-10 w-10 shrink-0" avatarUrl={user.avatar} username={name} />
+            <span className="sidebar-post-result-info">
+                <strong className="sidebar-account-result-name">{name}</strong>
+                {user.fullName && user.fullName !== name && <span className="sidebar-account-result-fullname">{user.fullName}</span>}
+            </span>
+        </Link>
     );
-};
-
-export default SearchedResult;
+}
