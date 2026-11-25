@@ -14,8 +14,6 @@ const SideBar = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [badgeDismissedIds, setBadgeDismissedIds] = useState<Set<string>>(() => new Set());
     const privateHttp = usePrivateHttp();
-    const openedModal = useAppSelector((state) => state.sideBarSlice).openedModal;
-    const isSmall = useAppSelector((state) => state.sideBarSlice).isSmall;
     const creatingPost = useAppSelector((state) => state.sideBarSlice).creatingPost;
     const userId = useAppSelector(state => state.authSlice.userInfo?._id);
     const unreadNotificationCount = notifications.reduce((count, item) => count + (!item.read && !badgeDismissedIds.has(item._id) ? 1 : 0), 0);
@@ -25,6 +23,14 @@ const SideBar = () => {
     const dismissNotification = async (id: string) => {
         try { await privateHttp.delete(`/notification/${id}`); setNotifications(current => current.filter(item => item._id !== id)); }
         catch { /* Keep the item visible so the user can retry. */ }
+    };
+    const markNotificationRead = async (id: string) => {
+        try {
+            await privateHttp.patch(`/notification/${id}/read`);
+            setNotifications(current => current.map(item => item._id === id ? { ...item, read: true } : item));
+            setBadgeDismissedIds(current => { const next = new Set(current); next.delete(id); return next; });
+            return true;
+        } catch { return false; }
     };
     useEffect(() => {
         const fetchNotifications = async () => {
@@ -52,12 +58,14 @@ const SideBar = () => {
         };
     }, [userId]);
     return (<>
-            <Card className={`app-sidebar relative z-10 shrink-0 ${openedModal || isSmall ? "w-72px" : "w-60"} flex flex-col px-3 pt-2 pb-5 transition-[width] duration-200 ease-out`}>
-                <SideBarLogo />
-                <NavigationList unreadNotificationCount={unreadNotificationCount} onNotificationsOpen={dismissNotificationBadges} />
-            </Card>
+            <div className="sidebar-slot">
+                <Card className="app-sidebar sidebar-hover-expand relative z-10 flex shrink-0 flex-col px-3 pt-2 pb-5">
+                    <SideBarLogo />
+                    <NavigationList unreadNotificationCount={unreadNotificationCount} onNotificationsOpen={dismissNotificationBadges} />
+                </Card>
+            </div>
             <SearchModal />
-            <NotificationsModal notifications={notifications} onDismiss={id => void dismissNotification(id)} />
+            <NotificationsModal notifications={notifications} onDismiss={id => void dismissNotification(id)} onRead={markNotificationRead} />
             {creatingPost && userId ? <CreatePost /> : null}
         </>);
 };

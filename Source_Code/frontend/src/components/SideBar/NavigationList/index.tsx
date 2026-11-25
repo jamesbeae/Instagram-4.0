@@ -82,10 +82,10 @@ export default function NavigationList({ unreadNotificationCount = 0, onNotifica
                     }}>
                     <Button ref={moreTrigger} aria-label="More" aria-expanded={moreModal}
                         aria-controls={moreModal ? moreId : undefined}
-                        className={`sidebar-nav-item sidebar-more-trigger group mt-0.5 flex w-full items-center gap-4 rounded-[14px] border border-transparent py-3 hover:bg-lightSecondDark ${isCompact ? "justify-center" : "px-3"}`}
+                    className="sidebar-nav-item sidebar-more-trigger group mt-0.5 flex w-full items-center gap-4 rounded-[14px] border border-transparent py-3 hover:bg-lightSecondDark"
                         onClick={() => dispatch(sideBarActions.openMoreModal(!moreModal))}>
                         <span className="transition-transform group-hover:scale-105"><SettingIcon /></span>
-                        {!isCompact && <span className="navigation-label text-base font-normal">More</span>}
+                        <span className="navigation-label text-base font-normal">More</span>
                     </Button>
                     {moreModal && <MoreModal id={moreId} onClose={() => dispatch(sideBarActions.openMoreModal(false))} />}
                 </div>

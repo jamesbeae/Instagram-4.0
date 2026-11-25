@@ -101,5 +101,5 @@ export default function PostActions({ post, onComment, vertical = false }: {
   <button type="button" aria-label={saved ? 'Unsave post' : 'Save post'} aria-pressed={saved} disabled={busy} onClick={save} className={`ml-auto ${saved ? 'text-white' : ''}`}><SaveIcon saved={saved} />{vertical && <span>Save</span>}</button>
   <button type="button" aria-label="Report post" onClick={() => setReportOpen(true)} className="text-xs">Report</button>
  </div><p className="text-sm font-semibold">{count} {count === 1 ? 'like' : 'likes'}</p>{error && <p role="status" className="text-xs text-red-400">{error}</p>}{reportOpen && <ReportPostDialog postId={post._id} onClose={() => setReportOpen(false)}
-     onSubmitted={() => setError('Report submitted')} />}</div>;
+     onSubmitted={duplicate => setError(duplicate ? 'A report for this item is already awaiting review.' : 'Report submitted and awaiting review.')} />}</div>;
 }

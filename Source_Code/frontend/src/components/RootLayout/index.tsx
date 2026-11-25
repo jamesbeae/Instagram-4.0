@@ -10,7 +10,7 @@ const RootLayout = () => {
     const { pathname, search } = useLocation();
     useEffect(() => () => { dispatch(postDetailModalActions.closePostDetailModal()); }, [dispatch, pathname, search]);
     const postDetailSlice = useAppSelector((state) => state.postDetailModalSlice);
-    return (<MessageInboxProvider><div className="h-screen flex bg-dark">
+    return (<MessageInboxProvider><div className="app-shell relative h-screen flex bg-dark">
             <SideBar />
             {postDetailSlice.isOpen && <PostDetailModal />}
             <Outlet />

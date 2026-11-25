@@ -41,7 +41,7 @@ export default function ReelsFeed({ posts, loading, error, hasMore, onLoadMore }
                 onToggleComments={() => setCommentsPostId(current => current === post._id ? null : post._id)}
                 onCloseComments={() => setCommentsPostId(null)} />)}
             {!posts.length && loading && <Loading message="Loading Reels…" className="reels-message" />}
-            {!posts.length && !loading && !error && <p className="reels-message">No videos yet. Create a post with a video to publish a Reel.</p>}
+            {!posts.length && !loading && !error && <p className="reels-message">No Reels yet. Create a Reel with one video to get started.</p>}
             {error && <div className="reels-message" role="alert"><p>{error}</p><Button onClick={onLoadMore} className="mt-3 rounded-lg bg-lightDark px-4 py-2">Try again</Button></div>}
             {loading && posts.length > 0 && <Loading message="Loading more Reels…" className="reels-message" />}
             {hasMore && !error && <div ref={sentinelRef} className="reels-sentinel" aria-hidden="true" />}

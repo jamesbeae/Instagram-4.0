@@ -228,6 +228,7 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             assert.equal((await request('GET', '/post/recommended', null, v)).data.postsList.some(p => p._id === privatePost._id), false);
             assert.equal((await request('GET', '/user/get-profile?_id=' + ownerId, null, v)).data.profile.posts.some(p => p._id === privatePost._id), false);
             assert.equal((await request('POST', '/like/create-like-post', { postId: privatePost._id }, v)).status, 404);
+            await request('POST', '/user/create-follow', { userId: viewerId }, o);
             await request('POST', '/groups/' + group.id + '/members', { userId: viewerId }, o);
             assert.equal((await request('GET', '/post/' + privatePost._id, null, v)).status, 200);
             assert.equal((await request('GET', '/search?scope=posts&q=Friends', null, v)).data.postsList.some(p => p._id === privatePost._id), true);
@@ -336,7 +337,7 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             assert.equal((await request('PATCH', '/admin/users/' + ownerId, { disabled: true }, o)).status, 400);
             const flagged = (await request('POST', '/post/create-post', { content: 'Moderation test', mediaUrl: 'https://example.com/flagged.jpg' }, v)).data.post;
             const flag = (await request('POST', '/reports', { postId: flagged._id, reason: 'Test moderation action' }, o)).data.report;
-            assert.equal((await request('PATCH', '/admin/reports/' + flag.id, { action: 'hide-post' }, o)).status, 200);
+            assert.equal((await request('PATCH', '/admin/reports/' + flag.id, { action: 'hide-post', resolution: 'Reviewed and hid the reported post.' }, o)).status, 200);
             assert.equal((await request('GET', '/post/' + flagged._id, null, v)).status, 404);
             assert.equal((await request('GET', '/search?scope=posts&q=Moderation', null, v)).data.postsList.some(p => p._id === flagged._id), false);
         });
@@ -356,6 +357,71 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             }
             assert.equal((await request('PATCH', '/user/me', { email: 'VIEWER@example.com' }, o)).status, 409);
             assert.equal((await request('PATCH', '/user/me', { username: 'VIEWER' }, o)).status, 409);
+        });
+
+        await t.test('publishing without captions separates Reels and enforces one video', async () => {
+            const reel = await request('POST', '/post/create-post', { kind: 'REEL', photoVideoList: [{ type: 'VIDEO', url: 'https://example.com/new-reel.webm' }] }, v);
+            assert.equal(reel.status, 201);
+            assert.equal(reel.data.post.caption, '');
+            assert.equal(reel.data.post.kind, 'REEL');
+            const id = reel.data.post._id;
+            assert((await request('GET', '/post/reels')).data.postsList.some(p => p._id === id));
+            assert(!(await request('GET', '/post/explore')).data.postsList.some(p => p._id === id));
+            const profile = (await request('GET', '/user/get-profile?_id=' + viewerId, null, v)).data.profile;
+            assert(profile.reels.some(p => p._id === id));
+            assert(!profile.posts.some(p => p._id === id));
+            for (const media of [[{ type: 'PHOTO', url: 'https://example.com/a.png' }], [{ type: 'VIDEO', url: 'https://example.com/a.webm' }, { type: 'VIDEO', url: 'https://example.com/b.webm' }]]) {
+                assert.equal((await request('POST', '/post/create-post', { kind: 'REEL', photoVideoList: media }, v)).status, 400);
+            }
+            await request('DELETE', '/post/' + id, null, v);
+        });
+
+        await t.test('group membership follows eligible accounts and is revoked on unfollow', async () => {
+            await request('POST', '/user/delete-follow', { userId: viewerId }, o);
+            const group = (await request('POST', '/groups', { name: 'Follow only QA' }, o)).data.group;
+            assert.equal((await request('POST', '/groups/' + group.id + '/members', { userId: ownerId }, o)).status, 400);
+            assert.equal((await request('POST', '/groups/' + group.id + '/members', { userId: viewerId }, o)).status, 400);
+            await request('POST', '/user/create-follow', { userId: viewerId }, o);
+            assert((await request('GET', '/groups/eligible-members', null, o)).data.users.some(u => u._id === viewerId));
+            assert.equal((await request('POST', '/groups/' + group.id + '/members', { userId: viewerId }, o)).status, 200);
+            const shared = (await request('POST', '/post/create-post', { visibility: 'group', groupId: group.id, mediaUrl: 'https://example.com/shared.png' }, o)).data.post;
+            assert.equal((await request('GET', '/post/' + shared._id, null, v)).status, 200);
+            await request('POST', '/user/delete-follow', { userId: viewerId }, o);
+            assert.equal((await request('GET', '/post/' + shared._id, null, v)).status, 404);
+            assert(!(await request('GET', '/groups/eligible-members', null, o)).data.users.some(u => u._id === viewerId));
+            await request('DELETE', '/post/' + shared._id, null, o);
+            await request('DELETE', '/groups/' + group.id, null, o);
+        });
+
+        await t.test('date filters, concurrent duplicate reports and audited moderation work', async () => {
+            for (const endpoint of ['/admin/stats', '/creator/analytics']) {
+                assert.equal((await request('GET', endpoint + '?from=2026-01-01&to=2026-12-31', null, o)).status, 200);
+                assert.equal((await request('GET', endpoint + '?from=2026-02-30', null, o)).status, 400);
+                assert.equal((await request('GET', endpoint + '?from=2026-12-31&to=2026-01-01', null, o)).status, 400);
+            }
+            assert.equal((await request('GET', '/admin/content', null, v)).status, 403);
+            const item = (await request('POST', '/post/create-post', { caption: 'New moderation QA', mediaUrl: 'https://example.com/report32.png' }, o)).data.post;
+            const body = { postId: item._id, reason: 'Duplicate moderation QA' };
+            const reports = await Promise.all(Array.from({ length: 4 }, () => request('POST', '/reports', body, v)));
+            assert(reports.every(r => [200, 201].includes(r.status)));
+            assert.equal(new Set(reports.map(r => r.data.report.id)).size, 1);
+            const id = reports[0].data.report.id;
+            assert.equal((await request('PATCH', '/admin/reports/' + id, { action: 'dismiss', resolution: 'Reviewed; no violation found.' }, o)).status, 200);
+            assert.equal((await request('PATCH', '/admin/reports/' + id, { action: 'hide-post', resolution: 'Repeated decision must fail.' }, o)).status, 409);
+            const notifications = (await request('GET', '/notification/get-all', null, v)).data.notifications;
+            const notice = notifications.find(n => n.type === 'REPORT_RESOLVED' && n.postId === item._id);
+            assert(notice);
+            assert.equal((await request('PATCH', '/notification/' + notice._id + '/read', {}, o)).status, 404);
+            assert.equal((await request('PATCH', '/notification/' + notice._id + '/read', {}, v)).status, 200);
+            const content = await request('GET', '/admin/content?q=' + item._id, null, o);
+            assert.equal(content.data.postsList.length, 1);
+            for (const action of ['hide', 'keep']) {
+                assert.equal((await request('PATCH', '/admin/content/' + item._id + '/moderate', { action, resolution: 'QA audited content decision.' }, o)).status, 200);
+                assert.equal((await request('GET', '/post/' + item._id)).status, action === 'hide' ? 404 : 200);
+            }
+            const actions = (await request('GET', '/admin/actions', null, o)).data.actions;
+            assert(actions.some(a => a.action === 'MODERATE_CONTENT' && a.details.postId === item._id));
+            await request('DELETE', '/post/' + item._id, null, o);
         });
 
         await t.test('password recovery is single-use and revokes existing sessions', async () => {

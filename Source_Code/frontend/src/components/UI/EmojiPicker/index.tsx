@@ -1,7 +1,5 @@
-import { useLayoutEffect, useId, useRef, useState } from "react";
+import { lazy, Suspense, useLayoutEffect, useId, useRef, useState, type ComponentProps } from "react";
 import { createPortal } from "react-dom";
-import Picker from "@emoji-mart/react";
-import data from "@emoji-mart/data";
 import Button from "../Button/Button";
 import { useTheme } from "../../Theme/ThemeProvider";
 import EmojiIcon from "../Icons/EmojiIcon";
@@ -9,6 +7,10 @@ import "./EmojiPicker.css";
 
 const margin = 12;
 const gap = 8;
+const EmojiMartPicker = lazy(async () => {
+    const [{ default: Picker }, { default: data }] = await Promise.all([import("@emoji-mart/react"), import("@emoji-mart/data")]);
+    return { default: (props: Omit<ComponentProps<typeof Picker>, "data">) => <Picker {...props} data={data} /> };
+});
 
 export default function EmojiPicker({ onSelect, disabled = false }: {
     onSelect: (emoji: string) => void;
@@ -84,12 +86,14 @@ export default function EmojiPicker({ onSelect, disabled = false }: {
                         event.preventDefault();
                         setOpen(false);
                     }}>
-                    <Picker data={data} theme={theme} dynamicWidth autoFocus maxFrequentRows={0}
+                    <Suspense fallback={<p className="p-4 text-sm text-textGray">Loading emoji…</p>}>
+                    <EmojiMartPicker theme={theme} dynamicWidth autoFocus maxFrequentRows={0}
                         emojiSize={20} emojiButtonSize={32} previewPosition="none" skinTonePosition="search"
                         onEmojiSelect={(item: { native: string }) => {
                             onSelect(item.native);
                             setOpen(false);
                         }} />
+                    </Suspense>
                 </dialog>,
                 document.body,
             )}

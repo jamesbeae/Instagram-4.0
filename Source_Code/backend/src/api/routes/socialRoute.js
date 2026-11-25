@@ -45,7 +45,7 @@ router.post('/auth/change-password', verifyJWT, wrap(async (req) => {
     s.disconnectUser(user.id);
     return { status: 200, message: 'Password changed. Sign in again to renew your session.' };
 }));
-router.patch('/notification/:id/read', verifyJWT, wrap(async (req) => { await Notification.update({ read: true }, { where: { id: s.id(req.params.id), receiverId: req.currentUser.id } }); return { status: 200 }; }));
+router.patch('/notification/:id/read', verifyJWT, wrap(async (req) => { const [updated] = await Notification.update({ read: true }, { where: { id: s.id(req.params.id), receiverId: req.currentUser.id } }); if (!updated) throw s.error(404, 'Notification not found'); return { status: 200 }; }));
 router.delete('/notification/:id', verifyJWT, wrap(async (req) => { await Notification.destroy({ where: { id: s.id(req.params.id), receiverId: req.currentUser.id } }); return { status: 200 }; }));
 router.get('/user/activity', verifyJWT, wrap(async (req) => ({ status: 200, activity: await Interaction.findAll({ where: { userId: req.currentUser.id }, order: [['createdAt', 'DESC']], limit: 100 }) })));
 module.exports = router;

@@ -8,7 +8,7 @@ type ReportPostDialogProps = {
     postId?: string;
     targetUserId?: string;
     onClose: () => void;
-    onSubmitted: () => void;
+    onSubmitted: (duplicate?: boolean) => void;
 };
 
 export default function ReportPostDialog({ postId, targetUserId, onClose, onSubmitted }: ReportPostDialogProps) {
@@ -35,9 +35,9 @@ export default function ReportPostDialog({ postId, targetUserId, onClose, onSubm
         setSending(true);
         setError("");
         try {
-            await http.post("/reports", { ...(postId ? { postId } : { targetUserId }), reason: reason.trim() });
+            const response = await http.post("/reports", { ...(postId ? { postId } : { targetUserId }), reason: reason.trim() });
             markSaved();
-            onSubmitted();
+            onSubmitted(Boolean(response.data.duplicate));
             onClose();
         } catch {
             setError("Unable to submit report");

@@ -48,11 +48,17 @@ const Profile = () => {
         return () => { active = false; };
     }, [_id, privateHttp]);
     useEffect(() => {
-        const remove = (e: Event) => setProfile(p => p ? { ...p, posts: p.posts.filter(post => post._id !== (e as CustomEvent<string>).detail), saved: (p.saved || []).filter(post => post._id !== (e as CustomEvent<string>).detail) } : p);
-        const update = (e: Event) => setProfile(p => p ? { ...p, posts: p.posts.map(post => post._id === (e as CustomEvent).detail._id ? (e as CustomEvent).detail : post), saved: (p.saved || []).map(post => post._id === (e as CustomEvent).detail._id ? (e as CustomEvent).detail : post) } : p);
+        const remove = (e: Event) => setProfile(p => p ? { ...p, posts: p.posts.filter(post => post._id !== (e as CustomEvent<string>).detail), reels: (p.reels || []).filter(post => post._id !== (e as CustomEvent<string>).detail), saved: (p.saved || []).filter(post => post._id !== (e as CustomEvent<string>).detail) } : p);
+        const update = (e: Event) => setProfile(p => p ? { ...p, posts: p.posts.map(post => post._id === (e as CustomEvent).detail._id ? (e as CustomEvent).detail : post), reels: (p.reels || []).map(post => post._id === (e as CustomEvent).detail._id ? (e as CustomEvent).detail : post), saved: (p.saved || []).map(post => post._id === (e as CustomEvent).detail._id ? (e as CustomEvent).detail : post) } : p);
+        const createReel = (e: Event) => setProfile(p => {
+            const reel = (e as CustomEvent).detail;
+            if (!p || p._id !== reel.userId?._id) return p;
+            return { ...p, reels: [reel, ...(p.reels || []).filter(post => post._id !== reel._id)] };
+        });
         window.addEventListener('post-deleted', remove);
         window.addEventListener('post-updated', update);
-        return () => { window.removeEventListener('post-deleted', remove); window.removeEventListener('post-updated', update); };
+        window.addEventListener('reels-updated', createReel);
+        return () => { window.removeEventListener('post-deleted', remove); window.removeEventListener('post-updated', update); window.removeEventListener('reels-updated', createReel); };
     }, []);
     if (isLoading || (profile && profile._id !== _id && !errorMessage)) {
         return <Loading message="Đang tải hồ sơ..." className="self-start flex-1 mt-10 text-foreground" />;
@@ -75,7 +81,7 @@ const Profile = () => {
                     onProfileUpdated={user => setProfile(current => current?._id === profile._id ? { ...current, ...user } : current)} />
                 {canViewSaved && relationshipsOpen && <RelationshipManager profile={profile} onClose={() => setRelationshipsOpen(false)}
                     onUnfollow={userId => setProfile(current => current ? { ...current, followings: current.followings?.filter(user => user._id !== userId) } : current)} />}
-                <PostList posts={profile.posts || []} saved={profile.saved || []} canViewSaved={canViewSaved} />
+            <PostList posts={profile.posts || []} reels={profile.reels || []} saved={profile.saved || []} canViewSaved={canViewSaved} />
             </div>
         </main>
     );

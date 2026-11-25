@@ -88,33 +88,6 @@
     background: var(--brand-soft);
     font-weight: 600;
 }
-.social-app .home-composer {
-    width: 100%;
-    margin: 14px 0 8px;
-    padding: 16px 18px 12px;
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    background: var(--surface);
-}
-.social-app .home-composer-prompt { display: flex; align-items: center; gap: 12px; }
-.social-app .home-composer-prompt > button {
-    flex: 1;
-    padding: 12px 16px;
-    border-radius: 24px;
-    background: var(--app-bg);
-    color: var(--muted);
-    text-align: left;
-}
-.social-app .home-composer-actions {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px solid var(--line);
-}
-.social-app .home-composer-actions button { padding: 7px 10px; color: var(--muted); font-size: .875rem; }
-.social-app .home-composer-actions button:last-child { color: var(--brand); font-weight: 600; }
 .social-app .home-post {
     max-width: 740px;
     padding: 18px;
@@ -306,14 +279,11 @@
     .social-app .home-workspace { padding-left: 22px; padding-right: 22px; }
 }
 @media (max-width: 700px) {
-    .social-app .app-sidebar { width: 64px !important; padding-left: 6px; padding-right: 6px; }
+    .social-app .sidebar-slot { flex-basis: 64px; width: 64px; min-width: 64px; }
     .social-app .home-workspace { padding: 12px 10px 90px; }
     .social-app .home-post { padding: 12px; border-radius: 16px; }
     .social-app .home-feed-tabs button { min-width: 0; flex: 1; }
 }
-
-@media(max-width:1100px){.app-sidebar{width:72px!important;padding-left:8px;padding-right:8px}.app-sidebar .navigation-label{display:none}.app-sidebar p{overflow:hidden}.app-sidebar>div:first-child{max-width:55px;overflow:hidden}}
-
 
 .feed-card {
     width: 100%;
@@ -334,10 +304,158 @@
 .home-layout {
     container-type: inline-size;
     container-name: home;
+    box-sizing: border-box;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: clamp(24px, 3vw, 44px);
+    padding: 16px clamp(16px, 2vw, 32px) 36px;
+}
+
+.home-feed-column {
+    display: flex;
+    flex: 1 1 620px;
+    flex-direction: column;
+    align-items: center;
+    width: min(100%, 660px);
+    min-width: 0;
+}
+
+.home-layout .feed-card {
+    width: 100%;
+    max-width: 620px;
+}
+
+.home-feed-list {
+    max-width: 100%;
 }
 
 .home-account-panel {
     display: none;
+}
+
+/* Keep the home right rail compact and readable in the dark theme. */
+.home-account-panel.ui-card {
+    gap: 0;
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid var(--theme-border, #303030);
+    border-radius: 20px;
+    background: var(--theme-card, #111);
+    color: rgb(var(--theme-text, 255 255 255));
+}
+
+.home-account-panel .home-current-account {
+    margin: 0;
+    padding: 16px;
+    border: 0;
+    border-bottom: 1px solid var(--theme-border, #303030);
+    border-radius: 0;
+    background: transparent;
+}
+
+.home-account-panel .home-current-account > div {
+    padding-right: 0;
+    padding-left: 0;
+}
+
+.home-account-panel .home-suggestion-card {
+    margin: 0 16px;
+    padding: 14px 0 12px;
+    border: 0;
+    border-bottom: 1px solid var(--theme-border, #303030);
+    border-radius: 0;
+    background: transparent;
+}
+
+.home-account-panel .home-suggestion-card > div:first-child {
+    margin-bottom: 8px;
+    font-size: .9rem;
+}
+
+.home-account-panel .home-suggestion-card .flex.flex-col.py-2 {
+    gap: 4px;
+}
+
+.home-account-panel .home-suggestion-card .flex.flex-col.py-2 > .flex {
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
+
+.home-account-panel .home-topics-card {
+    margin: 0;
+    padding: 14px 16px;
+    border: 0;
+    border-bottom: 1px solid var(--theme-border, #303030);
+    border-radius: 0;
+    background: transparent;
+}
+
+.home-account-panel .home-panel-heading {
+    margin-bottom: 8px;
+}
+
+.home-account-panel .home-panel-heading h2 {
+    color: rgb(var(--theme-text, 255 255 255));
+    font-size: .9rem;
+    font-weight: 600;
+}
+
+.home-account-panel .home-topics-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.home-account-panel .home-topics-empty p {
+    margin: 0;
+    font-size: .78rem;
+    line-height: 1.45;
+}
+
+.home-account-panel .home-panel-heading button,
+.home-account-panel .home-topics-empty button {
+    color: rgb(var(--theme-accent, 0 149 246));
+    font-weight: 600;
+}
+
+.home-account-panel .home-topics-empty button {
+    margin: 0;
+    padding: 0;
+    font-size: .8rem;
+    line-height: 1.4;
+}
+
+.home-account-panel .home-topics-card li + li {
+    border-color: var(--theme-border, #303030);
+}
+
+.home-account-panel .home-topics-card li button {
+    gap: 2px;
+    padding: 8px 0;
+}
+
+.home-account-panel .home-topics-card li strong {
+    color: rgb(var(--theme-text, 255 255 255));
+}
+
+.home-account-panel .home-topics-card li span,
+.home-account-panel .home-topics-empty p {
+    color: rgb(var(--theme-secondary, 168 168 168));
+}
+
+.home-account-panel > :last-child {
+    margin-inline: 0;
+    padding: 12px 16px 16px;
+    border-top: 0;
+    color: rgb(var(--theme-muted, 115 115 115));
+    line-height: 1.6;
+}
+
+.home-account-panel .copy-right {
+    margin-top: 6px;
+    font-size: .7rem;
 }
 
 .guest-signup-card { min-height: 250px; }
@@ -347,13 +465,15 @@
     .guest-signup-card { display: none; }
 }
 
-@container home (min-width: 800px) {
+@container home (min-width: 780px) {
     .home-account-panel {
         display: flex;
-        flex: 0 0 280px;
+        flex: 0 1 250px;
+        min-width: 200px;
+        max-width: 272px;
         flex-direction: column;
         align-self: flex-start;
-        margin: 24px 0 20px 24px;
+        margin: 20px 0 20px;
         padding: 16px 0;
         overflow-wrap: anywhere;
     }
@@ -363,4 +483,9 @@
         padding-top: 12px;
         border-top: 1px solid var(--theme-border, #303030);
     }
+}
+
+@media (max-width: 700px) {
+    .home-layout { gap: 0; padding: 10px 10px 90px; }
+    .home-feed-column { flex: 1 1 auto; width: 100%; }
 }

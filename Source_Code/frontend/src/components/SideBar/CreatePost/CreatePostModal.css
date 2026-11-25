@@ -64,6 +64,52 @@
     gap: 16px;
 }
 
+.create-post-type-picker {
+    display: grid;
+    gap: 10px;
+}
+
+.create-post-type-option {
+    display: grid;
+    gap: 5px;
+    padding: 16px;
+    border: 1px solid var(--theme-border, #48484d);
+    border-radius: 14px;
+    background: var(--theme-field, #1b1b1d);
+    color: var(--theme-ink, #f5f5f5);
+    text-align: left;
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.create-post-type-option:hover,
+.create-post-type-option.is-selected {
+    border-color: var(--theme-focus, #77b7ff);
+    background: var(--theme-selected, #1b2838);
+}
+
+.create-post-type-title {
+    font-weight: 650;
+}
+
+.create-post-type-description,
+.create-post-kind-summary span,
+.create-post-optional {
+    color: var(--theme-copy, #bcbcc1);
+    font-size: 13px;
+}
+
+.create-post-kind-summary {
+    display: grid;
+    gap: 3px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--theme-field, #1b1b1d);
+}
+
+.create-post-optional {
+    margin: 5px 0 0 48px;
+}
+
 .create-post-dropzone {
     display: grid;
     align-content: center;

@@ -5,15 +5,17 @@ import NotificationsTag from "./NotificationsTag";
 import { Link, useNavigate } from "react-router-dom";
 import { sideBarActions } from "../../../lib/redux/sideBarSlice";
 
-export default function NotificationsModal({ notifications, onDismiss }: { notifications: Notification[]; onDismiss: (id: string) => void }) {
+export default function NotificationsModal({ notifications, onDismiss, onRead = async () => true }: { notifications: Notification[]; onDismiss: (id: string) => void; onRead?: (id: string) => Promise<boolean> }) {
     const isOpen = useAppSelector(state => state.sideBarSlice.openedModal === "notifications");
     const user = useAppSelector(state => state.authSlice.userInfo);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     if (!isOpen) return null;
 
-    function openNotification(notification: Notification) {
+    async function openNotification(notification: Notification) {
+        if (!notification.read && !await onRead(notification._id)) return;
         dispatch(sideBarActions.closePanel('notifications'));
+        if (notification.type === 'REPORT_RESOLVED') return;
         if (notification.postId) navigate(`/post/${notification.postId}`);
         else {
             const senderId = notification.sender?._id || notification.senderId;
