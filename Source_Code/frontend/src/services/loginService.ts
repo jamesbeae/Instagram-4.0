@@ -46,9 +46,9 @@ const validateLoginData = (data: LoginData) => {
 };
 
 // Gọi API đăng nhập.
-const login = async (data: LoginData) => {
+const login = async (data: LoginData, endpoint = "/auth/login") => {
     try {
-        const response = await http.post("/auth/login", data);
+        const response = await http.post(endpoint, data);
 
         return {
             success: true as const,
@@ -89,6 +89,7 @@ const loginService = {
     loginWithFacebook,
     validateLoginData,
     login,
+    loginAdmin: (data: LoginData) => login(data, "/auth/admin/login"),
 };
 
 export default loginService;

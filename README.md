@@ -39,9 +39,25 @@ Hai tài khoản **chỉ có trong DB demo đã seed**: `owner@example.com / 123
 
 - **Cloudinary**: các biến CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET trong backend/.env. Khi chưa cấu hình, môi trường development/test lưu media trong backend/uploads. Production yêu cầu Cloudinary. Assets mới dùng authenticated delivery và được proxy qua backend sau khi kiểm tra quyền; chưa kiểm thử kết nối thật vì thiếu tài khoản Cloudinary.
 - **Email khôi phục**: RESEND_API_KEY, MAIL_FROM đã xác minh, PASSWORD_RESET_URL. Khi thiếu, API trả thông báo chưa cấu hình. Token ngẫu nhiên chỉ lưu hash, hết hạn một giờ, dùng một lần và thu hồi phiên cũ. Test dùng nhà cung cấp email giả tại localhost, không gửi email thật. [Resend REST API](https://resend.com/vercel).
-- **Admin đầu tiên**: chưa nâng quyền tài khoản demo. Người vận hành cần cấp role admin cho tài khoản được chỉ định bằng công cụ quản trị DB; tránh cho người dùng tự đăng ký role admin.
 - **Facebook login**: đang ẩn mặc định; backend cũ vẫn chưa triển khai OAuth Facebook. Không bật VITE_ENABLE_FACEBOOK_LOGIN trước khi hoàn thiện xác minh token/app và cấu hình tài khoản Meta.
 - **Docker/triển khai thật**: PostgreSQL container đã chạy healthy, đăng nhập và 8 kiểm thử backend đạt trên Docker. Profile app để đóng gói cả frontend/backend chưa được build/chạy trên máy này. Xem [hướng dẫn Docker Windows](https://docs.docker.com/desktop/setup/install/windows-install/).
+
+## Tạo tài khoản Admin
+
+Sau khi chạy migrations, người vận hành có quyền truy cập backend có thể tạo Admin đầu tiên. Dùng email và tên đăng nhập mới, chưa có trong hệ thống. Ví dụ với PowerShell 7 khi backend chạy trên Windows và PostgreSQL chạy trong Docker:
+
+```powershell
+Set-Location 'D:\codes\Instagram-4.0\Source_Code\backend'
+Read-Host 'Mật khẩu Admin' -MaskInput | node scripts/bootstrap-admin.cjs --username admin-local --email admin-local@example.com --full-name "Quản trị viên"
+```
+
+Nếu backend chạy trong Docker Compose, chạy lệnh sau từ thư mục repo:
+
+```powershell
+Read-Host 'Mật khẩu Admin' -MaskInput | docker compose exec -T backend node scripts/bootstrap-admin.cjs --username admin-local --email admin-local@example.com --full-name "Quản trị viên"
+```
+
+Mật khẩu cần ít nhất 12 ký tự và tối đa 72 byte UTF-8. Đăng nhập bằng email và mật khẩu vừa đặt tại `http://localhost:5173/admin/login` để vào `/admin`. Khi hệ thống đã có Admin đang hoạt động, Admin có thể cấp thêm quyền cho tài khoản đã đăng ký qua **More → Moderation → Accounts**. Luồng đăng ký công khai luôn tạo tài khoản User.
 
 ## Kiểm thử
 

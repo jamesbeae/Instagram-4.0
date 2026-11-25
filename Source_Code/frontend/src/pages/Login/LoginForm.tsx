@@ -8,7 +8,7 @@ import loginService from "../../services/loginService";
 import { useAppDispatch } from "../../hooks/useStore";
 import { authActions } from "../../lib/redux/authSlice";
 
-export default function LoginForm() {
+export default function LoginForm({ admin = false }: { admin?: boolean }) {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
@@ -16,19 +16,22 @@ export default function LoginForm() {
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { markSaved } = useUnsavedChanges(email !== "" || password !== "");
-    const canSubmit = Boolean(email && password) && !isSubmitting;
 
     function completeLogin(data: Parameters<typeof authActions.loggedIn>[0]) {
         markSaved();
         dispatch(authActions.loggedIn(data));
-        navigate(data.userInfo?.role?.name === "admin" ? "/admin" : "/");
+        navigate(data.userInfo?.role?.name === "admin" ? "/admin" : "/", { replace: admin });
     }
 
     async function handleLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (!canSubmit) return;
+        if (isSubmitting) return;
 
-        const validation = loginService.validateLoginData({ email, password });
+        const fields = new FormData(event.currentTarget);
+        const validation = loginService.validateLoginData({
+            email: String(fields.get("email") ?? "").trim(),
+            password: String(fields.get("password") ?? ""),
+        });
         if (!validation.success) {
             setError(validation.error.issues[0].message);
             return;
@@ -37,7 +40,7 @@ export default function LoginForm() {
         setIsSubmitting(true);
         setError("");
         try {
-            const result = await loginService.login(validation.data);
+            const result = await (admin ? loginService.loginAdmin : loginService.login)(validation.data);
             if (result?.success) completeLogin(result.data);
             else setError(result?.message ?? "Đăng nhập thất bại");
         } finally {
@@ -59,17 +62,23 @@ export default function LoginForm() {
     return (
         <div className="auth-form">
             <form className="auth-form" onSubmit={handleLogin} noValidate>
-                <Input className="auth-input" type="email" name="email" id="email" autoComplete="username"
-                    placeholder="Email" aria-label="Email" disabled={isSubmitting} getInputValueHandler={setEmail} />
-                <Input className="auth-input" type="password" name="password" id="password" autoComplete="current-password"
-                    placeholder="Your password" aria-label="Password" disabled={isSubmitting} getInputValueHandler={setPassword} />
+                <div className="auth-field">
+                    <label htmlFor="email" className={admin ? undefined : "sr-only"}>Email</label>
+                    <Input className="auth-input" type="email" name="email" id="email" autoComplete="username"
+                        placeholder={admin ? "you@example.com" : "Email"} disabled={isSubmitting} getInputValueHandler={setEmail} />
+                </div>
+                <div className="auth-field">
+                    <label htmlFor="password" className={admin ? undefined : "sr-only"}>Password</label>
+                    <Input className="auth-input" type="password" name="password" id="password" autoComplete="current-password"
+                        placeholder={admin ? undefined : "Your password"} disabled={isSubmitting} getInputValueHandler={setPassword} />
+                </div>
                 <Link to="/forgot-password" className="auth-recovery">Forgot password?</Link>
                 {error && <p role="alert" className="text-sm text-errorText">{error}</p>}
-                <Button className="auth-submit" type="submit" disabled={!canSubmit}>
-                    {isSubmitting ? "Logging in…" : "Log in"}
+                <Button className="auth-submit" type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Logging in…" : admin ? "Sign in as admin" : "Log in"}
                 </Button>
             </form>
-            {import.meta.env.VITE_ENABLE_FACEBOOK_LOGIN === "true" && (
+            {!admin && import.meta.env.VITE_ENABLE_FACEBOOK_LOGIN === "true" && (
                 <div className="auth-social">
                     <FacebookLogin appId={import.meta.env.VITE_FACEBOOK_APP_ID || ""} autoLoad={false}
                         fields="name,email,picture" callback={handleFacebookLogin} cssClass="auth-submit" />

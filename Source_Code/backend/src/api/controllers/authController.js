@@ -11,19 +11,22 @@ exports.signUp = async (req, res, next) => {
 };
 
 // Log in
-exports.login = async (req, res, next) => {
+const login = requiredRole => async (req, res, next) => {
     const { email, password } = req.body;
     try {
         const result = await sequelizeAuthService.login(
             res,
             email,
-            password
+            password,
+            requiredRole
         );
         res.status(200).json(result);
     } catch (error) {
         next(error);
     }
 };
+exports.login = login();
+exports.loginAdmin = login("admin");
 
 // Login with Facebook:
 exports.loginWithFacebook = async (req, res, next) => {

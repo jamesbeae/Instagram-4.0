@@ -315,6 +315,59 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             assert.equal((await request('DELETE', '/groups/' + group.id, null, o)).status, 200);
         });
 
+        await t.test('bootstraps one admin from the operator CLI and enables normal admin login', async () => {
+            const password = 'Admin integration phrase 42!';
+            function bootstrap(username, email, input = password) {
+                return new Promise((resolve, reject) => {
+                    const child = spawn(process.execPath, [
+                        'scripts/bootstrap-admin.cjs', '--username', username, '--email', email, '--full-name', 'Integration Admin',
+                    ], { env, stdio: ['pipe', 'pipe', 'pipe'] });
+                    let output = '';
+                    child.stdout.on('data', chunk => { output += chunk; });
+                    child.stderr.on('data', chunk => { output += chunk; });
+                    child.on('error', reject);
+                    child.on('close', code => resolve({ code, output }));
+                    child.stdin.end(input + '\n');
+                });
+            }
+            const weakPassword = await bootstrap('insecure-admin', 'insecure-admin@example.com', 'secret');
+            assert.equal(weakPassword.code, 1);
+            assert.match(weakPassword.output, /at least 12 characters/);
+            assert(!weakPassword.output.includes('secret'));
+            const duplicateEmail = await bootstrap('duplicate-admin', 'owner@example.com');
+            assert.equal(duplicateEmail.code, 1);
+            assert.match(duplicateEmail.output, /already in use/);
+
+            const candidates = ['bootstrap-one@example.com', 'bootstrap-two@example.com'];
+            const attempts = await Promise.all(candidates.map((email, index) => bootstrap('bootstrap-admin-' + index, email)));
+            assert.deepEqual(attempts.map(attempt => attempt.code).sort(), [0, 1]);
+            assert.match(attempts.find(attempt => attempt.code === 1).output, /active admin already exists/);
+            assert(attempts.every(attempt => !attempt.output.includes(password)));
+            const createdEmail = candidates[attempts.findIndex(attempt => attempt.code === 0)];
+            const adminLogin = await request('POST', '/auth/login', { email: createdEmail, password });
+            assert.equal(adminLogin.status, 200);
+            assert.equal(adminLogin.data.userInfo.role.name, 'admin');
+            const consoleLogin = await request('POST', '/auth/admin/login', { email: createdEmail, password });
+            assert.equal(consoleLogin.status, 200);
+            assert.equal(consoleLogin.data.userInfo.role.name, 'admin');
+            const wrongPassword = await request('POST', '/auth/admin/login', { email: createdEmail, password: 'incorrect' });
+            assert.equal(wrongPassword.status, 401);
+            assert.equal(wrongPassword.data.accessToken, undefined);
+            const ordinaryLogin = await fetch(api + '/auth/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: 'viewer@example.com', password: '12345678' }),
+            });
+            assert.equal(ordinaryLogin.status, 403);
+            assert.equal(ordinaryLogin.headers.get('set-cookie'), null);
+            assert.equal((await ordinaryLogin.json()).accessToken, undefined);
+            const adminToken = consoleLogin.data.accessToken;
+            assert.equal((await request('GET', '/admin/reports', null, adminToken)).status, 200);
+            const log = await request('GET', '/admin/actions', null, adminToken);
+            assert.equal(log.data.actions.filter(entry => entry.action === 'BOOTSTRAP_ADMIN').length, 1);
+            assert.equal(log.data.actions[0].targetUserId, adminLogin.data.userInfo._id);
+        });
+
         await t.test('roles, analytics and moderation cannot be invoked by ordinary users', async () => {
             assert.equal((await request('GET', '/admin/reports', null, v)).status, 403);
             assert.equal((await request('GET', '/creator/analytics', null, v)).status, 403);
@@ -345,7 +398,9 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
         await t.test('profile updates retain roles and admin audit endpoints enforce permissions', async () => {
             assert.equal((await request('GET', '/admin/stats', null, v)).status, 403);
             assert.equal((await request('GET', '/admin/actions', null, v)).status, 403);
-            assert.equal((await request('GET', '/admin/stats', null, o)).status, 200);
+            const stats = await request('GET', '/admin/stats', null, o);
+            assert.equal(stats.status, 200);
+            assert.equal(Object.hasOwn(stats.data, 'messages'), false);
             const actions = await request('GET', '/admin/actions', null, o);
             assert.equal(actions.status, 200);
             assert(actions.data.actions.some(action => action.action === 'UPDATE_USER'));

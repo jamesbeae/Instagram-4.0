@@ -15,6 +15,7 @@ router.post("/register", validateReqBody(signUpSchema), authController.signUp);
 
 // Log in router:
 router.post("/login", validateReqBody(loginSchema), authController.login);
+router.post("/admin/login", validateReqBody(loginSchema), authController.loginAdmin);
 
 // Log in with Facebook router:
 router.post("/login-with-facebook", authController.loginWithFacebook);

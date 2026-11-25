@@ -1,5 +1,5 @@
 const { Router } = require('express'), Joi = require('joi'), { Op } = require('sequelize');
-const { sequelize, Group, GroupMember, User, Role, Post, Report, Interaction, Follow, Like, Comment, Save, Message, Notification, AdminAction } = require('../../database/models');
+const { sequelize, Group, GroupMember, User, Role, Post, Report, Interaction, Follow, Like, Comment, Save, Notification, AdminAction } = require('../../database/models');
 const { verifyJWT, optionalJWT, requireRole } = require('../middlewares/verifyJWT');
 const s = require('../services/socialService'), access = require('../services/accessService');
 const r = Router(), wrap = fn => async (req, res, next) => { try {
@@ -112,13 +112,13 @@ r.get('/admin/stats', verifyJWT, requireRole('admin'), wrap(async (req) => {
     if (!validDate(query.from) || !validDate(query.to) || (query.from && query.to && query.from > query.to)) throw s.error(400, 'Choose a valid date range');
     const createdAt = { ...(query.from ? { [Op.gte]: new Date(`${query.from}T00:00:00.000Z`) } : {}), ...(query.to ? { [Op.lt]: new Date(new Date(`${query.to}T00:00:00.000Z`).getTime() + 86400000) } : {}) };
     const range = query.from || query.to ? { createdAt } : {};
-    const [users, activeUsers, disabledUsers, posts, stories, reels, openReports, resolvedReports, follows, likes, comments, saves, messages, behaviorEvents] = await Promise.all([
+    const [users, activeUsers, disabledUsers, posts, stories, reels, openReports, resolvedReports, follows, likes, comments, saves, behaviorEvents] = await Promise.all([
         User.count({ where: range }), User.count({ where: { ...range, disabled: false } }), User.count({ where: { ...range, disabled: true } }),
         Post.count({ where: { ...range, kind: 'POST', hidden: false } }), Post.count({ where: { ...range, kind: 'STORY', hidden: false } }), Post.count({ where: { ...range, hidden: false, [Op.or]: [{ kind: 'REEL' }, { kind: 'POST', media: { [Op.contains]: [{ type: 'VIDEO' }] } }] } }),
         Report.count({ where: { ...range, status: 'open' } }), Report.count({ where: { ...range, status: { [Op.ne]: 'open' } } }),
-        Follow.count({ where: range }), Like.count({ where: range }), Comment.count({ where: range }), Save.count({ where: range }), Message.count({ where: range }), Interaction.count({ where: range })
+        Follow.count({ where: range }), Like.count({ where: range }), Comment.count({ where: range }), Save.count({ where: range }), Interaction.count({ where: range })
     ]);
-    return { category: query.category, from: query.from || null, to: query.to || null, users, activeUsers, disabledUsers, posts, stories, reels, openReports, resolvedReports, follows, likes, comments, saves, messages, behaviorEvents };
+    return { category: query.category, from: query.from || null, to: query.to || null, users, activeUsers, disabledUsers, posts, stories, reels, openReports, resolvedReports, follows, likes, comments, saves, behaviorEvents };
 }));
 r.get('/admin/actions', verifyJWT, requireRole('admin'), wrap(async () => ({ actions: await AdminAction.findAll({ include: [{ model: User, as: 'admin', attributes: ['id', 'username'] }, { model: User, as: 'targetUser', attributes: ['id', 'username'] }], order: [['createdAt', 'DESC']], limit: 100 }) })));
 r.patch('/admin/users/:id', verifyJWT, requireRole('admin'), wrap(async (req) => {

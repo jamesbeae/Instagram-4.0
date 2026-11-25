@@ -1,0 +1,92 @@
+.auth-page.admin-auth {
+    --admin-canvas: #0a101b;
+    --admin-glow: #17294b;
+    --admin-surface: #101a29;
+    --admin-field: #0c1524;
+    --admin-border: #283955;
+    --admin-muted: #a5b5cc;
+    --admin-accent: #a5c9ff;
+    --admin-icon-surface: #1d3559;
+    background: radial-gradient(ellipse at 50% 24%, var(--admin-glow), transparent 55%), var(--admin-canvas);
+    color: #f2f6ff;
+}
+
+:root[data-theme="light"] .auth-page.admin-auth {
+    --admin-canvas: #eff4fa;
+    --admin-glow: #d5e7ff;
+    --admin-surface: #fff;
+    --admin-field: #f7f9fd;
+    --admin-border: #cfdbed;
+    --admin-muted: #53637b;
+    --admin-accent: #144e9a;
+    --admin-icon-surface: #e8f1ff;
+    color: #14243b;
+}
+
+.admin-auth .auth-card.ui-card {
+    --card-background: var(--admin-surface);
+    --card-border: var(--admin-border);
+    --card-radius: 28px;
+    width: min(100%, 452px);
+    padding: clamp(24px, 6vw, 40px);
+    box-shadow: 0 22px 64px rgb(2 12 29 / 18%);
+}
+
+.admin-auth-icon {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 22px;
+    place-items: center;
+    border: 1px solid var(--admin-border);
+    border-radius: 17px;
+    background: var(--admin-icon-surface);
+    color: var(--admin-accent);
+    font-size: 22px;
+}
+
+.admin-auth .auth-card h1 {
+    margin-bottom: 6px;
+    text-align: start;
+}
+
+.admin-auth .auth-description {
+    margin-bottom: 28px;
+    color: var(--admin-muted);
+    line-height: 1.5;
+}
+
+.admin-auth form.auth-form {
+    gap: 15px;
+}
+
+.admin-auth .auth-field {
+    display: grid;
+    gap: 6px;
+}
+
+.admin-auth .auth-field label {
+    font-size: .875rem;
+    font-weight: 650;
+}
+
+.admin-auth .auth-input {
+    min-height: 48px;
+    border-color: var(--admin-border);
+    background: var(--admin-field);
+}
+
+.admin-auth .auth-input::placeholder {
+    color: var(--admin-muted);
+}
+
+.admin-auth .auth-card a {
+    color: var(--admin-accent);
+    font-size: .875rem;
+}
+
+.admin-auth .auth-switch {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--admin-border);
+}
