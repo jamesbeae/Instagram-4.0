@@ -17,6 +17,7 @@ const Message = lazy(() => import("./pages/Message"));
 const PasswordRecovery = lazy(() => import("./pages/PasswordRecovery"));
 const Discover = lazy(() => import("./pages/Discover"));
 const Workspace = lazy(() => import("./pages/Workspace"));
+const CreatorAnalytics = lazy(() => import("./pages/CreatorAnalytics"));
 const Settings = lazy(() => import("./pages/Settings"));
 const PostPage = lazy(() => import("./pages/PostPage"));
 const ChatBox = lazy(() => import("./pages/Message/Chatbox"));
@@ -46,7 +47,8 @@ const routes: RouteObject[] = [
                 element: <RequireAuth />,
                 children: [
                     { path: "settings", element: <Settings /> },
-                    ...["groups", "creator"].map(path => ({ path, element: <Workspace key={path} /> })),
+                    { path: "groups", element: <Workspace /> },
+                    { path: "creator", element: <CreatorAnalytics /> },
                     { path: "message", element: <Message />, children: [{ path: ":user_id", element: <ChatBox /> }] },
                 ],
             },
