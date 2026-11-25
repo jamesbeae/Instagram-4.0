@@ -24,13 +24,14 @@ export default function Message() {
     return (
         <main className="message-page">
             <Card as="section" className="message-card" aria-label="Messages" data-conversation-open={Boolean(selectedUserId)}>
-                <ChatUserList users={inbox?.contacts ?? null} online={online} unread={inbox?.unread ?? []} currentUserId={currentUserId} loadError={failed} />
+                <ChatUserList users={inbox?.contacts ?? null}
+                    online={online} unread={inbox?.unread ?? []} currentUserId={currentUserId} loadError={failed} />
                 <div className="message-conversation" key={selectedUserId}>
                     {selectedUserId ? <Outlet context={online} /> : (
                         <div className="message-empty">
                             <span className="message-empty-icon" aria-hidden="true"><MessageIcon /></span>
                             <h2>Your messages</h2>
-                            <p>Select a conversation to start chatting.</p>
+                            <p>Select a conversation or search for someone to message.</p>
                         </div>
                     )}
                 </div>

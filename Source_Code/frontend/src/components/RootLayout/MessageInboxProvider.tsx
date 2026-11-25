@@ -7,16 +7,19 @@ import type { User } from "../../models/User";
 import { socket } from "../../socket/socket";
 import "./MessageInbox.css";
 
-type Inbox = { contacts: User[]; unread: string[]; unreadCount?: number };
+export type InboxUser = User & {
+    lastMessage: { contents: string; senderId: string; createdAt: string } | null;
+};
+
+type Inbox = { contacts: InboxUser[]; unread: string[]; unreadCount?: number };
 type InboxState = {
     inbox: Inbox | null;
     failed: boolean;
     unreadBadgeCount: number;
-    dismissUnreadBadge: () => void;
     markRead: (messageId: string) => Promise<void>;
 };
 
-const InboxContext = createContext<InboxState>({ inbox: null, failed: false, unreadBadgeCount: 0, dismissUnreadBadge: () => {}, markRead: async () => {} });
+const InboxContext = createContext<InboxState>({ inbox: null, failed: false, unreadBadgeCount: 0, markRead: async () => {} });
 
 export const useMessageInbox = () => useContext(InboxContext);
 
@@ -29,7 +32,6 @@ export default function MessageInboxProvider({ children }: { children: ReactNode
     const request = useRef(0);
     const [inbox, setInbox] = useState<Inbox | null>(null);
     const [failed, setFailed] = useState(false);
-    const [dismissedUnreadCount, setDismissedUnreadCount] = useState(0);
     const [notice, setNotice] = useState<Message | null>(null);
 
     const refresh = useCallback(async () => {
@@ -38,7 +40,6 @@ export default function MessageInboxProvider({ children }: { children: ReactNode
             const { data } = await http.get<Inbox>("/message/inbox");
             if (generation !== request.current) return;
             setInbox(data);
-            setDismissedUnreadCount(current => Math.min(current, data.unreadCount ?? data.unread.length));
             setFailed(false);
         } catch {
             if (generation === request.current) setFailed(true);
@@ -50,11 +51,7 @@ export default function MessageInboxProvider({ children }: { children: ReactNode
         await refresh();
     }, [http, refresh]);
 
-    const dismissUnreadBadge = useCallback(() => {
-        setDismissedUnreadCount(inbox?.unreadCount ?? inbox?.unread.length ?? 0);
-    }, [inbox]);
-
-    const unreadBadgeCount = Math.max(0, (inbox?.unreadCount ?? inbox?.unread.length ?? 0) - dismissedUnreadCount);
+    const unreadBadgeCount = inbox?.unreadCount ?? inbox?.unread.length ?? 0;
 
     useEffect(() => {
         if (!userId) return;
@@ -68,13 +65,11 @@ export default function MessageInboxProvider({ children }: { children: ReactNode
         void refresh();
         socket.on("receiveMessage", receive);
         socket.on("connect", refresh);
-        socket.on("messageContactsChanged", refresh);
         socket.on("messageInboxChanged", refresh);
         return () => {
             request.current++;
             socket.off("receiveMessage", receive);
             socket.off("connect", refresh);
-            socket.off("messageContactsChanged", refresh);
             socket.off("messageInboxChanged", refresh);
         };
     }, [refresh, userId]);
@@ -88,7 +83,7 @@ export default function MessageInboxProvider({ children }: { children: ReactNode
     const sender = inbox?.contacts.find(contact => contact._id === notice?.sender_id);
     const name = sender?.username || sender?.fullName;
     return (
-        <InboxContext.Provider value={{ inbox, failed, unreadBadgeCount, dismissUnreadBadge, markRead }}>
+        <InboxContext.Provider value={{ inbox, failed, unreadBadgeCount, markRead }}>
             {children}
             <div className="message-notice" role="status">
                 {notice && (
