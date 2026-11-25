@@ -1,5 +1,5 @@
 const { Router } = require('express'), Joi = require('joi'), { Op } = require('sequelize');
-const { sequelize, Group, GroupMember, User, Role, Post, Report, Interaction, Follow, Like, Comment, Save, Message, AdminAction } = require('../../database/models');
+const { sequelize, Group, GroupMember, User, Role, Post, Report, Interaction, Follow, Like, Comment, Save, Message, Notification, AdminAction } = require('../../database/models');
 const { verifyJWT, optionalJWT, requireRole } = require('../middlewares/verifyJWT');
 const s = require('../services/socialService'), access = require('../services/accessService');
 const r = Router(), wrap = fn => async (req, res, next) => { try {
@@ -58,7 +58,7 @@ else if (data.targetUserId === req.currentUser.id)
     }
 }));
 r.get('/creator/analytics', verifyJWT, requireRole('creator', 'admin'), wrap(async (req) => {
-    const query = parse(Joi.object({ from: Joi.string().pattern(/^\\d{4}-\\d{2}-\\d{2}$/), to: Joi.string().pattern(/^\\d{4}-\\d{2}-\\d{2}$/), postId: Joi.string().uuid() }), req.query);
+    const query = parse(Joi.object({ from: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/), to: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/), postId: Joi.string().uuid() }), req.query);
     const validDate = value => !value || (!Number.isNaN(Date.parse(`${value}T00:00:00.000Z`)) && new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value);
     if (!validDate(query.from) || !validDate(query.to) || (query.from && query.to && query.from > query.to)) throw s.error(400, 'Choose a valid date range');
     const allPosts = await Post.findAll({ where: { userId: req.currentUser.id, kind: 'POST' }, attributes: ['id', 'content', 'createdAt'], order: [['createdAt', 'DESC']] });
@@ -107,7 +107,7 @@ r.patch('/admin/content/:id/moderate', verifyJWT, requireRole('admin'), wrap(asy
 }));
 r.get('/admin/users', verifyJWT, requireRole('admin'), wrap(async () => ({ users: (await User.findAll({ include: [{ model: Role, as: 'role' }], limit: 200 })).map(u => ({ ...s.safeUser(u), disabled: u.disabled, role: u.role?.name })) })));
 r.get('/admin/stats', verifyJWT, requireRole('admin'), wrap(async (req) => {
-    const query = parse(Joi.object({ from: Joi.string().pattern(/^\\d{4}-\\d{2}-\\d{2}$/), to: Joi.string().pattern(/^\\d{4}-\\d{2}-\\d{2}$/), category: Joi.string().valid('all', 'accounts', 'content', 'interactions', 'reports').default('all') }), req.query);
+    const query = parse(Joi.object({ from: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/), to: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/), category: Joi.string().valid('all', 'accounts', 'content', 'interactions', 'reports').default('all') }), req.query);
     const validDate = value => !value || (!Number.isNaN(Date.parse(`${value}T00:00:00.000Z`)) && new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value);
     if (!validDate(query.from) || !validDate(query.to) || (query.from && query.to && query.from > query.to)) throw s.error(400, 'Choose a valid date range');
     const createdAt = { ...(query.from ? { [Op.gte]: new Date(`${query.from}T00:00:00.000Z`) } : {}), ...(query.to ? { [Op.lt]: new Date(new Date(`${query.to}T00:00:00.000Z`).getTime() + 86400000) } : {}) };

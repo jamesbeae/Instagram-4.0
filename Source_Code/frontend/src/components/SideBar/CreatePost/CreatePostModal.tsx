@@ -212,7 +212,7 @@ export default function CreatePostModal({ onClose }: { onClose: () => void }) {
                             hint={kind === "REEL" ? "One MP4 or WebM video, up to 20 MB." : `Up to 10 items. ${kind === "STORY" ? "Your Story disappears after 24 hours." : ""}`} /> : null)}
                     <div className="create-post-details" hidden={!isDetails}>
                         <div>
-                            <StatusInput onCaptionChange={setCaption} />
+                            <StatusInput key={kind} onCaptionChange={setCaption} />
                             <p className="create-post-optional">Caption · optional</p>
                         </div>
                         <div className="create-post-kind-summary">
