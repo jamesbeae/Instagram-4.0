@@ -487,6 +487,11 @@ test('PostgreSQL APIs and authenticated Socket.IO', { timeout: 90000 }, async (t
             }
             assert.equal((await request('GET', '/admin/content', null, v)).status, 403);
             const item = (await request('POST', '/post/create-post', { caption: 'New moderation QA', mediaUrl: 'https://example.com/report32.png' }, o)).data.post;
+            const analytics = await request('GET', '/creator/analytics?postId=' + item._id, null, o);
+            assert.equal(analytics.status, 200);
+            assert.deepEqual(analytics.data.posts.map(post => post.id), [item._id]);
+            assert.deepEqual(analytics.data.posts[0].preview, { type: 'PHOTO', url: 'https://example.com/report32.png' });
+            assert.deepEqual((await request('GET', '/creator/analytics?postId=' + item._id, null, v)).data.posts, []);
             const body = { postId: item._id, reason: 'Duplicate moderation QA' };
             const reports = await Promise.all(Array.from({ length: 4 }, () => request('POST', '/reports', body, v)));
             assert(reports.every(r => [200, 201].includes(r.status)));

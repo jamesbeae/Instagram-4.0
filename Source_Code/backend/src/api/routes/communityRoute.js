@@ -66,7 +66,7 @@ r.get('/creator/analytics', verifyJWT, requireRole('creator', 'admin'), wrap(asy
     const postWhere = { userId: req.currentUser.id, kind: 'POST' };
     if (query.postId) postWhere.id = query.postId;
     if (query.from || query.to) postWhere.createdAt = { ...(query.from ? { [Op.gte]: new Date(`${query.from}T00:00:00.000Z`) } : {}), ...(query.to ? { [Op.lt]: new Date(new Date(`${query.to}T00:00:00.000Z`).getTime() + 86400000) } : {}) };
-    const posts = await Post.findAll({ where: postWhere, include: s.includes, order: [['createdAt', 'DESC']] });
+    const posts = await Post.findAll({ where: postWhere, attributes: ['id', 'content', 'media', 'mediaUrl'], order: [['createdAt', 'DESC']] });
     const ids = posts.map(p => p.id);
     const eventWhere = { postId: { [Op.in]: ids } };
     if (query.from || query.to) eventWhere.createdAt = { ...(query.from ? { [Op.gte]: new Date(`${query.from}T00:00:00.000Z`) } : {}), ...(query.to ? { [Op.lt]: new Date(new Date(`${query.to}T00:00:00.000Z`).getTime() + 86400000) } : {}) };
@@ -77,7 +77,22 @@ r.get('/creator/analytics', verifyJWT, requireRole('creator', 'admin'), wrap(asy
         Save.findAll({ where: { postId: { [Op.in]: ids }, ...(eventWhere.createdAt ? { createdAt: eventWhere.createdAt } : {}) }, attributes: ['postId'] })
     ]);
     const countFor = (items, postId) => items.filter(item => item.postId === postId).length;
-    return { posts: posts.map(p => ({ id: p.id, caption: p.content, likes: countFor(likes, p.id), comments: countFor(comments, p.id), saves: countFor(saves, p.id), views: events.filter(e => e.postId === p.id && e.type === 'VIEW').length, shares: events.filter(e => e.postId === p.id && e.type === 'SHARE').length })), availablePosts };
+    return {
+        posts: posts.map(post => {
+            const { id, caption, photoVideo } = s.postJSON(post);
+            const firstMedia = photoVideo[0];
+            return {
+                id, caption,
+                preview: firstMedia?.url ? { url: firstMedia.url, type: firstMedia.type } : null,
+                likes: countFor(likes, id),
+                comments: countFor(comments, id),
+                saves: countFor(saves, id),
+                views: events.filter(event => event.postId === id && event.type === 'VIEW').length,
+                shares: events.filter(event => event.postId === id && event.type === 'SHARE').length,
+            };
+        }),
+        availablePosts,
+    };
 }));
 r.post('/user/become-creator', verifyJWT, wrap(async (req) => { if (req.currentUser.role === 'admin')
     return { status: 200 }; const role = await Role.findOne({ where: { name: 'creator' } }); if (!role)
